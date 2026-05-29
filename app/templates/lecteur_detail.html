@@ -1,0 +1,818 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="detail-hero">
+  <div class="container">
+    <div class="detail-header-top">
+      <a href="{{ url_for('page_lecteurs') }}" class="btn btn-back">
+        <i class="bi bi-arrow-left"></i> Retour à la liste
+      </a>
+      <span class="detail-id">ID Technique : #{{ lecteur.id_lecteur }}</span>
+    </div>
+    <h1><i class="bi bi-speaker-fill"></i> {{ lecteur.nom_lecteur }}</h1>
+    <p class="detail-location"><i class="bi bi-geo-alt"></i> {{ lecteur.adresse_lecteur }}</p>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div class="container mt-4 pb-5">
+  <!-- Carte de supervision -->
+  <div class="supervision-card mb-5">
+    <div class="supervision-header">
+      <div class="supervision-title">
+        <i class="bi bi-activity"></i> Supervision Temps Réel
+      </div>
+      {% if lecteur.est_en_ligne() %}
+        <span class="status-badge status-online">
+          <span class="status-pulse"></span>
+          CONNECTÉ
+        </span>
+      {% else %}
+        <span class="status-badge status-offline">
+          DÉCONNECTÉ
+        </span>
+      {% endif %}
+    </div>
+
+    <div class="supervision-body">
+      <div class="system-status">
+        <div class="status-icon-wrapper">
+          {% if lecteur.est_en_ligne() %}
+            <div class="status-icon status-icon-online">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+          {% else %}
+            <div class="status-icon status-icon-offline">
+              <i class="bi bi-x-circle-fill"></i>
+            </div>
+          {% endif %}
+        </div>
+        <div class="status-text">
+          <h3>
+            État du système : 
+            {% if lecteur.est_en_ligne() %}
+              <span class="text-success">● UP (En Ligne)</span>
+            {% else %}
+              <span class="text-danger">● KO (Hors Ligne)</span>
+            {% endif %}
+          </h3>
+          <p class="status-subtitle">
+            <i class="bi bi-clock-history"></i> Dernier signe de vie : {{ lecteur.derniere_synchro }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Playlists -->
+      <div class="playlists-grid">
+        <div class="playlist-card playlist-primary">
+          <div class="playlist-header">
+            <span class="playlist-badge playlist-badge-primary">Locale</span>
+            <h4>Playlist locale (active)</h4>
+          </div>
+          <div class="playlist-content">
+            <div class="playlist-item">
+              <i class="bi bi-music-note-beamed"></i>
+              <span>1 - Musique - "Ambiance Matin" 3:20</span>
+            </div>
+          </div>
+          <div class="playlist-status">
+            <strong>Statut intégrité :</strong>
+            {% if lecteur.est_en_ligne() %}
+              <span class="status-ok">OK</span>
+            {% else %}
+              <span class="status-unknown">INCONNU</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="playlist-card playlist-secondary">
+          <div class="playlist-header">
+            <span class="playlist-badge playlist-badge-secondary">Secours</span>
+            <h4>Playlist de secours</h4>
+          </div>
+          <div class="playlist-content">
+            <div class="playlist-item">
+              <i class="bi bi-music-note-beamed"></i>
+              <span>1 - Musique - "Secours Loop" 2:50</span>
+            </div>
+          </div>
+          <div class="playlist-status">
+            <strong>Statut :</strong>
+            {% if lecteur.est_en_ligne() %}
+              <span class="status-update">À JOUR</span>
+            {% else %}
+              <span class="status-obsolete">OBSOLÈTE</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Configuration et Actions -->
+  <div class="row g-4">
+    <!-- Configuration Administrative -->
+    <div class="col-lg-7">
+      <div class="config-card">
+        <div class="config-header">
+          <i class="bi bi-gear-fill"></i>
+          <h3>Configuration Administrative</h3>
+        </div>
+        <form method="POST" class="config-form">
+          <div class="form-group-rythmo">
+            <label for="nom_lecteur" class="form-label-rythmo">
+              <i class="bi bi-tag-fill"></i> Nom de l'appareil
+            </label>
+            <input 
+              type="text" 
+              id="nom_lecteur"
+              name="nom_lecteur" 
+              class="form-control-rythmo" 
+              value="{{ lecteur.nom_lecteur }}"
+              required
+            >
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group-rythmo">
+                <label for="adresseIP" class="form-label-rythmo">
+                  <i class="bi bi-router-fill"></i> Adresse IP (Cible)
+                </label>
+                <input 
+                  type="text" 
+                  id="adresseIP"
+                  name="adresseIP" 
+                  class="form-control-rythmo" 
+                  value="{{ lecteur.adresseIP }}"
+                  required
+                >
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group-rythmo">
+                <label for="adresse_lecteur" class="form-label-rythmo">
+                  <i class="bi bi-geo-alt-fill"></i> Emplacement Physique
+                </label>
+                <input 
+                  type="text" 
+                  id="adresse_lecteur"
+                  name="adresse_lecteur" 
+                  class="form-control-rythmo" 
+                  value="{{ lecteur.adresse_lecteur }}"
+                  required
+                >
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-rythmo-save">
+            <i class="bi bi-save"></i> Enregistrer les modifications
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="col-lg-5">
+      <div class="actions-card">
+        <div class="actions-header">
+          <i class="bi bi-lightning-charge-fill"></i>
+          <h3>Actions</h3>
+        </div>
+        <div class="actions-content">
+          <p class="actions-subtitle">Commandes envoyées au Raspberry Pi :</p>
+          <button class="btn btn-action" disabled>
+            <i class="bi bi-arrow-repeat"></i> Forcer la synchronisation
+          </button>
+          <button class="btn btn-action" disabled>
+            <i class="bi bi-volume-up"></i> Tester le volume
+          </button>
+          <button class="btn btn-action" onclick="declencherPub({{ lecteur.id_lecteur }})">
+            <i class="bi bi-megaphone-fill"></i> Ajouter Pub (Auto-Heure)
+        </button>
+          <div class="actions-danger-zone">
+            <div class="danger-header">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <h4>Zone de danger</h4>
+            </div>
+            <p class="danger-text">Cette action est irréversible.</p>
+            <form action="{{ url_for('supprimer_lecteur', id_lecteur=lecteur.id_lecteur) }}" method="POST" 
+                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement ce lecteur ?');">
+              <button type="submit" class="btn btn-danger-delete">
+                <i class="bi bi-trash"></i> Supprimer ce lecteur
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== NAVBAR ===== */
+.navbar-brand {
+  letter-spacing: 0.12em;
+  font-size: 1.7rem;
+  color: #ffc107 !important;
+  display: flex;
+  align-items: center;
+  margin-left: 40px;
+}
+.navbar-brand i {
+  color: #d11831;
+  margin-right: 10px;
+}
+
+#music-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 26px;
+  margin-left: 14px;
+}
+#music-bar div {
+  width: 4px;
+  background: linear-gradient(#ffc107, #d11831);
+  border-radius: 2px;
+  animation: bounce 1s infinite ease-in-out;
+}
+#music-bar div:nth-child(2){animation-delay:.1s}
+#music-bar div:nth-child(3){animation-delay:.2s}
+#music-bar div:nth-child(4){animation-delay:.3s}
+#music-bar div:nth-child(5){animation-delay:.4s}
+
+@keyframes bounce {
+  0%,100%{height:40%}
+  50%{height:100%}
+}
+
+/* ===== HERO ===== */
+.detail-hero {
+  margin-top: 2rem;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.detail-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.btn-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.detail-id {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.detail-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.detail-hero h1 i {
+  color: #ffc107;
+  margin-right: 0.5rem;
+}
+
+.detail-location {
+  opacity: 0.85;
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ===== CARTE DE SUPERVISION ===== */
+.supervision-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 193, 7, 0.15),
+    rgba(255, 230, 150, 0.12),
+    rgba(255, 255, 255, 0.05)
+  );
+  backdrop-filter: blur(28px);
+  border-radius: 24px;
+  border: 1.5px solid rgba(255, 193, 7, 0.35);
+  box-shadow: 0 18px 55px rgba(255, 193, 7, 0.25);
+  overflow: hidden;
+}
+
+.supervision-header {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.supervision-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.supervision-title i {
+  color: #ffc107;
+  font-size: 1.5rem;
+}
+
+.status-badge {
+  padding: 0.5rem 1.25rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.status-badge.status-online {
+  background: rgba(40, 167, 69, 0.25);
+  color: #6eff8c;
+  border: 1px solid rgba(40, 167, 69, 0.4);
+}
+
+.status-badge.status-offline {
+  background: rgba(220, 53, 69, 0.25);
+  color: #ff6b6b;
+  border: 1px solid rgba(220, 53, 69, 0.4);
+}
+
+.status-pulse {
+  width: 8px;
+  height: 8px;
+  background: #28a745;
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.8);
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.7;
+  }
+}
+
+.supervision-body {
+  padding: 2.5rem;
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-icon-wrapper {
+  flex-shrink: 0;
+}
+
+.status-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+
+.status-icon-online {
+  background: radial-gradient(circle, rgba(40, 167, 69, 0.3), rgba(40, 167, 69, 0.1));
+  color: #28a745;
+  box-shadow: 0 0 30px rgba(40, 167, 69, 0.4);
+}
+
+.status-icon-offline {
+  background: radial-gradient(circle, rgba(220, 53, 69, 0.3), rgba(220, 53, 69, 0.1));
+  color: #dc3545;
+}
+
+.status-text h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.status-subtitle {
+  opacity: 0.7;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ===== PLAYLISTS ===== */
+.playlists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.playlist-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 1.75rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.playlist-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 193, 7, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.playlist-header {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.playlist-badge {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.playlist-badge-primary {
+  background: #ffc107;
+  color: #1a060c;
+}
+
+.playlist-badge-secondary {
+  background: rgba(108, 117, 125, 0.8);
+  color: white;
+}
+
+.playlist-header h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  padding-top: 0.5rem;
+  color: white;
+}
+
+.playlist-content {
+  margin-bottom: 1.25rem;
+}
+
+.playlist-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.playlist-item i {
+  color: #ffc107;
+  font-size: 1.2rem;
+}
+
+.playlist-status {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.status-ok {
+  color: #6eff8c;
+  font-weight: 700;
+}
+
+.status-unknown {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+}
+
+.status-update {
+  color: #6eff8c;
+  font-weight: 700;
+}
+
+.status-obsolete {
+  color: #ff6b6b;
+  font-weight: 700;
+}
+
+/* ===== CONFIGURATION ===== */
+.config-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 193, 7, 0.12),
+    rgba(255, 255, 255, 0.05)
+  );
+  backdrop-filter: blur(28px);
+  border-radius: 20px;
+  border: 1.5px solid rgba(255, 193, 7, 0.3);
+  padding: 2rem;
+  height: 100%;
+}
+
+.config-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.config-header i {
+  color: #ffc107;
+  font-size: 1.5rem;
+}
+
+.config-header h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group-rythmo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label-rythmo {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff4c7;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-label-rythmo i {
+  color: #ffc107;
+  font-size: 1rem;
+}
+
+.form-control-rythmo {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.form-control-rythmo:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffc107;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+  color: white;
+}
+
+.btn-rythmo-save {
+  background: linear-gradient(135deg, #ffc107, #ffb300);
+  border: none;
+  color: #1a060c;
+  font-weight: 700;
+  padding: 0.875rem 1.75rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+  margin-top: 0.5rem;
+}
+
+.btn-rythmo-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 193, 7, 0.5);
+  background: linear-gradient(135deg, #ffb300, #ffc107);
+  color: #1a060c;
+}
+
+/* ===== ACTIONS ===== */
+.actions-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 193, 7, 0.12),
+    rgba(255, 255, 255, 0.05)
+  );
+  backdrop-filter: blur(28px);
+  border-radius: 20px;
+  border: 1.5px solid rgba(255, 193, 7, 0.3);
+  padding: 2rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.actions-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.actions-header i {
+  color: #ffc107;
+  font-size: 1.5rem;
+}
+
+.actions-header h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.actions-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.actions-subtitle {
+  opacity: 0.8;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.btn-action {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  padding: 0.875rem 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: not-allowed;
+}
+
+.actions-danger-zone {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.danger-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.danger-header i {
+  color: #dc3545;
+  font-size: 1.2rem;
+}
+
+.danger-header h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #dc3545;
+}
+
+.danger-text {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 1rem;
+}
+
+.btn-danger-delete {
+  width: 100%;
+  background: rgba(220, 53, 69, 0.2);
+  border: 1.5px solid rgba(220, 53, 69, 0.5);
+  color: #ff6b6b;
+  font-weight: 700;
+  padding: 0.875rem 1.25rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-danger-delete:hover {
+  background: rgba(220, 53, 69, 0.3);
+  border-color: #dc3545;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .playlists-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .system-status {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .detail-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .supervision-body {
+    padding: 1.5rem;
+  }
+  
+  .config-card,
+  .actions-card {
+    padding: 1.5rem;
+  }
+}
+</style>
+
+<script>
+  function declencherPub(idLecteur) {
+      // Appel de la route API créée au dessus
+      fetch('/api/lancer_pub/' + idLecteur)
+      .then(response => response.json())
+      .then(data => {
+          if(data.status === 'success') {
+              alert("Signal envoyé ! La RPi va jouer : " + data.fichier);
+          } else {
+              alert("Erreur serveur");
+          }
+      })
+      .catch(err => alert("Erreur de connexion : " + err));
+  }
+  </script>
+{% endblock %}

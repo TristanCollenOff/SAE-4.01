@@ -1,0 +1,726 @@
+<!-- Navigation moderne et responsive -->
+{% if current_user %}
+<nav class="navbar-modern fixed-top navbar-expand-lg">
+  <div class="navbar-container">
+    <!-- Logo et Brand -->
+    <div class="navbar-brand-section">
+      <a class="navbar-brand-modern" href="{{ url_for('index') }}">
+        <div class="brand-icon-wrapper">
+          <i class="bi bi-cpu-fill"></i>
+        </div>
+        <span class="brand-text">RYTHMO</span>
+      </a>
+      
+      <!-- Barre musicale animée -->
+      <div class="music-visualizer" id="music-bar">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+    </div>
+
+    <!-- Menu de navigation principal -->
+    <div class="navbar-nav-section">
+      <button class="navbar-toggler-modern" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+
+      <div class="collapse navbar-collapse-modern" id="navbarNav">
+        <ul class="navbar-nav-modern">
+          <!-- Éléments principaux - icônes uniquement sur desktop -->
+          <li class="nav-item-modern">
+            <a class="nav-link-modern nav-link-icon-only" href="{{ url_for('index') }}">
+              <i class="bi bi-house-door-fill"></i>
+              <span class="nav-link-text">Tableau de bord</span>
+              <span class="nav-tooltip">Tableau de bord</span>
+            </a>
+          </li>
+          
+          <li class="nav-item-modern">
+            <a class="nav-link-modern nav-link-icon-only" href="{{ url_for('playlist.playlists') }}">
+              <i class="bi bi-music-note-list"></i>
+              <span class="nav-link-text">Playlists</span>
+              <span class="nav-tooltip">Playlists</span>
+            </a>
+          </li>
+          
+          <li class="nav-item-modern">
+            <a class="nav-link-modern nav-link-icon-only" href="{{ url_for('musique.musique') }}">
+              <i class="bi bi-play-circle-fill"></i>
+              <span class="nav-link-text">Musique</span>
+              <span class="nav-tooltip">Musique</span>
+            </a>
+          </li>
+          
+          <!-- Menu "Plus" pour les éléments secondaires -->
+          {% if current_user.role in ["admin", "superviseur"] or current_user.role == "admin" %}
+          <li class="nav-item-modern nav-item-dropdown">
+            <button class="nav-link-modern nav-link-icon-only nav-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-three-dots-vertical"></i>
+              <span class="nav-link-text">Plus</span>
+              <span class="nav-tooltip">Plus</span>
+              <i class="bi bi-chevron-down nav-dropdown-arrow"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end nav-more-menu">
+              {% if current_user.role in ["admin", "superviseur"] %}
+              <li>
+                <a class="dropdown-item" href="{{ url_for('page_lecteurs') }}">
+                  <i class="bi bi-gear-fill"></i> Lecteurs
+                </a>
+              </li>
+              {% endif %}
+              {% if current_user.role in ["admin", "superviseur"] %}
+              <li>
+                <a class="dropdown-item" href="{{ url_for('alertes.alertes') }}">
+                  <i class="bi bi-bell-fill"></i> Alertes
+                </a>
+              </li>
+              {% endif %}
+              {% if current_user.role == "admin" %}
+              <li>
+                <a class="dropdown-item" href="{{ url_for('logs.logs') }}">
+                  <i class="bi bi-list-check"></i> Logs
+                </a>
+              </li>
+              {% endif %}
+            </ul>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section utilisateur et actions -->
+    <div class="navbar-user-section">
+      <!-- Dropdown utilisateur -->
+      <div class="user-dropdown">
+        <button class="user-menu-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <div class="user-avatar-nav">
+            <i class="bi bi-person-circle"></i>
+          </div>
+          <span class="username-text d-none d-lg-inline">{{ current_user.username }}</span>
+          <i class="bi bi-chevron-down dropdown-arrow"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu">
+          <li class="dropdown-header">
+            <div class="user-info-header">
+              <i class="bi bi-person-circle"></i>
+              <div>
+                <strong>{{ current_user.username }}</strong>
+                <small class="text-muted d-block">{{ current_user.role|title }}</small>
+              </div>
+            </div>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <a class="dropdown-item" href="{{ url_for('index') }}">
+              <i class="bi bi-house-door"></i> Tableau de bord
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{{ url_for('contact.contact') }}">
+              <i class="bi bi-exclamation-triangle"></i> Signaler un incident
+            </a>
+          </li>
+          {% if current_user.role == "admin" %}
+          <li>
+            <a class="dropdown-item" href="{{ url_for('admin.admin') }}">
+              <i class="bi bi-shield-lock"></i> Administration
+            </a>
+          </li>
+          {% elif current_user.role == "superviseur" %}
+          <li>
+            <a class="dropdown-item" href="{{ url_for('admin.admin') }}">
+              <i class="bi bi-eye-fill"></i> Panel Superviseur
+            </a>
+          </li>
+          {% endif %}
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <a class="dropdown-item dropdown-item-danger" href="{{ url_for('logout') }}">
+              <i class="bi bi-box-arrow-right"></i> Déconnexion
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+<style>
+/* ===== NAVBAR MODERNE ===== */
+.navbar-modern {
+  background: rgba(26, 6, 12, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 193, 7, 0.15);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  padding: 0.75rem 0;
+  z-index: 1050;
+  transition: all 0.3s ease;
+}
+
+.navbar-modern:hover {
+  border-bottom-color: rgba(255, 193, 7, 0.25);
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.4);
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+/* ===== BRAND SECTION ===== */
+.navbar-brand-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.navbar-brand-modern {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #ffc107 !important;
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.navbar-brand-modern:hover {
+  color: #ffd54f !important;
+  transform: translateY(-1px);
+}
+
+.brand-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(209, 24, 49, 0.2), rgba(255, 193, 7, 0.2));
+  border-radius: 10px;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  transition: all 0.3s ease;
+}
+
+.navbar-brand-modern:hover .brand-icon-wrapper {
+  background: linear-gradient(135deg, rgba(209, 24, 49, 0.3), rgba(255, 193, 7, 0.3));
+  border-color: rgba(255, 193, 7, 0.5);
+  transform: rotate(5deg);
+}
+
+.brand-icon-wrapper i {
+  font-size: 1.5rem;
+  color: #d11831;
+  transition: all 0.3s ease;
+}
+
+.navbar-brand-modern:hover .brand-icon-wrapper i {
+  color: #ffc107;
+}
+
+.brand-text {
+  background: linear-gradient(135deg, #ffc107, #ffd54f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== MUSIC VISUALIZER ===== */
+.music-visualizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 28px;
+  margin-left: 0.5rem;
+}
+
+.music-visualizer .bar {
+  width: 4px;
+  background: linear-gradient(to top, #d11831, #ffc107);
+  border-radius: 2px;
+  animation: musicWave 1.2s infinite ease-in-out;
+  transition: all 0.3s ease;
+}
+
+.music-visualizer .bar:nth-child(1) { animation-delay: 0s; }
+.music-visualizer .bar:nth-child(2) { animation-delay: 0.15s; }
+.music-visualizer .bar:nth-child(3) { animation-delay: 0.3s; }
+.music-visualizer .bar:nth-child(4) { animation-delay: 0.45s; }
+.music-visualizer .bar:nth-child(5) { animation-delay: 0.6s; }
+
+@keyframes musicWave {
+  0%, 100% { height: 30%; }
+  50% { height: 100%; }
+}
+
+/* ===== NAVIGATION MENU ===== */
+.navbar-nav-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.navbar-toggler-modern {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+.hamburger-line {
+  width: 25px;
+  height: 3px;
+  background: linear-gradient(90deg, #ffc107, #ffd54f);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.navbar-toggler-modern:hover .hamburger-line {
+  background: linear-gradient(90deg, #ffd54f, #ffc107);
+}
+
+.navbar-collapse-modern {
+  display: flex !important;
+}
+
+.navbar-nav-modern {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item-modern {
+  position: relative;
+}
+
+.nav-link-modern {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  color: rgba(255, 255, 255, 0.85) !important;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  font-size: 0.95rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link-modern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.nav-link-modern:hover::before {
+  left: 100%;
+}
+
+.nav-link-modern i {
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.nav-link-modern:hover {
+  color: #ffc107 !important;
+  background: rgba(255, 193, 7, 0.1);
+  transform: translateY(-2px);
+}
+
+.nav-link-modern:hover i {
+  transform: scale(1.15);
+  color: #ffc107;
+}
+
+.nav-link-modern.active {
+  color: #ffc107 !important;
+  background: rgba(255, 193, 7, 0.15);
+}
+
+.nav-link-modern.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ffc107, transparent);
+  border-radius: 2px;
+}
+
+/* ===== NAVIGATION SIMPLIFIÉE ===== */
+.nav-link-icon-only {
+  padding: 0.6rem 1rem !important;
+  position: relative;
+}
+
+.nav-link-icon-only .nav-link-text {
+  display: none;
+}
+
+/* Tooltip au survol pour les icônes */
+.nav-tooltip {
+  position: absolute;
+  bottom: -2.5rem;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  background: rgba(26, 6, 12, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  z-index: 1000;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-link-icon-only:hover .nav-tooltip {
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+}
+
+/* Masquer le tooltip si le lien est actif */
+.nav-link-icon-only.active .nav-tooltip {
+  display: none;
+}
+
+/* Menu "Plus" */
+.nav-item-dropdown {
+  position: relative;
+}
+
+.nav-more-btn {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+
+.nav-more-btn[aria-expanded="true"] {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107 !important;
+}
+
+.nav-more-btn[aria-expanded="true"] .nav-dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.nav-dropdown-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.3s ease;
+  opacity: 0.7;
+  margin-left: 0.25rem;
+}
+
+.nav-more-menu {
+  background: rgba(26, 6, 12, 0.98);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  min-width: 180px;
+}
+
+.nav-more-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-more-menu .dropdown-item i {
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.nav-more-menu .dropdown-item:hover {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107 !important;
+  transform: translateX(4px);
+}
+
+/* ===== USER SECTION ===== */
+.navbar-user-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+/* ===== USER DROPDOWN ===== */
+.user-dropdown {
+  position: relative;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-menu-trigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+  transform: translateY(-1px);
+}
+
+.user-menu-trigger:focus {
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+  outline: none;
+}
+
+.user-avatar-nav {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(209, 24, 49, 0.2));
+  border-radius: 50%;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.user-avatar-nav i {
+  font-size: 1.5rem;
+  color: #ffc107;
+}
+
+.username-text {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.dropdown-arrow {
+  font-size: 0.75rem;
+  transition: transform 0.3s ease;
+  opacity: 0.7;
+}
+
+.user-menu-trigger[aria-expanded="true"] .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.user-dropdown-menu {
+  background: rgba(26, 6, 12, 0.98);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  min-width: 220px;
+}
+
+.dropdown-header {
+  padding: 0.75rem 1rem;
+}
+
+.user-info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-info-header i {
+  font-size: 2rem;
+  color: #ffc107;
+}
+
+.user-info-header strong {
+  color: white;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.user-info-header small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item i {
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107 !important;
+  transform: translateX(4px);
+}
+
+.dropdown-item-danger {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.dropdown-item-danger:hover {
+  background: rgba(209, 24, 49, 0.2);
+  color: #ff6b6b !important;
+}
+
+.dropdown-divider {
+  border-color: rgba(255, 255, 255, 0.1);
+  margin: 0.5rem 0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 991px) {
+  .navbar-container {
+    padding: 0 1rem;
+    gap: 1rem;
+  }
+
+  .navbar-toggler-modern {
+    display: flex;
+  }
+
+  .navbar-collapse-modern {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(26, 6, 12, 0.98);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 193, 7, 0.15);
+    border-bottom: 1px solid rgba(255, 193, 7, 0.15);
+    padding: 1rem;
+    margin-top: 0.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    display: none !important;
+  }
+
+  .navbar-collapse-modern.show {
+    display: flex !important;
+  }
+
+  .navbar-nav-modern {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.25rem;
+  }
+
+  .nav-link-modern {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.75rem 1rem;
+  }
+
+  .nav-link-text {
+    display: inline !important;
+    position: static !important;
+    transform: none !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-left: 0.5rem;
+  }
+
+  .navbar-user-section {
+    gap: 0.5rem;
+  }
+
+  .username-text {
+    display: none !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar-container {
+    padding: 0 0.75rem;
+  }
+
+  .navbar-brand-modern {
+    font-size: 1.25rem;
+  }
+
+  .brand-icon-wrapper {
+    width: 32px;
+    height: 32px;
+  }
+
+  .brand-icon-wrapper i {
+    font-size: 1.25rem;
+  }
+
+  .music-visualizer {
+    display: none;
+  }
+}
+
+/* Animation d'entrée */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.navbar-modern {
+  animation: slideDown 0.4s ease-out;
+}
+</style>

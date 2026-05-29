@@ -1,0 +1,998 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="alerte-detail-hero">
+  <div class="container">
+    <div class="detail-header-top">
+      <a href="{{ url_for('alertes.alertes') }}" class="btn btn-back">
+        <i class="bi bi-arrow-left"></i> Retour aux alertes
+      </a>
+    </div>
+    <h1>
+      <span class="incident-type-icon-large" style="color: {{ incident_types[incident.type].couleur }}">
+        <i class="bi {{ incident_types[incident.type].icone }}"></i>
+      </span>
+      {{ incident.titre }}
+    </h1>
+    <div class="detail-badges">
+      <div class="gravite-badge-large gravite-{{ incident.gravite }}">
+        {{ gravites[incident.gravite].nom }}
+      </div>
+      <div class="etat-badge-large etat-{{ incident.etat }}">
+        {% if incident.etat == 'ouvert' %}
+          <i class="bi bi-circle-fill"></i> Ouvert
+        {% elif incident.etat == 'en_cours' %}
+          <i class="bi bi-arrow-repeat"></i> En cours
+        {% elif incident.etat == 'resolu' %}
+          <i class="bi bi-check-circle-fill"></i> Résolu
+        {% elif incident.etat == 'ignore' %}
+          <i class="bi bi-eye-slash-fill"></i> Ignoré
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div class="container mt-4 pb-5">
+  
+  <!-- Actions principales -->
+  <div class="detail-actions-bar mb-4">
+    <div class="action-group">
+      {% if incident.etat == 'ouvert' %}
+        <button class="btn-action-main btn-acknowledge" data-action="reconnaitre">
+          <i class="bi bi-check"></i> Reconnaître
+        </button>
+        <button class="btn-action-main btn-assign" data-action="assigner">
+          <i class="bi bi-person-plus"></i> S'assigner
+        </button>
+      {% elif incident.etat == 'en_cours' %}
+        <button class="btn-action-main btn-resolve" data-action="resoudre" data-bs-toggle="modal" data-bs-target="#resolveModal">
+          <i class="bi bi-check-circle"></i> Résoudre
+        </button>
+      {% endif %}
+      {% if incident.etat != 'ignore' %}
+        <button class="btn-action-main btn-ignore" data-action="ignorer">
+          <i class="bi bi-eye-slash"></i> Ignorer
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Colonne gauche : Informations principales -->
+    <div class="col-lg-8">
+      
+      <!-- Description -->
+      <div class="detail-card mb-4">
+        <div class="detail-card-header">
+          <h3><i class="bi bi-info-circle-fill"></i> Description</h3>
+        </div>
+        <div class="detail-card-body">
+          <p class="incident-description-text">{{ incident.description }}</p>
+        </div>
+      </div>
+
+      <!-- Informations détaillées -->
+      <div class="detail-card mb-4">
+        <div class="detail-card-header">
+          <h3><i class="bi bi-list-ul"></i> Informations</h3>
+        </div>
+        <div class="detail-card-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">
+                <i class="bi bi-tag-fill"></i> Type d'incident
+              </div>
+              <div class="info-value">
+                <span class="type-badge" style="background: {{ incident_types[incident.type].couleur }}20; border-color: {{ incident_types[incident.type].couleur }}40; color: {{ incident_types[incident.type].couleur }}">
+                  <i class="bi {{ incident_types[incident.type].icone }}"></i>
+                  {{ incident_types[incident.type].nom }}
+                </span>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">
+                <i class="bi bi-geo-alt-fill"></i> Zone impactée
+              </div>
+              <div class="info-value">{{ incident.zone_impactee }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">
+                <i class="bi bi-clock-fill"></i> Début de l'incident
+              </div>
+              <div class="info-value">{{ incident.debut.strftime('%d/%m/%Y à %H:%M') if incident.debut else 'N/A' }}</div>
+            </div>
+            {% if incident.resolu_le %}
+            <div class="info-item">
+              <div class="info-label">
+                <i class="bi bi-check-circle-fill"></i> Résolu le
+              </div>
+              <div class="info-value">{{ incident.resolu_le.strftime('%d/%m/%Y à %H:%M') }}</div>
+            </div>
+            {% endif %}
+            {% if incident.assigne_a %}
+            <div class="info-item">
+              <div class="info-label">
+                <i class="bi bi-person-fill"></i> Assigné à
+              </div>
+              <div class="info-value">{{ incident.assigne_a }}</div>
+            </div>
+            {% endif %}
+            <div class="info-item">
+              <div class="info-label">
+                <i class="bi bi-speaker-fill"></i> Lecteurs impactés
+              </div>
+              <div class="info-value">
+                <div class="lecteurs-list">
+                  {% for lecteur in incident.lecteurs_impactes %}
+                  <span class="lecteur-tag">{{ lecteur }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline des événements -->
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <h3><i class="bi bi-clock-history"></i> Timeline des événements</h3>
+        </div>
+        <div class="detail-card-body">
+          <div class="timeline">
+            {% for evenement in incident.evenements|sort(attribute='date', reverse=True) %}
+              <div class="timeline-item">
+                <div class="timeline-marker timeline-{{ evenement.type }}">
+                  {% if evenement.type == 'detection' %}
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                  {% elif evenement.type == 'action' %}
+                    <i class="bi bi-person-fill"></i>
+                  {% elif evenement.type == 'resolution' %}
+                    <i class="bi bi-check-circle-fill"></i>
+                  {% else %}
+                    <i class="bi bi-circle-fill"></i>
+                  {% endif %}
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-date">
+                    {{ evenement.date.strftime('%d/%m/%Y %H:%M') if evenement.date else 'N/A' }}
+                  </div>
+                  <div class="timeline-message">
+                    {{ evenement.message }}
+                  </div>
+                  {% if evenement.user %}
+                  <div class="timeline-user">
+                    <i class="bi bi-person"></i> {{ evenement.user }}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            {% else %}
+              <div class="timeline-empty">
+                <i class="bi bi-inbox"></i>
+                <p>Aucun événement enregistré</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne droite : Commentaires et actions -->
+    <div class="col-lg-4">
+      
+      <!-- Commentaires -->
+      <div class="detail-card mb-4">
+        <div class="detail-card-header">
+          <h3><i class="bi bi-chat-dots-fill"></i> Commentaires</h3>
+        </div>
+        <div class="detail-card-body">
+          <div class="commentaires-list">
+            {% if incident.commentaires %}
+              {% for commentaire in incident.commentaires|sort(attribute='date', reverse=True) %}
+                <div class="commentaire-item">
+                  <div class="commentaire-header">
+                    <div class="commentaire-user">
+                      <i class="bi bi-person-circle"></i> {{ commentaire.user }}
+                    </div>
+                    <div class="commentaire-date">
+                      {{ commentaire.date.strftime('%d/%m/%Y %H:%M') if commentaire.date else 'N/A' }}
+                    </div>
+                  </div>
+                  <div class="commentaire-text">
+                    {{ commentaire.texte }}
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="commentaires-empty">
+                <i class="bi bi-chat"></i>
+                <p>Aucun commentaire</p>
+              </div>
+            {% endif %}
+          </div>
+          
+          {% if incident.etat != 'resolu' and incident.etat != 'ignore' %}
+          <form class="commentaire-form" id="commentForm">
+            <div class="form-group-rythmo">
+              <textarea class="form-control-rythmo" name="commentaire" rows="3" 
+                        placeholder="Ajouter un commentaire..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-add-comment">
+              <i class="bi bi-send"></i> Ajouter
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Actions rapides -->
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <h3><i class="bi bi-lightning-fill"></i> Actions rapides</h3>
+        </div>
+        <div class="detail-card-body">
+          <div class="quick-actions">
+            {% if incident.lecteurs_ids %}
+              <a href="{{ url_for('lecteurs_ops.lecteur_ops_detail', lecteur_id=incident.lecteurs_ids[0]) }}" 
+                 class="btn-quick-action">
+                <i class="bi bi-cpu"></i> Voir le lecteur
+              </a>
+              <button class="btn-quick-action" onclick="forceSync({{ incident.lecteurs_ids[0] }})">
+                <i class="bi bi-arrow-repeat"></i> Forcer sync
+              </button>
+              <button class="btn-quick-action" onclick="restartLecteur({{ incident.lecteurs_ids[0] }})">
+                <i class="bi bi-arrow-clockwise"></i> Redémarrer
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour résoudre -->
+<div class="modal fade" id="resolveModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-rythmo">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-check-circle"></i> Résoudre l'incident</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="resolveForm">
+          <div class="form-group-rythmo">
+            <label class="form-label-rythmo">Commentaire de résolution</label>
+            <textarea class="form-control-rythmo" name="commentaire" rows="4" 
+                      placeholder="Décrivez les actions effectuées pour résoudre l'incident..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" id="confirmResolve">Résoudre</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== NAVBAR ===== */
+.navbar-brand {
+  letter-spacing: 0.12em;
+  font-size: 1.7rem;
+  color: #ffc107 !important;
+  display: flex;
+  align-items: center;
+  margin-left: 40px;
+}
+.navbar-brand i {
+  color: #d11831;
+  margin-right: 10px;
+}
+
+#music-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 26px;
+  margin-left: 14px;
+}
+#music-bar div {
+  width: 4px;
+  background: linear-gradient(#ffc107, #d11831);
+  border-radius: 2px;
+  animation: bounce 1s infinite ease-in-out;
+}
+#music-bar div:nth-child(2){animation-delay:.1s}
+#music-bar div:nth-child(3){animation-delay:.2s}
+#music-bar div:nth-child(4){animation-delay:.3s}
+#music-bar div:nth-child(5){animation-delay:.4s}
+
+@keyframes bounce {
+  0%,100%{height:40%}
+  50%{height:100%}
+}
+
+/* ===== HERO ===== */
+.alerte-detail-hero {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.detail-header-top {
+  margin-bottom: 1.5rem;
+}
+
+.btn-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.alerte-detail-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: white;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.incident-type-icon-large {
+  font-size: 3rem;
+}
+
+.detail-badges {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.gravite-badge-large, .etat-badge-large {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gravite-critique {
+  background: rgba(220, 53, 69, 0.2);
+  border: 1px solid rgba(220, 53, 69, 0.4);
+  color: #ff6b6b;
+}
+
+.gravite-haute {
+  background: rgba(255, 152, 0, 0.2);
+  border: 1px solid rgba(255, 152, 0, 0.4);
+  color: #ffb74d;
+}
+
+.gravite-moyenne {
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  color: #ffc107;
+}
+
+.gravite-basse {
+  background: rgba(23, 162, 184, 0.2);
+  border: 1px solid rgba(23, 162, 184, 0.4);
+  color: #4dd0e1;
+}
+
+.etat-ouvert {
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.etat-en_cours {
+  background: rgba(23, 162, 184, 0.15);
+  border: 1px solid rgba(23, 162, 184, 0.3);
+  color: #17a2b8;
+}
+
+.etat-resolu {
+  background: rgba(40, 167, 69, 0.15);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #28a745;
+}
+
+.etat-ignore {
+  background: rgba(108, 117, 125, 0.15);
+  border: 1px solid rgba(108, 117, 125, 0.3);
+  color: #6c757d;
+}
+
+/* ===== ACTIONS BAR ===== */
+.detail-actions-bar {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem 2rem;
+}
+
+.action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-action-main {
+  padding: 0.875rem 1.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  outline: none;
+}
+
+.btn-action-main:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-acknowledge {
+  background: rgba(23, 162, 184, 0.1);
+  border-color: rgba(23, 162, 184, 0.3);
+  color: #17a2b8;
+}
+
+.btn-assign {
+  background: rgba(255, 152, 0, 0.1);
+  border-color: rgba(255, 152, 0, 0.3);
+  color: #ff9800;
+}
+
+.btn-resolve {
+  background: rgba(40, 167, 69, 0.1);
+  border-color: rgba(40, 167, 69, 0.3);
+  color: #28a745;
+}
+
+.btn-ignore {
+  background: rgba(108, 117, 125, 0.1);
+  border-color: rgba(108, 117, 125, 0.3);
+  color: #6c757d;
+}
+
+/* ===== CARTES DÉTAIL ===== */
+.detail-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.detail-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-card-header h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.detail-card-header h3 i {
+  color: #ffc107;
+}
+
+.detail-card-body {
+  color: white;
+}
+
+.incident-description-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+/* Informations */
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-label i {
+  color: #ffc107;
+  font-size: 1rem;
+}
+
+.info-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.type-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: 1.5px solid;
+}
+
+.lecteurs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.lecteur-tag {
+  padding: 0.4rem 0.875rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  color: #ffc107;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  padding-left: 2.5rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -2.5rem;
+  top: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  z-index: 1;
+}
+
+.timeline-detection {
+  background: rgba(220, 53, 69, 0.2);
+  border: 2px solid rgba(220, 53, 69, 0.5);
+  color: #ff6b6b;
+}
+
+.timeline-action {
+  background: rgba(255, 193, 7, 0.2);
+  border: 2px solid rgba(255, 193, 7, 0.5);
+  color: #ffc107;
+}
+
+.timeline-resolution {
+  background: rgba(40, 167, 69, 0.2);
+  border: 2px solid rgba(40, 167, 69, 0.5);
+  color: #28a745;
+}
+
+.timeline-content {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.timeline-date {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.timeline-message {
+  font-size: 1rem;
+  color: white;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.timeline-user {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.timeline-user i {
+  color: #ffc107;
+}
+
+.timeline-empty {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.timeline-empty i {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+
+/* Commentaires */
+.commentaires-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+.commentaire-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.commentaire-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.commentaire-user {
+  font-weight: 700;
+  color: #ffc107;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.commentaire-date {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.commentaire-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.commentaires-empty {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.commentaires-empty i {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+
+.commentaire-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.btn-add-comment {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #ffc107, #ffb300);
+  border: none;
+  border-radius: 12px;
+  color: #1a060c;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+  align-self: flex-start;
+}
+
+.btn-add-comment:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 193, 7, 0.5);
+  background: linear-gradient(135deg, #ffb300, #ffc107);
+}
+
+/* Actions rapides */
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-quick-action {
+  padding: 0.75rem 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  outline: none;
+}
+
+.btn-quick-action:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Modal */
+.modal-rythmo {
+  background: rgba(26, 6, 12, 0.98);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: white;
+}
+
+.modal-rythmo .modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-rythmo .modal-title {
+  color: white;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-rythmo .modal-title i {
+  color: #ffc107;
+}
+
+.modal-rythmo .modal-body {
+  color: white;
+}
+
+.modal-rythmo .modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Scrollbar */
+.commentaires-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.commentaires-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.commentaires-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 193, 7, 0.3);
+  border-radius: 10px;
+}
+
+.commentaires-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 193, 7, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .alerte-detail-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .detail-actions-bar {
+    padding: 1rem;
+  }
+  
+  .action-group {
+    flex-direction: column;
+  }
+  
+  .btn-action-main {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const incidentId = '{{ incident.id }}';
+  
+  // Actions sur l'incident
+  document.querySelectorAll('.btn-action-main').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const action = this.dataset.action;
+      
+      if (action === 'resoudre') {
+        // Géré par le modal Bootstrap
+        return;
+      }
+      
+      if (action === 'ignorer') {
+        if (!confirm('Êtes-vous sûr de vouloir ignorer cet incident ?')) {
+          return;
+        }
+      }
+      
+      try {
+        const response = await fetch('{{ url_for("alertes.incident_action") }}', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            incident_id: incidentId,
+            action: action,
+            commentaire: ''
+          })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert(data.message);
+          setTimeout(() => location.reload(), 1000);
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors de l\'action');
+      }
+    });
+  });
+
+  // Résoudre via modal
+  const resolveModal = document.getElementById('resolveModal');
+  if (resolveModal) {
+    resolveModal.addEventListener('show.bs.modal', function() {
+      document.getElementById('confirmResolve').onclick = async function() {
+        const commentaire = document.querySelector('#resolveForm textarea[name="commentaire"]').value;
+        
+        try {
+          const response = await fetch('{{ url_for("alertes.incident_action") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              incident_id: incidentId,
+              action: 'resoudre',
+              commentaire: commentaire
+            })
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            bootstrap.Modal.getInstance(resolveModal).hide();
+            alert(data.message);
+            setTimeout(() => location.reload(), 1000);
+          }
+        } catch (error) {
+          console.error('Erreur:', error);
+          alert('Erreur lors de la résolution');
+        }
+      };
+    });
+  }
+
+  // Formulaire de commentaire
+  const commentForm = document.getElementById('commentForm');
+  if (commentForm) {
+    commentForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const commentaire = this.querySelector('textarea[name="commentaire"]').value;
+      
+      if (!commentaire.trim()) {
+        alert('Veuillez saisir un commentaire');
+        return;
+      }
+      
+      // En production, envoyer le commentaire
+      alert('Commentaire ajouté (simulé)');
+      this.reset();
+    });
+  }
+});
+
+function forceSync(lecteurId) {
+  if (confirm('Forcer la synchronisation de ce lecteur ?')) {
+    // Rediriger vers la page du lecteur ou appeler l'API
+    window.location.href = `/lecteurs-ops/${lecteurId}`;
+  }
+}
+
+function restartLecteur(lecteurId) {
+  if (confirm('Redémarrer ce lecteur ? Cette action peut interrompre la lecture.')) {
+    // Rediriger vers la page du lecteur ou appeler l'API
+    window.location.href = `/lecteurs-ops/${lecteurId}`;
+  }
+}
+</script>
+
+{% endblock %}

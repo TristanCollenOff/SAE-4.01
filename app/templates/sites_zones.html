@@ -1,0 +1,1442 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="sites-zones-hero">
+  <div class="container">
+    <h1><i class="bi bi-diagram-3-fill"></i> Sites & Zones</h1>
+    <p>Organisez vos espaces de manière hiérarchique</p>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div class="container mt-4 pb-5">
+  
+  <!-- Actions principales -->
+  <div class="sites-zones-actions mb-4">
+    <a href="{{ url_for('index') }}" class="btn btn-rythmo-back">
+      <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+    </a>
+    <div class="actions-group">
+      <button class="btn btn-rythmo-primary" id="createSiteBtn">
+        <i class="bi bi-building-add"></i> Créer un site
+      </button>
+      <button class="btn btn-rythmo-primary" id="createZoneBtn">
+        <i class="bi bi-geo-alt-fill"></i> Créer une zone
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres rapides -->
+  <div class="quick-filters mb-4">
+    <div class="filters-label">Filtres rapides :</div>
+    <button class="filter-chip active" data-filter="all">Tout</button>
+    <button class="filter-chip" data-filter="incidents">
+      <i class="bi bi-exclamation-triangle"></i> Zones en incident
+    </button>
+    <button class="filter-chip" data-filter="down">
+      <i class="bi bi-x-circle"></i> Zones down
+    </button>
+    <button class="filter-chip" data-filter="desync">
+      <i class="bi bi-arrow-repeat"></i> Désynchronisées
+    </button>
+  </div>
+
+  <!-- Vue hiérarchique -->
+  <div class="hierarchical-view">
+    {% for site_id, site in sites.items() %}
+    <div class="site-card" data-site-id="{{ site_id }}">
+      <!-- En-tête du site -->
+      <div class="site-header">
+        <div class="site-header-left">
+          <div class="site-icon">
+            <i class="bi bi-building"></i>
+          </div>
+          <div class="site-info">
+            <h2 class="site-name">{{ site.nom }}</h2>
+            <div class="site-stats">
+              <span class="stat-item">
+                <i class="bi bi-speaker"></i> {{ site.nb_lecteurs }} lecteur{{ 's' if site.nb_lecteurs > 1 else '' }}
+              </span>
+              <span class="stat-item">
+                <i class="bi bi-geo-alt"></i> {{ site.nb_zones }} zone{{ 's' if site.nb_zones > 1 else '' }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="site-header-right">
+          <div class="site-status status-{{ site.statut_global }}">
+            {% if site.statut_global == 'OK' %}
+              <i class="bi bi-check-circle-fill"></i> OK
+            {% elif site.statut_global == 'incidents' %}
+              <i class="bi bi-exclamation-triangle-fill"></i> Incidents
+            {% else %}
+              <i class="bi bi-x-circle-fill"></i> Down
+            {% endif %}
+          </div>
+          <div class="site-actions">
+            <button class="action-icon-btn" title="Renommer" data-action="rename" data-id="{{ site_id }}">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="action-icon-btn" title="Archiver" data-action="archive" data-id="{{ site_id }}">
+              <i class="bi bi-archive"></i>
+            </button>
+            <button class="action-icon-btn" title="Actions groupées" data-action="group" data-id="{{ site_id }}" data-type="site">
+              <i class="bi bi-lightning-charge"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zones du site -->
+      <div class="zones-container">
+        {% for zone_name in site.zones %}
+          {% if zones.get(zone_name) %}
+            {% set zone = zones[zone_name] %}
+            {% set lecteurs_zone = lecteurs_par_zone.get(zone_name, []) %}
+            
+            <div class="zone-card" data-zone-name="{{ zone_name }}" data-status="{{ zone.statut_global }}">
+              <!-- En-tête de la zone -->
+              <div class="zone-header">
+                <div class="zone-header-left">
+                  <div class="zone-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                  </div>
+                  <div class="zone-info">
+                    <h3 class="zone-name">{{ zone_name }}</h3>
+                    <div class="zone-summary">
+                      <span class="summary-item">
+                        <i class="bi bi-speaker"></i> {{ zone.nb_lecteurs }} lecteur{{ 's' if zone.nb_lecteurs > 1 else '' }}
+                      </span>
+                      <span class="summary-item">
+                        <i class="bi bi-check-circle"></i> {{ zone.en_ligne }} en ligne
+                      </span>
+                      {% if zone.hors_ligne > 0 %}
+                      <span class="summary-item summary-warning">
+                        <i class="bi bi-x-circle"></i> {{ zone.hors_ligne }} hors ligne
+                      </span>
+                      {% endif %}
+                      <span class="summary-item">
+                        <i class="bi bi-clock-history"></i> Dernière synchro : {{ zone.derniere_synchro }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="zone-header-right">
+                  <div class="zone-status status-{{ zone.statut_global }}">
+                    {% if zone.statut_global == 'OK' %}
+                      <i class="bi bi-check-circle-fill"></i> OK
+                    {% elif zone.statut_global == 'incidents' %}
+                      <i class="bi bi-exclamation-triangle-fill"></i> Incidents
+                    {% else %}
+                      <i class="bi bi-x-circle-fill"></i> Down
+                    {% endif %}
+                  </div>
+                  <div class="zone-actions">
+                    <button class="action-icon-btn" title="Renommer" data-action="rename-zone" data-zone="{{ zone_name }}">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="action-icon-btn" title="Actions groupées" data-action="group" data-id="{{ zone_name }}" data-type="zone">
+                      <i class="bi bi-lightning-charge"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lecteurs de la zone -->
+              <div class="lecteurs-container">
+                {% if lecteurs_zone %}
+                  <div class="lecteurs-grid">
+                    {% for lecteur in lecteurs_zone %}
+                    <div class="lecteur-mini-card {% if lecteur.est_en_ligne() %}online{% else %}offline{% endif %}">
+                      <div class="lecteur-mini-status">
+                        {% if lecteur.est_en_ligne() %}
+                          <i class="bi bi-circle-fill"></i>
+                        {% else %}
+                          <i class="bi bi-circle"></i>
+                        {% endif %}
+                      </div>
+                      <div class="lecteur-mini-info">
+                        <div class="lecteur-mini-name">{{ lecteur.nom_lecteur }}</div>
+                        <div class="lecteur-mini-ip">{{ lecteur.adresseIP }}</div>
+                      </div>
+                      <button class="lecteur-move-btn" 
+                              title="Déplacer"
+                              data-lecteur-id="{{ lecteur.id_lecteur }}"
+                              data-lecteur-name="{{ lecteur.nom_lecteur }}">
+                        <i class="bi bi-arrow-right-circle"></i>
+                      </button>
+                    </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="zone-empty">
+                    <i class="bi bi-inbox"></i>
+                    <p>Aucun lecteur dans cette zone</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state-large">
+      <div class="empty-icon-large">
+        <i class="bi bi-diagram-3"></i>
+      </div>
+      <h3>Aucun site configuré</h3>
+      <p>Créez votre premier site pour commencer à organiser vos espaces</p>
+      <button class="btn btn-rythmo-primary mt-3" id="createFirstSiteBtn">
+        <i class="bi bi-building-add"></i> Créer un site
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Modal création site -->
+<div class="modal-overlay" id="createSiteModal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="bi bi-building-add"></i> Créer un site</h3>
+      <button class="modal-close" onclick="closeModal('createSiteModal')">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group-rythmo">
+        <label class="form-label-rythmo">
+          <i class="bi bi-building"></i> Nom du site
+        </label>
+        <input type="text" id="siteNameInput" class="form-control-rythmo" placeholder="Ex: Siège social, Agence Paris, etc.">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-modal-cancel" onclick="closeModal('createSiteModal')">Annuler</button>
+      <button class="btn btn-modal-confirm" id="confirmCreateSite">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal création zone -->
+<div class="modal-overlay" id="createZoneModal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="bi bi-geo-alt-fill"></i> Créer une zone</h3>
+      <button class="modal-close" onclick="closeModal('createZoneModal')">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group-rythmo">
+        <label class="form-label-rythmo">
+          <i class="bi bi-building"></i> Site
+        </label>
+        <select id="zoneSiteSelect" class="form-control-rythmo">
+          <option value="">Sélectionner un site</option>
+          {% for site_id, site in sites.items() %}
+          <option value="{{ site_id }}">{{ site.nom }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group-rythmo">
+        <label class="form-label-rythmo">
+          <i class="bi bi-geo-alt"></i> Nom de la zone
+        </label>
+        <input type="text" id="zoneNameInput" class="form-control-rythmo" placeholder="Ex: Hall Principal, Couloir Nord, etc.">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-modal-cancel" onclick="closeModal('createZoneModal')">Annuler</button>
+      <button class="btn btn-modal-confirm" id="confirmCreateZone">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal actions groupées -->
+<div class="modal-overlay" id="groupActionModal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="bi bi-lightning-charge"></i> Actions groupées</h3>
+      <button class="modal-close" onclick="closeModal('groupActionModal')">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-subtitle" id="groupActionTarget">Sélectionner une action</p>
+      
+      <div class="group-actions-list">
+        <button class="group-action-btn" data-action="playlist">
+          <i class="bi bi-music-note-list"></i>
+          <div>
+            <strong>Appliquer une playlist</strong>
+            <small>Affecter une playlist à tous les lecteurs</small>
+          </div>
+        </button>
+        
+        <button class="group-action-btn" data-action="volume">
+          <i class="bi bi-volume-up"></i>
+          <div>
+            <strong>Régler le volume</strong>
+            <small>Définir un volume min/max pour tous les lecteurs</small>
+          </div>
+        </button>
+        
+        <button class="group-action-btn" data-action="restart">
+          <i class="bi bi-arrow-clockwise"></i>
+          <div>
+            <strong>Redémarrer</strong>
+            <small>Redémarrer tous les lecteurs (maintenance)</small>
+          </div>
+        </button>
+      </div>
+
+      <!-- Options selon l'action -->
+      <div class="group-action-options" id="groupActionOptions" style="display: none;">
+        <div id="playlistOptions" class="action-option">
+          <label class="form-label-rythmo">Sélectionner une playlist</label>
+          <select id="playlistSelect" class="form-control-rythmo">
+            <option value="">Choisir une playlist</option>
+            <!-- Rempli dynamiquement -->
+          </select>
+        </div>
+        
+        <div id="volumeOptions" class="action-option">
+          <div class="row">
+            <div class="col-md-6">
+              <label class="form-label-rythmo">Volume minimum (%)</label>
+              <input type="number" id="volumeMin" class="form-control-rythmo" min="0" max="100" value="20">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label-rythmo">Volume maximum (%)</label>
+              <input type="number" id="volumeMax" class="form-control-rythmo" min="0" max="100" value="80">
+            </div>
+          </div>
+        </div>
+        
+        <div id="restartOptions" class="action-option">
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            Cette action va redémarrer tous les lecteurs de la zone/site. Êtes-vous sûr ?
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-modal-cancel" onclick="closeModal('groupActionModal')">Annuler</button>
+      <button class="btn btn-modal-confirm" id="confirmGroupAction">Appliquer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal déplacer lecteur -->
+<div class="modal-overlay" id="moveLecteurModal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="bi bi-arrow-right-circle"></i> Déplacer un lecteur</h3>
+      <button class="modal-close" onclick="closeModal('moveLecteurModal')">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-subtitle" id="moveLecteurName">Sélectionner la nouvelle zone</p>
+      
+      <div class="form-group-rythmo">
+        <label class="form-label-rythmo">
+          <i class="bi bi-geo-alt"></i> Zone de destination
+        </label>
+        <select id="newZoneSelect" class="form-control-rythmo">
+          <option value="">Sélectionner une zone</option>
+          {% for zone_name, zone in zones.items() %}
+          <option value="{{ zone_name }}">{{ zone_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-modal-cancel" onclick="closeModal('moveLecteurModal')">Annuler</button>
+      <button class="btn btn-modal-confirm" id="confirmMoveLecteur">Déplacer</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== NAVBAR ===== */
+.navbar-brand {
+  letter-spacing: 0.12em;
+  font-size: 1.7rem;
+  color: #ffc107 !important;
+  display: flex;
+  align-items: center;
+  margin-left: 40px;
+}
+.navbar-brand i {
+  color: #d11831;
+  margin-right: 10px;
+}
+
+#music-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 26px;
+  margin-left: 14px;
+}
+#music-bar div {
+  width: 4px;
+  background: linear-gradient(#ffc107, #d11831);
+  border-radius: 2px;
+  animation: bounce 1s infinite ease-in-out;
+}
+#music-bar div:nth-child(2){animation-delay:.1s}
+#music-bar div:nth-child(3){animation-delay:.2s}
+#music-bar div:nth-child(4){animation-delay:.3s}
+#music-bar div:nth-child(5){animation-delay:.4s}
+
+@keyframes bounce {
+  0%,100%{height:40%}
+  50%{height:100%}
+}
+
+/* ===== HERO ===== */
+.sites-zones-hero {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+.sites-zones-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+  letter-spacing: -0.02em;
+}
+.sites-zones-hero h1 i {
+  color: #ffc107;
+  margin-right: 0.5rem;
+}
+.sites-zones-hero p {
+  opacity: 0.85;
+  font-size: 1.1rem;
+}
+
+/* ===== ACTIONS ===== */
+.btn-rythmo-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-rythmo-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.btn-rythmo-primary {
+  background: transparent;
+  border: 1.5px solid #ffc107;
+  color: #ffc107;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-rythmo-primary:hover {
+  background: #ffc107;
+  color: #1a060c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+}
+
+.sites-zones-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.actions-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ===== FILTRES RAPIDES ===== */
+.quick-filters {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filters-label {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  margin-right: 0.5rem;
+}
+
+.filter-chip {
+  padding: 0.5rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  outline: none;
+}
+
+.filter-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.filter-chip.active {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+/* ===== VUE HIÉRARCHIQUE ===== */
+.hierarchical-view {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.site-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.site-header-left {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex: 1;
+}
+
+.site-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.site-info {
+  flex: 1;
+}
+
+.site-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  color: white;
+}
+
+.site-stats {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-item i {
+  color: #ffc107;
+}
+
+.site-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.site-status {
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.status-OK {
+  background: rgba(40, 167, 69, 0.15);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #6eff8c;
+}
+
+.status-incidents {
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.status-down {
+  background: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #ff6b6b;
+}
+
+.site-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.action-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* ===== ZONES ===== */
+.zones-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.zone-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.75rem;
+  transition: all 0.3s ease;
+}
+
+.zone-card:hover {
+  border-color: rgba(255, 193, 7, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.zone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.zone-header-left {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.zone-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.zone-info {
+  flex: 1;
+}
+
+.zone-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  color: white;
+}
+
+.zone-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.summary-item {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.summary-item i {
+  color: #ffc107;
+  font-size: 0.9rem;
+}
+
+.summary-item.summary-warning {
+  color: #ffc107;
+}
+
+.summary-item.summary-warning i {
+  color: #ffc107;
+}
+
+.zone-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.zone-status {
+  padding: 0.4rem 0.9rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.zone-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ===== LECTEURS ===== */
+.lecteurs-container {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lecteurs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.lecteur-mini-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.lecteur-mini-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateX(5px);
+}
+
+.lecteur-mini-card.online {
+  border-color: rgba(40, 167, 69, 0.3);
+}
+
+.lecteur-mini-card.offline {
+  border-color: rgba(220, 53, 69, 0.3);
+  opacity: 0.7;
+}
+
+.lecteur-mini-status {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+.lecteur-mini-card.online .lecteur-mini-status {
+  color: #28a745;
+}
+
+.lecteur-mini-card.offline .lecteur-mini-status {
+  color: #dc3545;
+}
+
+.lecteur-mini-info {
+  flex: 1;
+}
+
+.lecteur-mini-name {
+  font-weight: 600;
+  color: white;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.lecteur-mini-ip {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.lecteur-move-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.lecteur-move-btn:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.4);
+  transform: scale(1.1);
+}
+
+.zone-empty {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.zone-empty i {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+
+/* ===== ÉTAT VIDE ===== */
+.empty-state-large {
+  text-align: center;
+  padding: 5rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1.5px dashed rgba(255, 193, 7, 0.3);
+}
+
+.empty-icon-large {
+  font-size: 6rem;
+  color: rgba(255, 193, 7, 0.5);
+  margin-bottom: 1.5rem;
+}
+
+.empty-state-large h3 {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-large p {
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: rgba(26, 6, 12, 0.95);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modal-header h3 i {
+  color: #ffc107;
+}
+
+.modal-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.modal-subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+}
+
+.form-group-rythmo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-label-rythmo {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff4c7;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-label-rythmo i {
+  color: #ffc107;
+  font-size: 1rem;
+}
+
+.form-control-rythmo {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.form-control-rythmo::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-control-rythmo:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffc107;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+}
+
+.form-control-rythmo option {
+  background: #1a060c;
+  color: white;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 2rem 2rem;
+  justify-content: flex-end;
+}
+
+.btn-modal-cancel,
+.btn-modal-confirm {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1.5px solid;
+  outline: none;
+}
+
+.btn-modal-cancel {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.btn-modal-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-modal-confirm {
+  background: linear-gradient(135deg, #ffc107, #ffb300);
+  border-color: #ffc107;
+  color: #1a060c;
+}
+
+.btn-modal-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+}
+
+/* Actions groupées */
+.group-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.group-action-btn {
+  width: 100%;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  outline: none;
+}
+
+.group-action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 193, 7, 0.3);
+  transform: translateX(5px);
+}
+
+.group-action-btn i {
+  font-size: 1.5rem;
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.group-action-btn strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.group-action-btn small {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.group-action-options {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-option {
+  display: none;
+}
+
+.action-option.active {
+  display: block;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 12px;
+  margin: 0;
+}
+
+.alert-warning {
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sites-zones-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .sites-zones-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .actions-group {
+    width: 100%;
+  }
+  
+  .btn-rythmo-primary {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .site-header {
+    flex-direction: column;
+  }
+  
+  .zone-header {
+    flex-direction: column;
+  }
+  
+  .lecteurs-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    margin: 1rem;
+    max-width: none;
+  }
+}
+</style>
+
+<script>
+let currentTargetId = null;
+let currentTargetType = null;
+let currentLecteurId = null;
+let currentAction = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Filtres rapides
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      
+      const filter = this.dataset.filter;
+      filterZones(filter);
+    });
+  });
+
+  // Créer site
+  document.getElementById('createSiteBtn')?.addEventListener('click', () => {
+    document.getElementById('createSiteModal').style.display = 'flex';
+  });
+
+  document.getElementById('createFirstSiteBtn')?.addEventListener('click', () => {
+    document.getElementById('createSiteModal').style.display = 'flex';
+  });
+
+  // Créer zone
+  document.getElementById('createZoneBtn')?.addEventListener('click', () => {
+    document.getElementById('createZoneModal').style.display = 'flex';
+  });
+
+  // Confirmer création site
+  document.getElementById('confirmCreateSite')?.addEventListener('click', async () => {
+    const nom = document.getElementById('siteNameInput').value;
+    if (!nom) {
+      alert('Veuillez entrer un nom de site');
+      return;
+    }
+
+    try {
+      const response = await fetch('{{ url_for("sites_zones.create_site") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ nom })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de la création');
+    }
+  });
+
+  // Confirmer création zone
+  document.getElementById('confirmCreateZone')?.addEventListener('click', async () => {
+    const siteId = document.getElementById('zoneSiteSelect').value;
+    const nom = document.getElementById('zoneNameInput').value;
+    
+    if (!siteId || !nom) {
+      alert('Veuillez remplir tous les champs');
+      return;
+    }
+
+    try {
+      const response = await fetch('{{ url_for("sites_zones.create_zone") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ nom, site_id: siteId })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de la création');
+    }
+  });
+
+  // Actions groupées
+  document.querySelectorAll('[data-action="group"]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      currentTargetId = this.dataset.id;
+      currentTargetType = this.dataset.type;
+      document.getElementById('groupActionTarget').textContent = 
+        `Actions pour ${currentTargetType === 'site' ? 'le site' : 'la zone'}: ${currentTargetId}`;
+      document.getElementById('groupActionModal').style.display = 'flex';
+    });
+  });
+
+  // Sélection d'action groupée
+  document.querySelectorAll('.group-action-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.group-action-btn').forEach(b => b.style.borderColor = 'rgba(255, 255, 255, 0.1)');
+      this.style.borderColor = 'rgba(255, 193, 7, 0.5)';
+      
+      currentAction = this.dataset.action;
+      document.getElementById('groupActionOptions').style.display = 'block';
+      
+      // Afficher les options correspondantes
+      document.querySelectorAll('.action-option').forEach(opt => opt.classList.remove('active'));
+      document.getElementById(`${currentAction}Options`).classList.add('active');
+    });
+  });
+
+  // Confirmer action groupée
+  document.getElementById('confirmGroupAction')?.addEventListener('click', async () => {
+    if (!currentAction) {
+      alert('Veuillez sélectionner une action');
+      return;
+    }
+
+    let value = null;
+    if (currentAction === 'playlist') {
+      value = document.getElementById('playlistSelect').value;
+      if (!value) {
+        alert('Veuillez sélectionner une playlist');
+        return;
+      }
+    } else if (currentAction === 'volume') {
+      const min = document.getElementById('volumeMin').value;
+      const max = document.getElementById('volumeMax').value;
+      value = { min: parseInt(min), max: parseInt(max) };
+    }
+
+    try {
+      const response = await fetch('{{ url_for("sites_zones.group_action") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          action: currentAction,
+          target_type: currentTargetType,
+          target_id: currentTargetId,
+          value: value
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert(`${data.message} (${data.affected} lecteurs affectés)`);
+        closeModal('groupActionModal');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de l\'action');
+    }
+  });
+
+  // Déplacer lecteur
+  document.querySelectorAll('.lecteur-move-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      currentLecteurId = this.dataset.lecteurId;
+      document.getElementById('moveLecteurName').textContent = 
+        `Déplacer "${this.dataset.lecteurName}" vers :`;
+      document.getElementById('moveLecteurModal').style.display = 'flex';
+    });
+  });
+
+  // Confirmer déplacement
+  document.getElementById('confirmMoveLecteur')?.addEventListener('click', async () => {
+    const newZone = document.getElementById('newZoneSelect').value;
+    if (!newZone) {
+      alert('Veuillez sélectionner une zone');
+      return;
+    }
+
+    try {
+      const response = await fetch('{{ url_for("sites_zones.assign_lecteur") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          lecteur_id: currentLecteurId,
+          zone_name: newZone
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors du déplacement');
+    }
+  });
+});
+
+function filterZones(filter) {
+  const zoneCards = document.querySelectorAll('.zone-card');
+  
+  zoneCards.forEach(card => {
+    if (filter === 'all') {
+      card.style.display = '';
+    } else if (filter === 'incidents') {
+      card.style.display = card.dataset.status === 'incidents' ? '' : 'none';
+    } else if (filter === 'down') {
+      card.style.display = card.dataset.status === 'down' ? '' : 'none';
+    } else if (filter === 'desync') {
+      // Logique de désynchronisation (simulée)
+      card.style.display = '';
+    }
+  });
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).style.display = 'none';
+  // Réinitialiser les formulaires
+  if (modalId === 'createSiteModal') {
+    document.getElementById('siteNameInput').value = '';
+  } else if (modalId === 'createZoneModal') {
+    document.getElementById('zoneSiteSelect').value = '';
+    document.getElementById('zoneNameInput').value = '';
+  } else if (modalId === 'groupActionModal') {
+    currentAction = null;
+    document.getElementById('groupActionOptions').style.display = 'none';
+    document.querySelectorAll('.group-action-btn').forEach(b => b.style.borderColor = 'rgba(255, 255, 255, 0.1)');
+  } else if (modalId === 'moveLecteurModal') {
+    document.getElementById('newZoneSelect').value = '';
+  }
+}
+</script>
+
+{% endblock %}

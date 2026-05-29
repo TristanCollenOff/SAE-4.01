@@ -1,0 +1,398 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="logs-hero">
+  <div class="container">
+    <h1><i class="bi bi-calendar-week"></i> Planification Hebdomadaire</h1>
+    <p>Organisez la diffusion des playlists pour : <strong>{{ lecteur.nom_lecteur }}</strong></p>
+  </div>
+</div>
+
+<div class="container mt-4 pb-5">
+  <div class="mb-4">
+    <label class="form-label text-muted small">Lecteur sélectionné</label>
+    <select class="logs-search-input"
+            onchange="location.href=this.value"
+            style="padding-left:1rem;">
+      {% for l in lecteurs %}
+        <option value="{{ url_for('planification.planifier_lecteur', id_lecteur=l.id_lecteur) }}"
+                {% if l.id_lecteur == lecteur.id_lecteur %}selected{% endif %}>
+          {{ l.nom_lecteur }} – {{ l.adresse_lecteur }} ({{ l.adresseIP }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="logs-actions mb-4">
+    <a href="{{ url_for('voir_lecteur', id_lecteur=lecteur.id_lecteur) }}" class="btn btn-rythmo-back">
+      <i class="bi bi-arrow-left"></i> Retour au lecteur
+    </a>
+    
+    <button type="button" class="btn btn-rythmo-back" style="border-color: #ffc107; color: #ffc107;" data-bs-toggle="modal" data-bs-target="#addPlanifModal">
+      <i class="bi bi-plus-circle"></i> Ajouter une plage horaire
+    </button>
+  </div>
+
+  <div class="logs-card">
+    <div class="logs-card-header">
+      <div class="logs-header-info">
+        <i class="bi bi-clock-history"></i>
+        <div>
+          <h2>Planning des diffusions</h2>
+          <p>Les playlists changeront automatiquement aux heures définies.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="logs-table-wrapper">
+      {% set jours_semaine = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] %}
+      
+      {% for jour in jours_semaine %}
+        {% set planifs_jour = planifications|selectattr('jour_semaine', 'equalto', jour)|list %}
+        
+        <div class="day-section">
+          <div class="day-header">
+            <i class="bi bi-calendar3"></i>
+            <strong>{{ jour }}</strong>
+            <span class="day-count">({{ planifs_jour|length }} plage{{ 's' if planifs_jour|length > 1 else '' }})</span>
+          </div>
+          
+          <div class="time-blocks">
+            {% if planifs_jour %}
+              {% for p in planifs_jour|sort(attribute='heure_debut') %}
+                <div class="time-block">
+                  <div class="time-block-header">
+                    <span class="time-range">
+                      <i class="bi bi-clock"></i>
+                      {{ p.heure_debut }} - {{ p.heure_fin }}
+                    </span>
+                    <form action="{{ url_for('planification.supprimer_planif', id_planif=p.id_planification) }}" 
+                          method="POST" 
+                          onsubmit="return confirm('Supprimer cette planification ?');"
+                          style="display: inline;">
+                      <button type="submit" class="btn-delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                  <div class="time-block-playlist">
+                    <i class="bi bi-music-note-list"></i>
+                    <span>{{ p.nom_playlist if p.nom_playlist else 'Aucune playlist' }}</span>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-day">
+                <i class="bi bi-calendar-x"></i>
+                <span>Aucune planification</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ajout Planification -->
+<div class="modal fade" id="addPlanifModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background: #1a060c; border: 1px solid #ffc107; border-radius: 20px; color: white;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <h5 class="modal-title fw-bold text-warning">
+          <i class="bi bi-plus-circle"></i> Nouvelle Planification
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('planification.ajouter_planif', id_lecteur=lecteur.id_lecteur) }}" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small text-muted">
+              <i class="bi bi-calendar3"></i> Jour de la semaine
+            </label>
+            <select name="jour" class="logs-search-input" style="padding-left: 1rem;" required>
+              <option value="">-- Choisir un jour --</option>
+              <option value="Lundi">Lundi</option>
+              <option value="Mardi">Mardi</option>
+              <option value="Mercredi">Mercredi</option>
+              <option value="Jeudi">Jeudi</option>
+              <option value="Vendredi">Vendredi</option>
+              <option value="Samedi">Samedi</option>
+              <option value="Dimanche">Dimanche</option>
+            </select>
+          </div>
+          
+          <div class="row">
+            <div class="col-6 mb-3">
+              <label class="form-label small text-muted">
+                <i class="bi bi-clock"></i> Heure Début
+              </label>
+              <input type="time" name="debut" class="logs-search-input" style="padding-left: 1rem;" required>
+            </div>
+            <div class="col-6 mb-3">
+              <label class="form-label small text-muted">
+                <i class="bi bi-clock-fill"></i> Heure Fin
+              </label>
+              <input type="time" name="fin" class="logs-search-input" style="padding-left: 1rem;" required>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label small text-muted">
+              <i class="bi bi-music-note-list"></i> Sélectionner la Playlist
+            </label>
+            <select name="id_playlist" class="logs-search-input" style="padding-left: 1rem;" required>
+              <option value="">-- Choisir une playlist --</option>
+              {% for pl in playlists %}
+                <option value="{{ pl.id_playlist }}" 
+                        {% if playlist_preselect and playlist_preselect == pl.id_playlist %}selected{% endif %}>
+                  {{ pl.nom_playlist }} 
+                  ({{ pl.nb_pistes }} piste{{ 's' if pl.nb_pistes > 1 else '' }} - 
+                  {% if pl.statut == 'valide' %}✓ Valide{% else %}⚠ {{ pl.statut }}{% endif %})
+                </option>
+              {% endfor %}
+            </select>
+            {% if not playlists %}
+            <small class="text-warning d-block mt-2">
+              <i class="bi bi-exclamation-triangle"></i> Aucune playlist disponible. 
+              <a href="{{ url_for('playlist.playlists') }}" class="text-warning" style="text-decoration: underline;">Créer une playlist</a>
+            </small>
+            {% endif %}
+          </div>
+
+          <div class="alert alert-info" style="background: rgba(23, 162, 184, 0.1); border: 1px solid rgba(23, 162, 184, 0.3); border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+            <i class="bi bi-info-circle"></i>
+            <small>La playlist sélectionnée sera diffusée automatiquement pendant la plage horaire définie.</small>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 12px;">
+            <i class="bi bi-x-circle"></i> Annuler
+          </button>
+          <button type="submit" class="btn btn-warning fw-bold" style="border-radius: 12px;">
+            <i class="bi bi-check-circle"></i> Enregistrer le planning
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Styles pour le modal */
+.logs-search-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.logs-search-input:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffc107;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+}
+
+.logs-search-input option {
+  background: #1a060c;
+  color: white;
+  padding: 0.5rem;
+}
+
+.form-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Nouveau design par jour */
+.day-section {
+  margin-bottom: 2rem;
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 193, 7, 0.05) 100%);
+  border-left: 4px solid #ffc107;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: #ffc107;
+}
+
+.day-header i {
+  font-size: 1.3rem;
+}
+
+.day-count {
+  margin-left: auto;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.time-blocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 0 0.5rem;
+}
+
+.time-block {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.time-block:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 193, 7, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.1);
+}
+
+.time-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.time-range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #17a2b8;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.time-range i {
+  font-size: 1.1rem;
+}
+
+.btn-delete {
+  background: transparent;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #dc3545;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.btn-delete:hover {
+  background: rgba(220, 53, 69, 0.1);
+  border-color: #dc3545;
+  transform: scale(1.05);
+}
+
+.time-block-playlist {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+}
+
+.time-block-playlist i {
+  color: #ffc107;
+  font-size: 1.2rem;
+}
+
+.time-block-playlist span {
+  font-weight: 500;
+}
+
+.empty-day {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.empty-day i {
+  font-size: 1.2rem;
+  opacity: 0.6;
+}
+
+.btn-rythmo-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-rythmo-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.logs-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .time-blocks {
+    grid-template-columns: 1fr;
+  }
+  
+  .day-header {
+    font-size: 1rem;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Validation du formulaire
+  const form = document.querySelector('#addPlanifModal form');
+  
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      const debut = document.querySelector('input[name="debut"]').value;
+      const fin = document.querySelector('input[name="fin"]').value;
+      
+      if (debut && fin && debut >= fin) {
+        e.preventDefault();
+        alert('L\'heure de fin doit être après l\'heure de début');
+        return false;
+      }
+    });
+  }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,909 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="lecteur-detail-hero">
+  <div class="container">
+    <div class="detail-header-top">
+      <a href="{{ url_for('lecteurs_ops.lecteurs_ops') }}" class="btn btn-back">
+        <i class="bi bi-arrow-left"></i> Retour à la liste
+      </a>
+    </div>
+    <h1>
+      <span class="status-dot-large {% if lecteur.est_en_ligne() %}status-online{% else %}status-offline{% endif %}"></span>
+      {{ lecteur.nom_lecteur }}
+    </h1>
+    <p class="detail-meta">
+      <i class="bi bi-router"></i> {{ lecteur.adresseIP }} • 
+      <i class="bi bi-geo-alt"></i> {{ lecteur.adresse_lecteur or 'Non assigné' }}
+    </p>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div class="container mt-4 pb-5">
+  
+  <!-- Actions principales -->
+  <div class="detail-actions-bar mb-4">
+    <div class="action-group">
+      <button class="btn-action-main" 
+              data-action="sync"
+              {% if not lecteur.est_en_ligne() %}disabled{% endif %}>
+        <i class="bi bi-arrow-repeat"></i> Forcer sync
+      </button>
+      <button class="btn-action-main" 
+              data-action="restart"
+              {% if not lecteur.est_en_ligne() %}disabled{% endif %}>
+        <i class="bi bi-arrow-clockwise"></i> Redémarrer
+      </button>
+      <button class="btn-action-main" 
+              data-action="fallback"
+              {% if not lecteur.est_en_ligne() %}disabled{% endif %}>
+        <i class="bi bi-shield-check"></i> Basculer secours
+      </button>
+      <button class="btn-action-main" 
+              data-action="test"
+              {% if not lecteur.est_en_ligne() %}disabled{% endif %}>
+        <i class="bi bi-play-circle"></i> Tester lecture
+      </button>
+      <button class="btn-action-main btn-action-danger" 
+              data-action="disable">
+        <i class="bi bi-pause-circle"></i> Désactiver
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Colonne gauche : État et configuration -->
+    <div class="col-lg-8">
+      
+      <!-- État temps réel -->
+      <div class="detail-card mb-4">
+        <div class="detail-card-header">
+          <h3><i class="bi bi-activity"></i> État Temps Réel</h3>
+          <span class="status-badge-large status-{% if lecteur.est_en_ligne() %}online{% else %}offline{% endif %}">
+            {% if lecteur.est_en_ligne() %}
+              <i class="bi bi-check-circle-fill"></i> UP
+            {% else %}
+              <i class="bi bi-x-circle-fill"></i> DOWN
+            {% endif %}
+          </span>
+        </div>
+        <div class="detail-card-body">
+          <div class="state-grid">
+            <div class="state-box">
+              <div class="state-label">Dernier contact</div>
+              <div class="state-value">{{ current_state.dernier_contact or 'Jamais' }}</div>
+            </div>
+            <div class="state-box">
+              <div class="state-label">Dernière synchronisation</div>
+              <div class="state-value">{{ current_state.derniere_sync or 'Jamais' }}</div>
+            </div>
+            <div class="state-box">
+              <div class="state-label">Version firmware</div>
+              <div class="state-value">{{ current_state.version_firmware or 'N/A' }}</div>
+            </div>
+            <div class="state-box">
+              <div class="state-label">Mode</div>
+              <div class="state-value state-value-capitalize">{{ current_state.mode }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lecture en cours -->
+      <div class="detail-card mb-4">
+        <div class="detail-card-header">
+          <h3><i class="bi bi-music-note-beamed"></i> Lecture</h3>
+        </div>
+        <div class="detail-card-body">
+          <div class="playback-info">
+            <div class="playback-main">
+              <div class="playback-icon">
+                <i class="bi bi-music-note-list"></i>
+              </div>
+              <div class="playback-details">
+                <div class="playback-playlist">{{ current_state.playlist_assignee }}</div>
+                <div class="playback-track">
+                  <span class="track-number">#{{ current_state.piste_en_cours.numero }}</span>
+                  {{ current_state.piste_en_cours.nom }}
+                </div>
+                <div class="playback-progress">
+                  <div class="progress-bar-mini">
+                    <div class="progress-fill-mini" style="width: 54%"></div>
+                  </div>
+                  <span class="progress-time">{{ current_state.piste_en_cours.position }} / {{ current_state.piste_en_cours.duree }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="playback-volume">
+              <i class="bi bi-volume-up"></i>
+              <span>{{ current_state.volume }}%</span>
+            </div>
+          </div>
+          {% if current_state.playlist_secours_active %}
+          <div class="fallback-active">
+            <i class="bi bi-shield-check"></i> Playlist de secours active
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Configuration -->
+      <div class="detail-card mb-4">
+        <div class="detail-card-header">
+          <h3><i class="bi bi-gear-fill"></i> Configuration</h3>
+        </div>
+        <div class="detail-card-body">
+          <form method="POST" class="config-form">
+            <div class="form-group-rythmo">
+              <label class="form-label-rythmo">
+                <i class="bi bi-tag-fill"></i> Nom du lecteur
+              </label>
+              <input type="text" name="nom_lecteur" class="form-control-rythmo" value="{{ lecteur.nom_lecteur }}" required>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group-rythmo">
+                  <label class="form-label-rythmo">
+                    <i class="bi bi-router-fill"></i> Adresse IP
+                  </label>
+                  <input type="text" name="adresseIP" class="form-control-rythmo" value="{{ lecteur.adresseIP }}" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group-rythmo">
+                  <label class="form-label-rythmo">
+                    <i class="bi bi-geo-alt-fill"></i> Zone
+                  </label>
+                  <input type="text" name="adresse_lecteur" class="form-control-rythmo" value="{{ lecteur.adresse_lecteur or '' }}">
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-save-config">
+              <i class="bi bi-save"></i> Enregistrer
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne droite : Santé et historique -->
+    <div class="col-lg-4">
+      
+      <!-- Indicateurs de santé -->
+      <div class="detail-card mb-4">
+        <div class="detail-card-header">
+          <h3><i class="bi bi-heart-pulse"></i> Santé</h3>
+        </div>
+        <div class="detail-card-body">
+          <div class="health-metrics">
+            <div class="health-metric">
+              <div class="metric-label">Stabilité</div>
+              <div class="metric-value value-{{ health.stabilite }}">
+                {{ health.stabilite|title }}
+              </div>
+            </div>
+            <div class="health-metric">
+              <div class="metric-label">Uptime</div>
+              <div class="metric-value">{{ health.uptime_percent }}%</div>
+            </div>
+            {% if health.derive_sync > 0 %}
+            <div class="health-metric health-warning">
+              <div class="metric-label">
+                <i class="bi bi-exclamation-triangle"></i> Dérive sync
+              </div>
+              <div class="metric-value">{{ health.derive_sync }}s</div>
+            </div>
+            {% endif %}
+            {% if health.down_frequents %}
+            <div class="health-alert">
+              <i class="bi bi-exclamation-circle-fill"></i>
+              <span>Down fréquents détectés</span>
+            </div>
+            {% endif %}
+            {% if health.erreurs_recentes %}
+            <div class="health-errors">
+              <div class="errors-label">Erreurs récentes :</div>
+              {% for erreur in health.erreurs_recentes %}
+              <div class="error-item">
+                <i class="bi bi-x-circle"></i> {{ erreur }}
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Historique / Audit -->
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <h3><i class="bi bi-clock-history"></i> Historique</h3>
+        </div>
+        <div class="detail-card-body">
+          <div class="audit-timeline">
+            {% for entry in audit %}
+            <div class="audit-entry">
+              <div class="audit-time">{{ entry.date }}</div>
+              <div class="audit-content">
+                <div class="audit-action">{{ entry.action }}</div>
+                <div class="audit-user">
+                  <i class="bi bi-person"></i> {{ entry.user }}
+                </div>
+                <div class="audit-details">{{ entry.details }}</div>
+              </div>
+            </div>
+            {% else %}
+            <div class="audit-empty">
+              <i class="bi bi-inbox"></i>
+              <p>Aucun historique</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== NAVBAR ===== */
+.navbar-brand {
+  letter-spacing: 0.12em;
+  font-size: 1.7rem;
+  color: #ffc107 !important;
+  display: flex;
+  align-items: center;
+  margin-left: 40px;
+}
+.navbar-brand i {
+  color: #d11831;
+  margin-right: 10px;
+}
+
+#music-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 26px;
+  margin-left: 14px;
+}
+#music-bar div {
+  width: 4px;
+  background: linear-gradient(#ffc107, #d11831);
+  border-radius: 2px;
+  animation: bounce 1s infinite ease-in-out;
+}
+#music-bar div:nth-child(2){animation-delay:.1s}
+#music-bar div:nth-child(3){animation-delay:.2s}
+#music-bar div:nth-child(4){animation-delay:.3s}
+#music-bar div:nth-child(5){animation-delay:.4s}
+
+@keyframes bounce {
+  0%,100%{height:40%}
+  50%{height:100%}
+}
+
+/* ===== HERO ===== */
+.lecteur-detail-hero {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.detail-header-top {
+  margin-bottom: 1.5rem;
+}
+
+.btn-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.lecteur-detail-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.status-dot-large {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot-large.status-online {
+  background: #28a745;
+  box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
+  animation: pulse 2s infinite;
+}
+
+.status-dot-large.status-offline {
+  background: #dc3545;
+}
+
+.detail-meta {
+  opacity: 0.8;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* ===== ACTIONS BAR ===== */
+.detail-actions-bar {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem 2rem;
+}
+
+.action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-action-main {
+  padding: 0.875rem 1.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  outline: none;
+}
+
+.btn-action-main:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-action-main:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-action-main.btn-action-danger {
+  background: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.3);
+  color: #ff6b6b;
+}
+
+.btn-action-main.btn-action-danger:hover:not(:disabled) {
+  background: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.5);
+  color: white;
+}
+
+/* ===== CARTES DÉTAIL ===== */
+.detail-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.detail-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-card-header h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.detail-card-header h3 i {
+  color: #ffc107;
+}
+
+.status-badge-large {
+  padding: 0.5rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-badge-large.status-online {
+  background: rgba(40, 167, 69, 0.15);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #6eff8c;
+}
+
+.status-badge-large.status-offline {
+  background: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #ff6b6b;
+}
+
+.detail-card-body {
+  color: white;
+}
+
+/* État temps réel */
+.state-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.state-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.state-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.state-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+}
+
+.state-value-capitalize {
+  text-transform: capitalize;
+}
+
+/* Lecture */
+.playback-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.playback-main {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex: 1;
+}
+
+.playback-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.playback-details {
+  flex: 1;
+}
+
+.playback-playlist {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.playback-track {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.75rem;
+}
+
+.track-number {
+  color: #ffc107;
+  font-weight: 700;
+  margin-right: 0.5rem;
+}
+
+.playback-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar-mini {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill-mini {
+  height: 100%;
+  background: linear-gradient(90deg, #ffc107, #ffb300);
+  border-radius: 2px;
+}
+
+.progress-time {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-variant-numeric: tabular-nums;
+  min-width: 80px;
+}
+
+.playback-volume {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.playback-volume i {
+  color: #ffc107;
+}
+
+.fallback-active {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 12px;
+  color: #ffc107;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+/* Configuration */
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group-rythmo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label-rythmo {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff4c7;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-label-rythmo i {
+  color: #ffc107;
+  font-size: 1rem;
+}
+
+.form-control-rythmo {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.form-control-rythmo:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffc107;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+}
+
+.btn-save-config {
+  padding: 0.875rem 1.75rem;
+  background: linear-gradient(135deg, #ffc107, #ffb300);
+  border: none;
+  border-radius: 12px;
+  color: #1a060c;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+  align-self: flex-start;
+}
+
+.btn-save-config:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 193, 7, 0.5);
+  background: linear-gradient(135deg, #ffb300, #ffc107);
+}
+
+/* Santé */
+.health-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.health-metric {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: white;
+}
+
+.health-metric.health-warning {
+  border-color: rgba(255, 193, 7, 0.3);
+  background: rgba(255, 193, 7, 0.05);
+}
+
+.health-metric.health-warning .metric-label {
+  color: #ffc107;
+}
+
+.health-alert {
+  padding: 1rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 12px;
+  color: #ffc107;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.health-errors {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.errors-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.error-item {
+  padding: 0.75rem;
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  border-radius: 8px;
+  color: #ff6b6b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Historique / Audit */
+.audit-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.audit-entry {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  border-left: 3px solid #ffc107;
+}
+
+.audit-time {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.audit-action {
+  font-weight: 700;
+  color: white;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.audit-user {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.audit-user i {
+  color: #ffc107;
+}
+
+.audit-details {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+.audit-empty {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.audit-empty i {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+
+/* Scrollbar personnalisée */
+.audit-timeline::-webkit-scrollbar {
+  width: 6px;
+}
+
+.audit-timeline::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.audit-timeline::-webkit-scrollbar-thumb {
+  background: rgba(255, 193, 7, 0.3);
+  border-radius: 10px;
+}
+
+.audit-timeline::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 193, 7, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .state-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .playback-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .lecteur-detail-hero h1 {
+    font-size: 2rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .detail-actions-bar {
+    padding: 1rem;
+  }
+  
+  .action-group {
+    flex-direction: column;
+  }
+  
+  .btn-action-main {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Actions principales
+  document.querySelectorAll('.btn-action-main').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (this.disabled) return;
+      
+      const action = this.dataset.action;
+      const lecteurId = {{ lecteur.id_lecteur }};
+      
+      if (action === 'disable' || action === 'restart') {
+        const actionName = action === 'disable' ? 'désactiver' : 'redémarrer';
+        if (!confirm(`Êtes-vous sûr de vouloir ${actionName} ce lecteur ?`)) {
+          return;
+        }
+      }
+      
+      try {
+        const response = await fetch('{{ url_for("lecteurs_ops.lecteur_action") }}', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            lecteur_id: lecteurId,
+            action: action
+          })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert(data.message);
+          setTimeout(() => location.reload(), 1000);
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors de l\'action');
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %}

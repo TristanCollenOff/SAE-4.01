@@ -1,0 +1,512 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="playlist-detail-hero">
+  <div class="container">
+    <div class="detail-header-top">
+      <a href="{{ url_for('playlist.playlists') }}" class="btn btn-back">
+        <i class="bi bi-arrow-left"></i> Retour aux playlists
+      </a>
+    </div>
+    <h1><i class="bi bi-music-note-list"></i> {{ playlist.nom_playlist }}</h1>
+    <p class="detail-meta">
+      <i class="bi bi-calendar3"></i> Créée le {{ playlist.date_creation }} • 
+      <i class="bi bi-clock-history"></i> Dernière MAJ : {{ playlist.date_derniere_maj }}
+    </p>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div class="container mt-4 pb-5">
+  
+  <!-- Statistiques et actions -->
+  <div class="playlist-stats-bar mb-4">
+    <div class="stats-items">
+      <div class="stat-box">
+        <div class="stat-value">{{ playlist.nb_pistes }}</div>
+        <div class="stat-label">Pistes</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">{{ (playlist.duree_totale // 60) }}:{{ '%02d'|format(playlist.duree_totale % 60) }}</div>
+        <div class="stat-label">Durée totale</div>
+      </div>
+      {% if playlist.problemes %}
+      <div class="stat-box stat-warning">
+        <div class="stat-value">{{ playlist.problemes|length }}</div>
+        <div class="stat-label">Problème{{ 's' if playlist.problemes|length > 1 else '' }}</div>
+      </div>
+      {% endif %}
+    </div>
+    <div class="playlist-actions">
+      <button class="btn btn-assign" id="assignBtn">
+        <i class="bi bi-pin-map"></i> Affecter
+      </button>
+      <button class="btn btn-publish" id="publishBtn">
+        <i class="bi bi-check-circle"></i> Publier
+      </button>
+    </div>
+  </div>
+
+  <!-- Liste des pistes -->
+  <div class="playlist-tracks-card">
+    <div class="card-header-section">
+      <h2><i class="bi bi-list-ul"></i> Pistes</h2>
+      <span class="tracks-count">{{ pistes|length }} piste{{ 's' if pistes|length > 1 else '' }}</span>
+    </div>
+
+    <div class="tracks-list">
+      {% if pistes %}
+        {% for piste in pistes %}
+        <div class="track-item {% if piste.problemes %}track-problem{% endif %}">
+          <div class="track-number">{{ loop.index }}</div>
+          <div class="track-info">
+            <h4 class="track-name">{{ piste.nom }}</h4>
+            <p class="track-path">
+              {% if piste.emplacement %}
+                <i class="bi bi-folder"></i> {{ piste.emplacement }}
+              {% else %}
+                <span class="path-missing"><i class="bi bi-exclamation-triangle"></i> Fichier manquant</span>
+              {% endif %}
+            </p>
+          </div>
+          <div class="track-duration">
+            {{ (piste.duree // 60) }}:{{ '%02d'|format(piste.duree % 60) }}
+          </div>
+          {% if piste.problemes %}
+          <div class="track-problemes">
+            {% for probleme in piste.problemes %}
+            <span class="probleme-tag">
+              <i class="bi bi-exclamation-circle"></i> {{ probleme }}
+            </span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="tracks-empty">
+          <i class="bi bi-music-note"></i>
+          <p>Aucune piste dans cette playlist</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Problèmes détectés -->
+  {% if playlist.problemes %}
+  <div class="playlist-problemes-card mt-4">
+    <div class="card-header-section">
+      <h2><i class="bi bi-exclamation-triangle-fill"></i> Problèmes détectés</h2>
+    </div>
+    <div class="problemes-list">
+      {% for probleme in playlist.problemes %}
+      <div class="probleme-item">
+        <i class="bi bi-x-circle-fill"></i>
+        <span>{{ probleme }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+/* ===== HERO ===== */
+.playlist-detail-hero {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.detail-header-top {
+  margin-bottom: 1.5rem;
+}
+
+.btn-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.playlist-detail-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+  letter-spacing: -0.02em;
+}
+
+.playlist-detail-hero h1 i {
+  color: #ffc107;
+  margin-right: 0.5rem;
+}
+
+.detail-meta {
+  opacity: 0.8;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* ===== STATS BAR ===== */
+.playlist-stats-bar {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.stats-items {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.stat-box {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.stat-box.stat-warning .stat-value {
+  color: #ffc107;
+}
+
+.playlist-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1.5px solid;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-assign {
+  background: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.btn-assign:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
+}
+
+.btn-publish {
+  background: rgba(40, 167, 69, 0.1);
+  border-color: rgba(40, 167, 69, 0.3);
+  color: #6eff8c;
+}
+
+.btn-publish:hover {
+  background: rgba(40, 167, 69, 0.2);
+  border-color: rgba(40, 167, 69, 0.5);
+}
+
+/* ===== CARTE PISTES ===== */
+.playlist-tracks-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.card-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header-section h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-header-section h2 i {
+  color: #ffc107;
+}
+
+.tracks-count {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.tracks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.track-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  gap: 1.25rem;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.track-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateX(5px);
+}
+
+.track-item.track-problem {
+  border-color: rgba(220, 53, 69, 0.3);
+  background: rgba(220, 53, 69, 0.05);
+}
+
+.track-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #ffc107;
+  font-size: 1.1rem;
+}
+
+.track-info {
+  flex: 1;
+}
+
+.track-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: white;
+}
+
+.track-path {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.path-missing {
+  color: #ff6b6b;
+}
+
+.track-duration {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  font-variant-numeric: tabular-nums;
+}
+
+.track-problemes {
+  grid-column: 1 / -1;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.probleme-tag {
+  padding: 0.35rem 0.75rem;
+  background: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #ff6b6b;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tracks-empty {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tracks-empty i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* ===== PROBLÈMES ===== */
+.playlist-problemes-card {
+  background: rgba(220, 53, 69, 0.05);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.playlist-problemes-card .card-header-section h2 {
+  color: #ff6b6b;
+}
+
+.playlist-problemes-card .card-header-section h2 i {
+  color: #ff6b6b;
+}
+
+.problemes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.probleme-item {
+  padding: 1rem;
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #ff6b6b;
+}
+
+.probleme-item i {
+  font-size: 1.2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .playlist-detail-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .playlist-stats-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .stats-items {
+    justify-content: space-around;
+  }
+  
+  .playlist-actions {
+    width: 100%;
+  }
+  
+  .btn {
+    flex: 1;
+  }
+  
+  .track-item {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .track-number {
+    justify-self: start;
+  }
+  
+  .track-duration {
+    justify-self: start;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Bouton affecter
+  document.getElementById('assignBtn')?.addEventListener('click', function() {
+    // Rediriger vers la page de gestion avec modal d'affectation
+    window.location.href = '{{ url_for("playlist.playlists") }}';
+  });
+
+  // Bouton publier
+  document.getElementById('publishBtn')?.addEventListener('click', async function() {
+    const playlistId = {playlist,id_playlist };
+    
+    if (confirm('Voulez-vous publier cette playlist ?')) {
+      try {
+        const response = await fetch('{{ url_for("playlist.publish_playlist") }}', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            playlist_id: playlistId,
+            publish: true
+          })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert('Playlist publiée avec succès');
+          location.reload();
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la publication');
+      }
+    }
+  });
+});
+</script>
+
+{% endblock %}

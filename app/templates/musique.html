@@ -1,0 +1,1136 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="musique-hero">
+  <div class="container">
+    <h1><i class="bi bi-music-note-beamed"></i> Contrôle Musical</h1>
+    <p>Pilotez la musique sur vos lecteurs en temps réel</p>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div class="container mt-4 pb-5">
+  
+  <!-- Retour -->
+  <div class="musique-actions mb-4">
+    <a href="{{ url_for('index') }}" class="btn btn-rythmo-back">
+      <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+    </a>
+  </div>
+
+  <!-- Sélection de cible -->
+  <div class="target-selector-card mb-4">
+    <div class="target-selector-header">
+      <i class="bi bi-bullseye"></i>
+      <h3>Sélectionner la cible</h3>
+    </div>
+    <div class="target-selector-body">
+      <div class="target-tabs">
+        <button class="target-tab active" data-target-type="lecteur">
+          <i class="bi bi-speaker-fill"></i> Lecteur unique
+        </button>
+        <button class="target-tab" data-target-type="zone">
+          <i class="bi bi-geo-alt-fill"></i> Zone
+        </button>
+        <button class="target-tab" data-target-type="site">
+          <i class="bi bi-building"></i> Site
+        </button>
+      </div>
+
+      <!-- Lecteur unique -->
+      <div class="target-content active" id="target-lecteur">
+        <select class="target-select" id="lecteurSelect">
+          <option value="">Sélectionner un lecteur</option>
+          {% for lecteur in lecteurs %}
+            <option value="{{ lecteur.id_lecteur }}" 
+                    data-status="{% if lecteur.est_en_ligne() %}online{% else %}offline{% endif %}">
+              {{ lecteur.nom_lecteur }} - {{ lecteur.adresse_lecteur }}
+              {% if lecteur.est_en_ligne() %}
+                <span class="status-indicator">●</span>
+              {% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Zone -->
+      <div class="target-content" id="target-zone">
+        <select class="target-select" id="zoneSelect">
+          <option value="">Sélectionner une zone</option>
+          {% for zone in zones %}
+            <option value="{{ zone }}">{{ zone }}</option>
+          {% endfor %}
+        </select>
+        <div class="target-info" id="zoneInfo">
+          <p><i class="bi bi-info-circle"></i> Les actions seront appliquées à tous les lecteurs de cette zone</p>
+        </div>
+      </div>
+
+      <!-- Site -->
+      <div class="target-content" id="target-site">
+        <select class="target-select" id="siteSelect">
+          <option value="">Sélectionner un site</option>
+          {% for site_id, site_nom in sites.items() %}
+            <option value="{{ site_id }}">{{ site_nom }}</option>
+          {% endfor %}
+        </select>
+        <div class="target-info" id="siteInfo">
+          <p><i class="bi bi-info-circle"></i> Les actions seront appliquées à tous les lecteurs de ce site</p>
+        </div>
+      </div>
+
+      <!-- Statut de synchronisation (visible si plusieurs lecteurs) -->
+      <div class="sync-status" id="syncStatus" style="display: none;">
+        <div class="sync-status-content">
+          <i class="bi bi-check-circle-fill sync-ok"></i>
+          <i class="bi bi-exclamation-triangle-fill sync-warning"></i>
+          <span class="sync-text" id="syncText">Synchronisé</span>
+        </div>
+        <div class="sync-details" id="syncDetails"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lecteur de musique principal -->
+  <div class="music-player-card mb-4">
+    <div class="player-header">
+      <div class="player-header-left">
+        <div class="player-album-mini">
+          <i class="bi bi-music-note-beamed"></i>
+        </div>
+        <div class="player-track-info">
+          <h3 id="currentTrackTitle">{{ piste_actuelle.titre }}</h3>
+          <p id="currentTrackArtist">{{ piste_actuelle.artiste }}</p>
+          <div class="player-target-indicator">
+            <span id="targetIndicator">Aucune cible sélectionnée</span>
+          </div>
+        </div>
+      </div>
+      <div class="player-header-right">
+        <!-- État En cours vs Prévu -->
+        <div class="programming-status">
+          <div class="status-badge status-current" id="statusCurrent">
+            <i class="bi bi-play-circle-fill"></i>
+            <span>En cours</span>
+          </div>
+          <div class="status-badge status-scheduled" id="statusScheduled">
+            <i class="bi bi-clock-fill"></i>
+            <span>Prévu</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contrôles musicaux -->
+    <div class="player-controls-section">
+      <div class="main-controls">
+        <button class="control-btn" id="prevBtn" 
+                {% if not permissions.can_skip %}disabled title="Permission refusée"{% endif %}>
+          <i class="bi bi-skip-start-fill"></i>
+        </button>
+        <button class="control-btn control-btn-play" id="playPauseBtn">
+          <i class="bi bi-pause-fill" id="playPauseIcon"></i>
+        </button>
+        <button class="control-btn" id="nextBtn"
+                {% if not permissions.can_skip %}disabled title="Permission refusée"{% endif %}>
+          <i class="bi bi-skip-end-fill"></i>
+        </button>
+      </div>
+
+      <!-- Barre de progression -->
+      <div class="progress-section">
+        <span class="time-display" id="currentTime">0:00</span>
+        <div class="progress-container">
+          <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-handle" id="progressHandle"></div>
+          </div>
+        </div>
+        <span class="time-display" id="totalTime">0:00</span>
+      </div>
+
+      <!-- Volume -->
+      <div class="volume-section">
+        <button class="volume-btn" id="volumeBtn">
+          <i class="bi bi-volume-up-fill"></i>
+        </button>
+        <div class="volume-slider-wrapper" {% if not permissions.can_control_volume %}style="opacity: 0.5;"{% endif %}>
+          <div class="volume-slider" id="volumeSlider" {% if not permissions.can_control_volume %}style="pointer-events: none;"{% endif %}>
+            <div class="volume-fill" id="volumeFill"></div>
+            <div class="volume-handle" id="volumeHandle"></div>
+          </div>
+        </div>
+        <span class="volume-value" id="volumeValue">80%</span>
+        {% if not permissions.can_control_volume %}
+          <span class="permission-hint"><i class="bi bi-lock"></i> Lecture seule</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Informations programmation -->
+    <div class="programming-info">
+      <div class="programming-card current">
+        <div class="programming-header">
+          <i class="bi bi-play-circle-fill"></i>
+          <h4>En cours</h4>
+        </div>
+        <div class="programming-content">
+          <p class="programming-playlist">{{ programmation.en_cours.playlist }}</p>
+          <p class="programming-time">{{ programmation.en_cours.heure_debut }} - {{ programmation.en_cours.heure_fin }}</p>
+        </div>
+      </div>
+      <div class="programming-card scheduled">
+        <div class="programming-header">
+          <i class="bi bi-clock-fill"></i>
+          <h4>Prévu</h4>
+        </div>
+        <div class="programming-content">
+          <p class="programming-playlist">{{ programmation.prevue.playlist }}</p>
+          <p class="programming-time">{{ programmation.prevue.heure_debut }} - {{ programmation.prevue.heure_fin }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des lecteurs ciblés (si groupe) -->
+  <div class="targeted-readers-card" id="targetedReaders" style="display: none;">
+    <div class="card-header">
+      <h4><i class="bi bi-list-ul"></i> Lecteurs ciblés</h4>
+      <span class="readers-count" id="readersCount">0 lecteurs</span>
+    </div>
+    <div class="readers-list" id="readersList">
+      <!-- Liste générée dynamiquement -->
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== HERO ===== */
+.musique-hero {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+.musique-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+  letter-spacing: -0.02em;
+}
+.musique-hero h1 i {
+  color: #ffc107;
+  margin-right: 0.5rem;
+}
+.musique-hero p {
+  opacity: 0.85;
+  font-size: 1.1rem;
+}
+
+/* ===== ACTIONS ===== */
+.btn-rythmo-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-rythmo-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+/* ===== SÉLECTION DE CIBLE ===== */
+.target-selector-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.target-selector-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.target-selector-header i {
+  color: #ffc107;
+  font-size: 1.5rem;
+}
+
+.target-selector-header h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.target-tabs {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.target-tab {
+  flex: 1;
+  min-width: 150px;
+  padding: 0.875rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  outline: none;
+}
+
+.target-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.target-tab.active {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.target-content {
+  display: none;
+}
+
+.target-content.active {
+  display: block;
+}
+
+.target-select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.target-select:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffc107;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+}
+
+.target-select option {
+  background: #1a060c;
+  color: white;
+}
+
+.target-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(255, 193, 7, 0.1);
+  border-left: 3px solid #ffc107;
+  border-radius: 8px;
+}
+
+.target-info p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.target-info i {
+  color: #ffc107;
+}
+
+/* Statut de synchronisation */
+.sync-status {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sync-status-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sync-status-content i {
+  font-size: 1.3rem;
+}
+
+.sync-ok {
+  color: #28a745;
+  display: inline;
+}
+
+.sync-warning {
+  color: #ffc107;
+  display: none;
+}
+
+.sync-status.warning .sync-ok {
+  display: none;
+}
+
+.sync-status.warning .sync-warning {
+  display: inline;
+}
+
+.sync-text {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.sync-details {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ===== LECTEUR DE MUSIQUE ===== */
+.music-player-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.player-header-left {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex: 1;
+}
+
+.player-album-mini {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.player-track-info h3 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  color: white;
+}
+
+.player-track-info p {
+  font-size: 1rem;
+  opacity: 0.7;
+  margin: 0 0 0.5rem 0;
+}
+
+.player-target-indicator {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.player-header-right {
+  flex-shrink: 0;
+}
+
+.programming-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.status-current {
+  background: rgba(40, 167, 69, 0.2);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #6eff8c;
+}
+
+.status-scheduled {
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  color: #ffc107;
+}
+
+/* Contrôles */
+.player-controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.main-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.control-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.control-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.control-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.control-btn-play {
+  width: 72px;
+  height: 72px;
+  background: rgba(255, 193, 7, 0.15);
+  border: 1.5px solid rgba(255, 193, 7, 0.3);
+  font-size: 1.8rem;
+  color: #ffc107;
+}
+
+.control-btn-play:hover:not(:disabled) {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.4);
+  box-shadow: 0 4px 16px rgba(255, 193, 7, 0.2);
+}
+
+/* Progression */
+.progress-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.time-display {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  min-width: 45px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-container {
+  flex: 1;
+  height: 6px;
+  position: relative;
+  cursor: pointer;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffc107, #ffb300);
+  border-radius: 3px;
+  width: 35%;
+  transition: width 0.1s linear;
+}
+
+.progress-handle {
+  position: absolute;
+  top: 50%;
+  left: 35%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffc107;
+  border: 2px solid white;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: grab;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
+}
+
+.progress-container:hover .progress-handle {
+  opacity: 1;
+}
+
+/* Volume */
+.volume-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.volume-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.volume-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.volume-slider-wrapper {
+  width: 200px;
+  height: 4px;
+}
+
+.volume-slider {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+}
+
+.volume-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 2px;
+  width: 80%;
+}
+
+.volume-handle {
+  position: absolute;
+  top: 50%;
+  left: 80%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: white;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: grab;
+}
+
+.volume-slider:hover .volume-handle {
+  opacity: 1;
+}
+
+.volume-value {
+  min-width: 45px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
+.permission-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Programmation */
+.programming-info {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.programming-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.programming-card.current {
+  border-color: rgba(40, 167, 69, 0.3);
+}
+
+.programming-card.scheduled {
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.programming-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.programming-header i {
+  font-size: 1.2rem;
+}
+
+.programming-card.current .programming-header i {
+  color: #28a745;
+}
+
+.programming-card.scheduled .programming-header i {
+  color: #ffc107;
+}
+
+.programming-header h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.programming-content p {
+  margin: 0.25rem 0;
+}
+
+.programming-playlist {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.programming-time {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Lecteurs ciblés */
+.targeted-readers-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header h4 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.readers-count {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.readers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reader-item {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reader-item.synced {
+  border-color: rgba(40, 167, 69, 0.3);
+}
+
+.reader-item.unsynced {
+  border-color: rgba(220, 53, 69, 0.3);
+}
+
+.reader-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.reader-status {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #28a745;
+}
+
+.reader-item.unsynced .reader-status {
+  background: #dc3545;
+}
+
+.reader-name {
+  font-weight: 600;
+  color: white;
+}
+
+.reader-piste {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .musique-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .player-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .target-tabs {
+    flex-direction: column;
+  }
+  
+  .target-tab {
+    width: 100%;
+  }
+  
+  .programming-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .volume-slider-wrapper {
+    width: 150px;
+  }
+}
+</style>
+
+<script>
+let currentTargetType = 'lecteur';
+let currentTargetId = null;
+let isPlaying = true;
+let currentTime = 0;
+let totalTime = 225;
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Gestion des tabs de sélection
+  document.querySelectorAll('.target-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.target-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.target-content').forEach(c => c.classList.remove('active'));
+      
+      this.classList.add('active');
+      const targetType = this.dataset.targetType;
+      document.getElementById(`target-${targetType}`).classList.add('active');
+      currentTargetType = targetType;
+      currentTargetId = null;
+      updateTargetIndicator();
+    });
+  });
+
+  // Sélection de cible
+  document.getElementById('lecteurSelect')?.addEventListener('change', function() {
+    currentTargetId = this.value;
+    updateTargetIndicator();
+    checkSyncStatus();
+  });
+
+  document.getElementById('zoneSelect')?.addEventListener('change', function() {
+    currentTargetId = this.value;
+    updateTargetIndicator();
+    checkSyncStatus();
+  });
+
+  document.getElementById('siteSelect')?.addEventListener('change', function() {
+    currentTargetId = this.value;
+    updateTargetIndicator();
+    checkSyncStatus();
+  });
+
+  // Contrôles musicaux
+  document.getElementById('playPauseBtn')?.addEventListener('click', function() {
+    if (!currentTargetId) {
+      alert('Veuillez sélectionner une cible');
+      return;
+    }
+    isPlaying = !isPlaying;
+    document.getElementById('playPauseIcon').className = isPlaying ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+    sendControlCommand(isPlaying ? 'play' : 'pause');
+  });
+
+  document.getElementById('prevBtn')?.addEventListener('click', function() {
+    if (!currentTargetId) return;
+    sendControlCommand('prev');
+  });
+
+  document.getElementById('nextBtn')?.addEventListener('click', function() {
+    if (!currentTargetId) return;
+    sendControlCommand('next');
+  });
+
+  // Barre de progression
+  document.getElementById('progressBar')?.addEventListener('click', function(e) {
+    const rect = this.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = (x / rect.width) * 100;
+    document.getElementById('progressFill').style.width = percentage + '%';
+    document.getElementById('progressHandle').style.left = percentage + '%';
+    currentTime = (percentage / 100) * totalTime;
+    updateTimeDisplay();
+  });
+
+  // Simulation de progression
+  setInterval(function() {
+    if (isPlaying && currentTime < totalTime) {
+      currentTime += 1;
+      const percentage = (currentTime / totalTime) * 100;
+      document.getElementById('progressFill').style.width = percentage + '%';
+      document.getElementById('progressHandle').style.left = percentage + '%';
+      updateTimeDisplay();
+    }
+  }, 1000);
+
+  // Volume
+  document.getElementById('volumeSlider')?.addEventListener('click', function(e) {
+    const rect = this.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = (x / rect.width) * 100;
+    document.getElementById('volumeFill').style.width = percentage + '%';
+    document.getElementById('volumeHandle').style.left = percentage + '%';
+    document.getElementById('volumeValue').textContent = Math.round(percentage) + '%';
+    sendControlCommand('volume', percentage);
+  });
+});
+
+function updateTargetIndicator() {
+  const indicator = document.getElementById('targetIndicator');
+  if (!currentTargetId) {
+    indicator.textContent = 'Aucune cible sélectionnée';
+    document.getElementById('targetedReaders').style.display = 'none';
+    return;
+  }
+  
+  let text = '';
+  if (currentTargetType === 'lecteur') {
+    const select = document.getElementById('lecteurSelect');
+    text = select.options[select.selectedIndex]?.text || 'Lecteur sélectionné';
+  } else if (currentTargetType === 'zone') {
+    text = `Zone: ${currentTargetId}`;
+  } else if (currentTargetType === 'site') {
+    const select = document.getElementById('siteSelect');
+    text = select.options[select.selectedIndex]?.text || 'Site sélectionné';
+  }
+  
+  indicator.textContent = text;
+}
+
+async function checkSyncStatus() {
+  if (!currentTargetId || currentTargetType === 'lecteur') {
+    document.getElementById('syncStatus').style.display = 'none';
+    return;
+  }
+
+  try {
+    const response = await fetch('{{ url_for("musique.get_status") }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        target_type: currentTargetType,
+        target_id: currentTargetId
+      })
+    });
+    
+    const data = await response.json();
+    const syncStatus = document.getElementById('syncStatus');
+    const syncText = document.getElementById('syncText');
+    const syncDetails = document.getElementById('syncDetails');
+    const readersCard = document.getElementById('targetedReaders');
+    const readersList = document.getElementById('readersList');
+    const readersCount = document.getElementById('readersCount');
+
+    if (data.total > 1) {
+      syncStatus.style.display = 'block';
+      readersCard.style.display = 'block';
+      
+      if (data.synchronized) {
+        syncStatus.classList.remove('warning');
+        syncText.textContent = `Synchronisé (${data.en_ligne}/${data.total} en ligne)`;
+      } else {
+        syncStatus.classList.add('warning');
+        syncText.textContent = `Désynchronisé (${data.en_ligne}/${data.total} en ligne)`;
+      }
+
+      // Afficher les lecteurs
+      readersCount.textContent = `${data.total} lecteur${data.total > 1 ? 's' : ''}`;
+      readersList.innerHTML = '';
+      
+      data.status_list.forEach(status => {
+        const item = document.createElement('div');
+        item.className = `reader-item ${status.en_ligne ? 'synced' : 'unsynced'}`;
+        item.innerHTML = `
+          <div class="reader-info">
+            <div class="reader-status"></div>
+            <div>
+              <div class="reader-name">${status.lecteur_nom}</div>
+              <div class="reader-piste">${status.piste} - ${status.position}</div>
+            </div>
+          </div>
+        `;
+        readersList.appendChild(item);
+      });
+    } else {
+      syncStatus.style.display = 'none';
+      readersCard.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Erreur lors de la vérification du statut:', error);
+  }
+}
+
+async function sendControlCommand(action, value = null) {
+  if (!currentTargetId) return;
+
+  try {
+    const response = await fetch('{{ url_for("musique.control") }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: action,
+        target_type: currentTargetType,
+        target_id: currentTargetId,
+        value: value
+      })
+    });
+
+    const data = await response.json();
+    
+    if (data.synchronized === false && data.total > 1) {
+      // Afficher un avertissement si désynchronisé
+      const syncStatus = document.getElementById('syncStatus');
+      syncStatus.style.display = 'block';
+      syncStatus.classList.add('warning');
+      document.getElementById('syncText').textContent = 
+        `Désynchronisé: ${data.total - data.en_ligne} lecteur(s) hors ligne`;
+      
+      // Afficher les lecteurs qui ne suivent pas
+      const details = document.getElementById('syncDetails');
+      const failed = data.results.filter(r => !r.success);
+      if (failed.length > 0) {
+        details.innerHTML = 'Lecteurs hors ligne: ' + failed.map(r => r.lecteur_nom).join(', ');
+      }
+    }
+    
+    // Mettre à jour le statut après une commande
+    setTimeout(checkSyncStatus, 500);
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de la commande:', error);
+    alert('Erreur lors de l\'envoi de la commande');
+  }
+}
+
+function updateTimeDisplay() {
+  const minutes = Math.floor(currentTime / 60);
+  const seconds = currentTime % 60;
+  document.getElementById('currentTime').textContent = 
+    minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+  
+  const totalMinutes = Math.floor(totalTime / 60);
+  const totalSeconds = totalTime % 60;
+  document.getElementById('totalTime').textContent = 
+    totalMinutes + ':' + (totalSeconds < 10 ? '0' : '') + totalSeconds;
+}
+
+updateTimeDisplay();
+</script>
+
+{% endblock %}

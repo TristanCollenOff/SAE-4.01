@@ -1,0 +1,1519 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="playlists-hero">
+  <div class="container">
+    <h1><i class="bi bi-music-player-fill"></i> Gestion des Playlists</h1>
+    <p>Créez et gérez vos bibliothèques musicales</p>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div class="container mt-4 pb-5">
+  
+  <!-- Retour -->
+  <div class="playlists-actions mb-4">
+    <a href="{{ url_for('index') }}" class="btn btn-rythmo-back">
+      <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+    </a>
+    <button class="btn btn-rythmo-primary" id="createPlaylistBtn">
+      <i class="bi bi-plus-circle"></i> Créer une playlist
+    </button>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <div class="playlists-filters mb-4">
+    <div class="filter-group">
+      <input type="text" id="searchPlaylist" class="search-input" placeholder="Rechercher une playlist...">
+      <i class="bi bi-search search-icon-input"></i>
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">Toutes</button>
+      <button class="filter-tab" data-filter="principale">Principales</button>
+      <button class="filter-tab" data-filter="secours">Secours</button>
+      <button class="filter-tab" data-filter="brouillon">Brouillons</button>
+    </div>
+  </div>
+
+  <!-- Bibliothèque de playlists -->
+  <div class="playlists-library">
+    <div class="library-header">
+      <div class="library-header-left">
+        <h2><i class="bi bi-collection"></i> Bibliothèque</h2>
+        <span class="library-count">{{ playlists|length }} playlist{{ 's' if playlists|length > 1 else '' }}</span>
+      </div>
+      <div class="library-header-actions">
+        <button class="btn btn-import-music" id="importMusicBtn" type="button">
+          <i class="bi bi-upload"></i>
+          <span>Importer des musiques</span>
+        </button>
+        <button class="btn btn-connect-platform" id="connectPlatformBtn" type="button">
+          <i class="bi bi-link-45deg"></i>
+          <span>Connecter une plateforme</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="playlists-grid" id="playlistsGrid">
+      {% for playlist in playlists %}
+      <div class="playlist-card" 
+           data-type="{{ playlist.type }}" 
+           data-publie="{{ 'true' if playlist.publie else 'false' }}"
+           data-name="{{ playlist.nom_playlist|lower }}">
+        <!-- En-tête de la carte -->
+        <div class="playlist-card-header">
+          <div class="playlist-type-badge type-{{ playlist.type }}">
+            {% if playlist.type == 'secours' %}
+              <i class="bi bi-shield-check"></i> Secours
+            {% else %}
+              <i class="bi bi-music-note-list"></i> Principale
+            {% endif %}
+          </div>
+          <div class="playlist-status-badge status-{{ playlist.statut }}">
+            {% if playlist.statut == 'valide' %}
+              <i class="bi bi-check-circle-fill"></i>
+            {% elif playlist.statut == 'incomplet' %}
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            {% else %}
+              <i class="bi bi-x-circle-fill"></i>
+            {% endif %}
+            {{ playlist.statut|title }}
+          </div>
+        </div>
+
+        <!-- Corps de la carte -->
+        <div class="playlist-card-body">
+          <h3 class="playlist-name">{{ playlist.nom_playlist }}</h3>
+          
+          <div class="playlist-stats">
+            <div class="stat-item">
+              <i class="bi bi-music-note-beamed"></i>
+              <span>{{ playlist.nb_pistes }} piste{{ 's' if playlist.nb_pistes > 1 else '' }}</span>
+            </div>
+            <div class="stat-item">
+              <i class="bi bi-clock"></i>
+              <span>{{ (playlist.duree_totale // 60) }}:{{ '%02d'|format(playlist.duree_totale % 60) }}</span>
+            </div>
+          </div>
+
+          <div class="playlist-meta">
+            <p class="playlist-date">
+              <i class="bi bi-calendar3"></i>
+              Dernière MAJ : {{ playlist.date_derniere_maj }}
+            </p>
+          </div>
+
+          <!-- Problèmes -->
+          {% if playlist.problemes %}
+          <div class="playlist-problemes">
+            {% for probleme in playlist.problemes %}
+            <span class="probleme-badge">
+              <i class="bi bi-exclamation-circle"></i> {{ probleme }}
+            </span>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- Publication -->
+          <div class="playlist-publication">
+            {% if playlist.publie %}
+              <span class="publication-badge published">
+                <i class="bi bi-check-circle"></i> Publiée
+              </span>
+            {% else %}
+              <span class="publication-badge draft">
+                <i class="bi bi-file-earmark"></i> Brouillon
+              </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="playlist-card-actions">
+          <a href="{{ url_for('playlist.playlist_detail', id_playlist=playlist.id_playlist) }}" 
+             class="action-btn action-view">
+            <i class="bi bi-eye"></i> Voir
+          </a>
+          <button class="action-btn action-assign" 
+                  data-playlist-id="{{ playlist.id_playlist }}"
+                  data-playlist-name="{{ playlist.nom_playlist }}">
+            <i class="bi bi-pin-map"></i> Affecter
+          </button>
+        </div>
+      </div>
+      {% else %}
+      <div class="playlists-empty">
+        <div class="empty-icon">
+          <i class="bi bi-music-player"></i>
+        </div>
+        <h3>Aucune playlist</h3>
+        <p>Créez votre première playlist pour commencer</p>
+        <button class="btn btn-rythmo-primary mt-3">
+          <i class="bi bi-plus-circle"></i> Créer une playlist
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal d'affectation -->
+<div class="modal-overlay" id="assignModal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="bi bi-pin-map"></i> Affecter une playlist</h3>
+      <button class="modal-close" id="closeModal">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-subtitle" id="modalPlaylistName">Sélectionner la cible d'affectation</p>
+      
+      <div class="assign-tabs">
+        <button class="assign-tab active" data-assign-type="lecteur">
+          <i class="bi bi-speaker-fill"></i> Lecteur
+        </button>
+        <button class="assign-tab" data-assign-type="zone">
+          <i class="bi bi-geo-alt-fill"></i> Zone
+        </button>
+        <button class="assign-tab" data-assign-type="site">
+          <i class="bi bi-building"></i> Site
+        </button>
+      </div>
+
+      <div class="assign-content">
+        <div class="assign-option active" id="assign-lecteur">
+          <select class="assign-select" id="lecteurSelect">
+            <option value="">Sélectionner un lecteur</option>
+            {% for lecteur in lecteurs %}
+            <option value="{{ lecteur.id_lecteur }}">{{ lecteur.nom_lecteur }} - {{ lecteur.adresse_lecteur }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="assign-option" id="assign-zone">
+          <select class="assign-select" id="zoneSelect">
+            <option value="">Sélectionner une zone</option>
+            {% for zone in zones %}
+            <option value="{{ zone }}">{{ zone }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="assign-option" id="assign-site">
+          <select class="assign-select" id="siteSelect">
+            <option value="">Sélectionner un site</option>
+            {% for site_id, site_nom in sites.items() %}
+            <option value="{{ site_id }}">{{ site_nom }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="assign-options">
+        <label class="checkbox-label">
+          <input type="checkbox" id="isFallback">
+          <span>Définir comme playlist de secours (fallback)</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-modal-cancel" id="cancelAssign">Annuler</button>
+      <button class="btn btn-modal-confirm" id="confirmAssign">Affecter</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== HERO ===== */
+.playlists-hero {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+.playlists-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+  letter-spacing: -0.02em;
+}
+.playlists-hero h1 i {
+  color: #ffc107;
+  margin-right: 0.5rem;
+}
+.playlists-hero p {
+  opacity: 0.85;
+  font-size: 1.1rem;
+}
+
+/* ===== ACTIONS ===== */
+.btn-rythmo-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-rythmo-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.btn-rythmo-primary {
+  background: transparent;
+  border: 1.5px solid #ffc107;
+  color: #ffc107;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-rythmo-primary:hover {
+  background: #ffc107;
+  color: #1a060c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+}
+
+.playlists-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* ===== FILTRES ===== */
+.playlists-filters {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.filter-group {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.search-input:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffc107;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+}
+
+.search-icon-input {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  padding: 0.6rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.filter-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.filter-tab.active {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+/* ===== BIBLIOTHÈQUE ===== */
+.playlists-library {
+  margin-top: 2rem;
+}
+
+.library-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.library-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.library-header h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.library-header h2 i {
+  color: #ffc107;
+}
+
+.library-count {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.library-header-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-import-music,
+.btn-connect-platform {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.btn-import-music {
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.btn-import-music:hover {
+  background: rgba(255, 193, 7, 0.25);
+  border-color: rgba(255, 193, 7, 0.5);
+  color: #ffd54f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+}
+
+.btn-import-music i {
+  font-size: 1.2rem;
+}
+
+.btn-connect-platform {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.btn-connect-platform:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-connect-platform i {
+  font-size: 1.2rem;
+}
+
+.playlists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.playlist-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.playlist-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 193, 7, 0.2);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+}
+
+.playlist-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.playlist-type-badge {
+  padding: 0.4rem 0.9rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.type-principale {
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.type-secours {
+  background: rgba(108, 117, 125, 0.2);
+  border: 1px solid rgba(108, 117, 125, 0.3);
+  color: #adb5bd;
+}
+
+.playlist-status-badge {
+  padding: 0.4rem 0.9rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.status-valide {
+  background: rgba(40, 167, 69, 0.15);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #6eff8c;
+}
+
+.status-incomplet {
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.status-erreur {
+  background: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #ff6b6b;
+}
+
+.playlist-card-body {
+  flex: 1;
+}
+
+.playlist-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  color: white;
+}
+
+.playlist-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.stat-item i {
+  color: #ffc107;
+}
+
+.playlist-meta {
+  margin-bottom: 1rem;
+}
+
+.playlist-date {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.playlist-problemes {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.probleme-badge {
+  padding: 0.35rem 0.75rem;
+  background: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #ff6b6b;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.playlist-publication {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.publication-badge {
+  padding: 0.4rem 0.9rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.publication-badge.published {
+  background: rgba(40, 167, 69, 0.15);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #6eff8c;
+}
+
+.publication-badge.draft {
+  background: rgba(108, 117, 125, 0.15);
+  border: 1px solid rgba(108, 117, 125, 0.3);
+  color: #adb5bd;
+}
+
+.playlist-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-btn {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  border: 1.5px solid;
+  cursor: pointer;
+  outline: none;
+}
+
+.action-view {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.action-view:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.action-assign {
+  background: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.action-assign:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
+}
+
+/* État vide */
+.playlists-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1.5px dashed rgba(255, 193, 7, 0.3);
+}
+
+.empty-icon {
+  font-size: 5rem;
+  color: rgba(255, 193, 7, 0.5);
+  margin-bottom: 1.5rem;
+}
+
+.playlists-empty h3 {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.playlists-empty p {
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: rgba(26, 6, 12, 0.95);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modal-header h3 i {
+  color: #ffc107;
+}
+
+.modal-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.modal-subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+}
+
+.assign-tabs {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.assign-tab {
+  flex: 1;
+  padding: 0.875rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  outline: none;
+}
+
+.assign-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.assign-tab.active {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.assign-content {
+  margin-bottom: 1.5rem;
+}
+
+.assign-option {
+  display: none;
+}
+
+.assign-option.active {
+  display: block;
+}
+
+.assign-select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.assign-select:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffc107;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+}
+
+.assign-select option {
+  background: #1a060c;
+  color: white;
+}
+
+.assign-options {
+  margin-top: 1.5rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #ffc107;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 2rem 2rem;
+  justify-content: flex-end;
+}
+
+.btn-modal-cancel,
+.btn-modal-confirm {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1.5px solid;
+  outline: none;
+}
+
+.btn-modal-cancel {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.btn-modal-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-modal-confirm {
+  background: linear-gradient(135deg, #ffc107, #ffb300);
+  border-color: #ffc107;
+  color: #1a060c;
+}
+
+.btn-modal-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+}
+
+/* ===== MODAL IMPORT ===== */
+.import-zone {
+  text-align: center;
+  padding: 3rem 2rem;
+  border: 2px dashed rgba(255, 193, 7, 0.3);
+  border-radius: 16px;
+  background: rgba(255, 193, 7, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.import-zone:hover {
+  border-color: rgba(255, 193, 7, 0.5);
+  background: rgba(255, 193, 7, 0.08);
+}
+
+.import-zone.dragover {
+  border-color: #ffc107;
+  background: rgba(255, 193, 7, 0.15);
+  transform: scale(1.02);
+}
+
+.import-icon {
+  font-size: 4rem;
+  color: #ffc107;
+  margin-bottom: 1rem;
+}
+
+.import-zone h4 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: white;
+}
+
+.import-zone p {
+  margin: 0.5rem 0;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.btn-select-files {
+  padding: 0.875rem 2rem;
+  background: linear-gradient(135deg, #ffc107, #ffb300);
+  border: none;
+  border-radius: 12px;
+  color: #1a060c;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.btn-select-files:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+}
+
+.import-hint {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+
+.import-progress {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffc107, #ffb300);
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.import-files-list {
+  margin-top: 1.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.import-file-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+
+.import-file-item i {
+  color: #ffc107;
+  font-size: 1.2rem;
+}
+
+.import-file-item span {
+  flex: 1;
+  color: white;
+  font-size: 0.9rem;
+}
+
+/* ===== MODAL PLATEFORMES ===== */
+.platform-intro {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+.platforms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.platform-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.platform-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 193, 7, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.platform-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.platform-icon.spotify {
+  background: rgba(30, 215, 96, 0.2);
+  color: #1DB954;
+}
+
+.platform-icon.youtube {
+  background: rgba(255, 0, 0, 0.2);
+  color: #FF0000;
+}
+
+.platform-icon.deezer {
+  background: rgba(0, 211, 255, 0.2);
+  color: #00D3FF;
+}
+
+.platform-icon.apple {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.platform-card h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: white;
+}
+
+.platform-card p {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin: 0 0 1rem 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.btn-platform-connect {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 10px;
+  color: #ffc107;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-platform-connect:hover {
+  background: rgba(255, 193, 7, 0.25);
+  border-color: rgba(255, 193, 7, 0.5);
+  color: #ffd54f;
+}
+
+.platform-connected {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(40, 167, 69, 0.1);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  border-radius: 12px;
+}
+
+.connected-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.connected-info i {
+  font-size: 2rem;
+  color: #28a745;
+}
+
+.connected-info strong {
+  display: block;
+  color: white;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.connected-info p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.btn-disconnect {
+  margin-left: auto;
+  padding: 0.5rem 1rem;
+  background: rgba(220, 53, 69, 0.2);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 8px;
+  color: #dc3545;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-disconnect:hover {
+  background: rgba(220, 53, 69, 0.3);
+  border-color: rgba(220, 53, 69, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .playlists-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .playlists-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .playlists-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    margin: 1rem;
+    max-width: none;
+  }
+
+  .library-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .library-header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btn-import-music,
+  .btn-connect-platform {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .platforms-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Recherche
+  const searchInput = document.getElementById('searchPlaylist');
+  searchInput?.addEventListener('keyup', function() {
+    const filter = this.value.toLowerCase();
+    const cards = document.querySelectorAll('.playlist-card');
+    cards.forEach(card => {
+      const name = card.dataset.name;
+      if (name.includes(filter)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+
+  // Filtres
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      const filter = this.dataset.filter;
+      const cards = document.querySelectorAll('.playlist-card');
+      
+      cards.forEach(card => {
+        if (filter === 'all') {
+          card.style.display = '';
+        } else if (filter === 'brouillon') {
+          card.style.display = card.dataset.publie === 'false' ? '' : 'none';
+        } else {
+          card.style.display = card.dataset.type === filter ? '' : 'none';
+        }
+      });
+    });
+  });
+
+  // Modal d'affectation
+  let currentPlaylistId = null;
+  let currentPlaylistName = null;
+  
+  document.querySelectorAll('.action-assign').forEach(btn => {
+    btn.addEventListener('click', function() {
+      currentPlaylistId = this.dataset.playlistId;
+      currentPlaylistName = this.dataset.playlistName;
+      document.getElementById('modalPlaylistName').textContent = 
+        `Affecter "${currentPlaylistName}" à :`;
+      document.getElementById('assignModal').style.display = 'flex';
+    });
+  });
+
+  document.getElementById('closeModal')?.addEventListener('click', function() {
+    closeModal('assignModal');
+  });
+  document.getElementById('cancelAssign')?.addEventListener('click', function() {
+    closeModal('assignModal');
+  });
+
+  function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.style.display = 'none';
+      // Réinitialiser les formulaires si nécessaire
+      if (modalId === 'importMusicModal') {
+        document.getElementById('fileInput').value = '';
+        document.getElementById('importFilesList').innerHTML = '';
+        document.getElementById('importProgress').style.display = 'none';
+        document.getElementById('confirmImportBtn').style.display = 'none';
+        selectedFiles = [];
+      }
+    }
+  }
+
+  // Fermer les modals en cliquant sur l'overlay
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) {
+        const modalId = this.id;
+        closeModal(modalId);
+      }
+    });
+  });
+
+  // Bouton import musique
+  const importMusicBtn = document.getElementById('importMusicBtn');
+  const importMusicModal = document.getElementById('importMusicModal');
+  const fileInput = document.getElementById('fileInput');
+  const importZone = document.getElementById('importZone');
+  const confirmImportBtn = document.getElementById('confirmImportBtn');
+  const importFilesList = document.getElementById('importFilesList');
+  let selectedFiles = [];
+
+  importMusicBtn?.addEventListener('click', function() {
+    importMusicModal.style.display = 'flex';
+  });
+
+  // Bouton connecter plateforme
+  const connectPlatformBtn = document.getElementById('connectPlatformBtn');
+  const connectPlatformModal = document.getElementById('connectPlatformModal');
+
+  connectPlatformBtn?.addEventListener('click', function() {
+    connectPlatformModal.style.display = 'flex';
+  });
+
+  // Gestion du drag & drop
+  importZone?.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('dragover');
+  });
+
+  importZone?.addEventListener('dragleave', function() {
+    this.classList.remove('dragover');
+  });
+
+  importZone?.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('audio/'));
+    handleFiles(files);
+  });
+
+  // Sélection de fichiers
+  fileInput?.addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    handleFiles(files);
+  });
+
+  function handleFiles(files) {
+    selectedFiles = files;
+    importFilesList.innerHTML = '';
+    
+    files.forEach((file, index) => {
+      const fileItem = document.createElement('div');
+      fileItem.className = 'import-file-item';
+      fileItem.innerHTML = `
+        <i class="bi bi-file-music"></i>
+        <span>${file.name}</span>
+        <span style="font-size: 0.85rem; opacity: 0.7;">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+      `;
+      importFilesList.appendChild(fileItem);
+    });
+
+    if (files.length > 0) {
+      confirmImportBtn.style.display = 'inline-flex';
+    }
+  }
+
+  // Confirmation import
+  confirmImportBtn?.addEventListener('click', function() {
+    // Simulation de l'import
+    const progressDiv = document.getElementById('importProgress');
+    const progressBar = document.getElementById('progressBarFill');
+    const progressText = document.getElementById('progressText');
+    const progressPercent = document.getElementById('progressPercent');
+    
+    progressDiv.style.display = 'block';
+    let progress = 0;
+    
+    const interval = setInterval(() => {
+      progress += 10;
+      progressBar.style.width = progress + '%';
+      progressPercent.textContent = progress + '%';
+      
+      if (progress >= 100) {
+        clearInterval(interval);
+        progressText.textContent = 'Importation terminée !';
+        setTimeout(() => {
+          closeModal('importMusicModal');
+          alert('Musiques importées avec succès !');
+          location.reload();
+        }, 1000);
+      }
+    }, 200);
+  });
+
+  // Connexion plateformes
+  document.querySelectorAll('.btn-platform-connect').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const platform = this.closest('.platform-card').dataset.platform;
+      const platformName = this.closest('.platform-card').querySelector('h4').textContent;
+      // Simulation de la connexion
+      alert(`Connexion à ${platformName}...\n\nCette fonctionnalité nécessite une intégration API avec la plateforme.`);
+    });
+  });
+
+  // Tabs dans le modal
+  document.querySelectorAll('.assign-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.assign-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.assign-option').forEach(o => o.classList.remove('active'));
+      
+      this.classList.add('active');
+      const type = this.dataset.assignType;
+      document.getElementById(`assign-${type}`).classList.add('active');
+    });
+  });
+
+  // Confirmation d'affectation
+  document.getElementById('confirmAssign')?.addEventListener('click', async function() {
+    const activeTab = document.querySelector('.assign-tab.active');
+    const targetType = activeTab?.dataset.assignType;
+    const targetSelect = document.getElementById(`${targetType}Select`);
+    const targetId = targetSelect?.value;
+    const isFallback = document.getElementById('isFallback')?.checked;
+
+    if (!targetId) {
+      alert('Veuillez sélectionner une cible');
+      return;
+    }
+
+    try {
+      const response = await fetch('{{ url_for("playlist.assign_playlist") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          playlist_id: currentPlaylistId,
+          target_type: targetType,
+          target_id: targetId,
+          is_fallback: isFallback
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert('Playlist affectée avec succès');
+        closeModal('assignModal');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de l\'affectation');
+    }
+  });
+});
+</script>
+
+{% endblock %}

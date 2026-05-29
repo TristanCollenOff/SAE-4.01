@@ -1,0 +1,1895 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="dashboard-hero">
+  <div class="hero-content">
+    <div class="hero-greeting">
+      <span class="greeting-text">Bonjour</span>
+      <span class="greeting-name">{{ session['nom_utilisateur'] }}</span>
+      <div class="greeting-emoji">👋</div>
+    </div>
+    <h1 class="hero-title">
+      <span class="title-main">Tableau de</span>
+      <span class="title-accent">Bord</span>
+    </h1>
+    <p class="hero-subtitle">Sélectionnez une section pour commencer votre gestion musicale</p>
+    <div class="hero-stats">
+      <div class="hero-stat-item">
+        <div class="stat-icon">
+          <i class="bi bi-music-note-beamed"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">Active</div>
+          <div class="stat-label">Lecture en cours</div>
+        </div>
+      </div>
+      <div class="hero-stat-item">
+        <div class="stat-icon">
+          <i class="bi bi-speaker-fill"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.nb_lecteurs if stats else 0 }}</div>
+          <div class="stat-label">Lecteurs</div>
+        </div>
+      </div>
+      <div class="hero-stat-item">
+        <div class="stat-icon">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.nb_users if stats else 0 }}</div>
+          <div class="stat-label">Utilisateurs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-decoration">
+    <div class="decoration-circle decoration-circle-1"></div>
+    <div class="decoration-circle decoration-circle-2"></div>
+    <div class="decoration-circle decoration-circle-3"></div>
+  </div>
+</div>
+
+<div class="container mt-4 pb-5">
+  
+  <div class="music-player-wrapper">
+    <div class="music-player">
+      <div class="player-album-art">
+        <div class="album-art-inner">
+          <i class="bi bi-music-note-beamed"></i>
+          <div class="album-art-overlay"></div>
+        </div>
+        <div class="vinyl-ring"></div>
+      </div>
+
+      <div class="player-info">
+        <div class="player-track-info">
+          <h3 class="track-title">Ambiance Matin</h3>
+          <p class="track-artist">Playlist d'ambiance</p>
+        </div>
+
+        <div class="player-controls">
+          <button class="control-btn" id="prevBtn" title="Piste précédente">
+            <i class="bi bi-skip-start-fill"></i>
+          </button>
+          <button class="control-btn control-btn-play" id="playPauseBtn" title="Lecture / Pause">
+            <i class="bi bi-pause-fill" id="playPauseIcon"></i>
+          </button>
+          <button class="control-btn" id="nextBtn" title="Piste suivante">
+            <i class="bi bi-skip-end-fill"></i>
+          </button>
+        </div>
+
+        <div class="player-progress-wrapper">
+          <span class="time-display time-current">0:00</span>
+          <div class="progress-container">
+            <div class="progress-bar" id="progressBar">
+              <div class="progress-fill" id="progressFill"></div>
+              <div class="progress-handle" id="progressHandle"></div>
+            </div>
+          </div>
+          <span class="time-display time-total">3:45</span>
+        </div>
+
+        <div class="player-extra-controls">
+          <div class="volume-control">
+            <button class="volume-btn" id="volumeBtn" title="Volume">
+              <i class="bi bi-volume-up-fill"></i>
+            </button>
+            <div class="volume-slider-wrapper">
+              <div class="volume-slider" id="volumeSlider">
+                <div class="volume-fill" id="volumeFill"></div>
+                <div class="volume-handle" id="volumeHandle"></div>
+              </div>
+            </div>
+          </div>
+          <button class="extra-btn" title="Répéter">
+            <i class="bi bi-repeat"></i>
+          </button>
+          <button class="extra-btn" title="Aléatoire">
+            <i class="bi bi-shuffle"></i>
+          </button>
+          <a href="{{ url_for('musique.musique') }}" class="extra-btn settings-btn" title="Paramètres et contrôle avancé">
+            <i class="bi bi-gear-fill"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-cards-wrapper">
+    <div class="row g-4 justify-content-center">
+
+      {% if current_user.role == "admin" %}
+      <div class="col-md-4">
+        <a href="{{ url_for('admin.admin') }}" class="hub-card text-decoration-none">
+          <div class="dashboard-card">
+            <div class="icon-bg">
+              <i class="bi bi-people"></i>
+            </div>
+            <h3>Utilisateurs</h3>
+            <p>Gérer les membres et les accès</p>
+            <span class="dashboard-badge">{{ stats.nb_users }} inscrits</span>
+          </div>
+        </a>
+      </div>
+      {% endif %}
+
+      {% if current_user.role in ["admin", "superviseur"] %}
+      <div class="col-md-4">
+        <a href="{{ url_for('page_lecteurs') }}" class="hub-card text-decoration-none">
+          <div class="dashboard-card">
+            <div class="icon-bg">
+              <i class="bi bi-gear-fill"></i>
+            </div>
+            <h3>Gestion Lecteurs</h3>
+            <p>Configurer et surveiller les appareils</p>
+            <span class="dashboard-badge">{{ stats.nb_lecteurs }} appareils</span>
+          </div>
+        </a>
+      </div>
+      {% endif %}
+
+      {% if current_user.role == "admin" %}
+      <div class="col-md-4">
+        <a href="{{ url_for('logs.logs') }}" class="hub-card text-decoration-none">
+          <div class="dashboard-card">
+            <div class="icon-bg">
+              <i class="bi bi-list-check"></i>
+            </div>
+            <h3>Logs</h3>
+            <p>Consulter les actions système</p>
+            <span class="dashboard-badge">{{ stats.nb_logs }} événements</span>
+          </div>
+        </a>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <div class="planification-section mt-5">
+    <div class="section-header-compact">
+      <div>
+        <h2><i class="bi bi-calendar-week-fill"></i> Planification Hebdomadaire</h2>
+        <p>Programmation automatique des playlists sur le Lecteur Principal</p>
+      </div>
+      <a href="{{ url_for('planification.planifier_lecteur', id_lecteur=1) }}" class="btn-section-header">
+        Gérer le planning <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="planif-container">
+      <div class="planif-grid">
+        {% set jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] %}
+        {% for jour in jours %}
+        <div class="planif-day-card">
+          <div class="day-label">{{ jour }}</div>
+          <div class="day-status">
+            <i class="bi bi-calendar-check"></i>
+            <span>Configuré</span>
+          </div>
+          <div class="day-playlist-badge">
+            <i class="bi bi-music-note-list"></i>
+            <span>Matin / Soir</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="playlists-section mt-5">
+    <div class="section-header-compact">
+      <div>
+        <h2><i class="bi bi-music-player-fill"></i> Playlists</h2>
+        <p>Bibliothèque musicale complète</p>
+      </div>
+      <a href="{{ url_for('playlist.playlists') }}" class="btn-section-header">
+        Voir tout <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="playlists-grid">
+      <div class="playlist-card-feature">
+        <div class="playlist-card-icon">
+          <i class="bi bi-collection-play-fill"></i>
+        </div>
+        <h4>Bibliothèque</h4>
+        <p>Gérez toutes vos playlists en un seul endroit</p>
+      </div>
+      <div class="playlist-card-feature">
+        <div class="playlist-card-icon">
+          <i class="bi bi-diagram-3"></i>
+        </div>
+        <h4>Affectation</h4>
+        <p>Assignez aux lecteurs, zones ou sites</p>
+      </div>
+      <div class="playlist-card-feature">
+        <div class="playlist-card-icon">
+          <i class="bi bi-shield-check"></i>
+        </div>
+        <h4>Secours</h4>
+        <p>Playlists de fallback automatiques</p>
+      </div>
+      <div class="playlist-card-feature">
+        <div class="playlist-card-icon">
+          <i class="bi bi-file-earmark-music"></i>
+        </div>
+        <h4>Publication</h4>
+        <p>Brouillons et versions actives</p>
+      </div>
+    </div>
+  </div>
+
+  {% if current_user.role in ["admin", "superviseur"] %}
+  <div class="sites-zones-integrated-section mt-5">
+    <div class="section-header-compact">
+      <div>
+        <h2><i class="bi bi-diagram-3-fill"></i> Sites & Zones</h2>
+        <p>Organisez vos espaces de manière hiérarchique</p>
+      </div>
+      <a href="{{ url_for('sites_zones.sites_zones') }}" class="btn-section-header">
+        Explorer <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="hierarchy-integrated-visual">
+      <div class="hierarchy-integrated-flow">
+        <div class="hierarchy-integrated-node hierarchy-node-site">
+          <div class="hierarchy-node-icon">
+            <i class="bi bi-building"></i>
+          </div>
+          <div class="hierarchy-node-content">
+            <h4>Sites</h4>
+            <p>Vos emplacements principaux</p>
+          </div>
+        </div>
+        <div class="hierarchy-integrated-arrow">
+          <i class="bi bi-arrow-right"></i>
+        </div>
+        <div class="hierarchy-integrated-node hierarchy-node-zone">
+          <div class="hierarchy-node-icon">
+            <i class="bi bi-grid-3x3"></i>
+          </div>
+          <div class="hierarchy-node-content">
+            <h4>Zones</h4>
+            <p>Divisions au sein des sites</p>
+          </div>
+        </div>
+        <div class="hierarchy-integrated-arrow">
+          <i class="bi bi-arrow-right"></i>
+        </div>
+        <div class="hierarchy-integrated-node hierarchy-node-lecteur">
+          <div class="hierarchy-node-icon">
+            <i class="bi bi-speaker"></i>
+          </div>
+          <div class="hierarchy-node-content">
+            <h4>Lecteurs</h4>
+            <p>Appareils audio configurés</p>
+          </div>
+        </div>
+      </div>
+      <div class="hierarchy-integrated-features">
+        <div class="hierarchy-feature-badge">
+          <i class="bi bi-eye"></i>
+          <span>Vue hiérarchique complète</span>
+        </div>
+        <div class="hierarchy-feature-badge">
+          <i class="bi bi-arrows-angle-contract"></i>
+          <span>Actions groupées</span>
+        </div>
+        <div class="hierarchy-feature-badge">
+          <i class="bi bi-funnel"></i>
+          <span>Filtres intelligents</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+
+  <div class="alertes-section mt-5">
+    <div class="section-header-compact">
+      <div>
+        <h2><i class="bi bi-bell-fill"></i> Alertes</h2>
+        <p>Supervision des incidents en temps réel</p>
+      </div>
+      <a href="{{ url_for('alertes.alertes') }}" class="btn-section-header">
+        Voir tout <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="alertes-live">
+      <div class="alertes-summary">
+        <div class="alert-summary-item alert-summary-critical">
+          <div class="alert-summary-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <div class="alert-summary-content">
+            <div class="alert-summary-count">0</div>
+            <div class="alert-summary-label">Critiques</div>
+          </div>
+        </div>
+        <div class="alert-summary-item alert-summary-warning">
+          <div class="alert-summary-icon">
+            <i class="bi bi-exclamation-circle-fill"></i>
+          </div>
+          <div class="alert-summary-content">
+            <div class="alert-summary-count">0</div>
+            <div class="alert-summary-label">Avertissements</div>
+          </div>
+        </div>
+        <div class="alert-summary-item alert-summary-info">
+          <div class="alert-summary-icon">
+            <i class="bi bi-info-circle-fill"></i>
+          </div>
+          <div class="alert-summary-content">
+            <div class="alert-summary-count">0</div>
+            <div class="alert-summary-label">Informations</div>
+          </div>
+        </div>
+      </div>
+      <div class="alertes-quick-access">
+        <div class="alert-quick-item">
+          <i class="bi bi-funnel"></i>
+          <span>Filtres avancés</span>
+        </div>
+        <div class="alert-quick-item">
+          <i class="bi bi-clock-history"></i>
+          <span>Timeline</span>
+        </div>
+        <div class="alert-quick-item">
+          <i class="bi bi-person-check"></i>
+          <span>Assignation</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== GLOBAL ===== */
+body {
+  background: #1a060c;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(255, 193, 7, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(209, 24, 49, 0.08) 0%, transparent 50%);
+  min-height: 100vh;
+  color: white;
+}
+
+/* ===== HERO AMÉLIORÉ ===== */
+.dashboard-hero {
+  position: relative;
+  margin-top: 2rem;
+  padding: 3rem 0 4rem;
+  overflow: hidden;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Greeting */
+.hero-greeting {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+  animation: slideInDown 0.6s ease-out;
+}
+
+.greeting-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.greeting-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffc107;
+  text-transform: capitalize;
+}
+
+.greeting-emoji {
+  font-size: 1.5rem;
+  animation: wave 2s ease-in-out infinite;
+  transform-origin: 70% 70%;
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  40%, 60% { transform: rotate(0deg); }
+  50% { transform: rotate(10deg); }
+}
+
+/* Title */
+.hero-title {
+  font-size: 4rem;
+  font-weight: 900;
+  margin: 0 0 1rem 0;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.title-main {
+  color: white;
+  position: relative;
+}
+
+.title-accent {
+  background: linear-gradient(135deg, #ffc107, #ffd54f, #ffc107);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.title-accent::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #ffc107, transparent);
+  border-radius: 2px;
+  animation: expandLine 1s ease-out 0.5s both;
+}
+
+@keyframes expandLine {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Subtitle */
+.hero-subtitle {
+  font-size: 1.25rem;
+  opacity: 0.85;
+  font-weight: 400;
+  margin: 0 0 2.5rem 0;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+/* Stats */
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.hero-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  min-width: 160px;
+}
+
+.hero-stat-item:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 193, 7, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #ffc107;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.hero-stat-item:hover .stat-icon {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.4);
+  transform: scale(1.1) rotate(5deg);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.25rem;
+}
+
+/* Décorations */
+.hero-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.decoration-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 193, 7, 0.1), transparent);
+  animation: float 6s ease-in-out infinite;
+}
+
+.decoration-circle-1 {
+  width: 200px;
+  height: 200px;
+  top: -50px;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.decoration-circle-2 {
+  width: 150px;
+  height: 150px;
+  top: 20%;
+  right: 15%;
+  animation-delay: 2s;
+}
+
+.decoration-circle-3 {
+  width: 100px;
+  height: 100px;
+  bottom: 10%;
+  left: 20%;
+  animation-delay: 4s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.1);
+    opacity: 0.5;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-hero {
+    padding: 2rem 0 3rem;
+    min-height: auto;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .title-accent::after {
+    width: 80%;
+    left: 10%;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .hero-stats {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .hero-stat-item {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .greeting-name {
+    font-size: 1rem;
+  }
+}
+
+/* ===== LECTEUR DE MUSIQUE ===== */
+.music-player-wrapper {
+  margin-bottom: 3rem;
+}
+
+.music-player {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 2.5rem;
+  display: flex;
+  gap: 2.5rem;
+  align-items: center;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.music-player:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Image de l'album */
+.player-album-art {
+  position: relative;
+  flex-shrink: 0;
+  width: 200px;
+  height: 200px;
+}
+
+.album-art-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.album-art-inner i {
+  font-size: 4rem;
+  color: rgba(255, 193, 7, 0.4);
+  z-index: 2;
+}
+
+.album-art-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 193, 7, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(209, 24, 49, 0.1) 0%, transparent 50%);
+  z-index: 1;
+}
+
+.vinyl-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  z-index: 3;
+  animation: rotate 10s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Informations et contrôles */
+.player-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.player-track-info h3.track-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  color: white;
+  letter-spacing: -0.01em;
+}
+
+.player-track-info p.track-artist {
+  font-size: 1rem;
+  opacity: 0.7;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Contrôles principaux */
+.player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.control-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+.control-btn-play {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 193, 7, 0.15);
+  border: 1.5px solid rgba(255, 193, 7, 0.3);
+  font-size: 1.6rem;
+  color: #ffc107;
+}
+
+.control-btn-play:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.4);
+  box-shadow: 0 4px 16px rgba(255, 193, 7, 0.2);
+}
+
+/* Barre de progression */
+.player-progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.time-display {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  min-width: 40px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-container {
+  flex: 1;
+  height: 6px;
+  position: relative;
+  cursor: pointer;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffc107, #ffb300);
+  border-radius: 3px;
+  width: 35%;
+  transition: width 0.1s linear;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.progress-handle {
+  position: absolute;
+  top: 50%;
+  left: 35%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffc107;
+  border: 2px solid white;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: grab;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
+}
+
+.progress-container:hover .progress-handle {
+  opacity: 1;
+}
+
+.progress-handle:active {
+  cursor: grabbing;
+}
+
+/* Contrôles supplémentaires */
+.player-extra-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  max-width: 200px;
+}
+
+.volume-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.volume-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.volume-slider-wrapper {
+  flex: 1;
+  height: 4px;
+}
+
+.volume-slider {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+}
+
+.volume-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 2px;
+  width: 70%;
+}
+
+.volume-handle {
+  position: absolute;
+  top: 50%;
+  left: 70%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: white;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: grab;
+}
+
+.volume-slider:hover .volume-handle {
+  opacity: 1;
+}
+
+.extra-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.extra-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.extra-btn.active {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.settings-btn {
+  text-decoration: none;
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+  background: rgba(255, 193, 7, 0.1);
+}
+
+.settings-btn:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
+  color: #ffc107;
+  transform: rotate(90deg);
+}
+
+/* ===== CARDS ===== */
+.dashboard-cards-wrapper {
+  margin-top: 2rem;
+}
+
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  color: white;
+  transition: all 0.3s ease;
+  height: 100%;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(255, 193, 7, 0.2);
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 193, 7, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.icon-bg {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  border-radius: 20px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.3rem;
+  color: #ffc107;
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover .icon-bg {
+  background: rgba(255, 193, 7, 0.18);
+  border-color: rgba(255, 193, 7, 0.3);
+  transform: scale(1.05);
+}
+
+.dashboard-card h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  color: white;
+}
+
+.dashboard-card p {
+  font-size: 0.95rem;
+  opacity: 0.75;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.dashboard-badge {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dashboard-card:hover .dashboard-badge {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== SECTION PLANIFICATION ===== */
+.planification-section {
+  margin-top: 3rem;
+  padding-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.planif-container {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+}
+
+.planif-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.planif-day-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.planif-day-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 193, 7, 0.3);
+  background: rgba(255, 193, 7, 0.05);
+}
+
+.day-label {
+  font-weight: 700;
+  color: #ffc107;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.day-status {
+  font-size: 0.8rem;
+  color: #28a745;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.day-playlist-badge {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+}
+
+.planif-info-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 2rem;
+}
+
+.info-item {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  max-width: 60%;
+}
+
+.info-item i {
+  color: #ffc107;
+  font-size: 1.5rem;
+}
+
+.info-item p {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.planif-quick-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.q-stat {
+  text-align: center;
+}
+
+.q-val {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: white;
+}
+
+.q-lab {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  opacity: 0.6;
+  letter-spacing: 1px;
+}
+
+/* ===== SECTION SITES & ZONES INTÉGRÉE ===== */
+.sites-zones-integrated-section {
+  margin-top: 3rem;
+  padding-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hierarchy-integrated-visual {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2.5rem;
+  transition: all 0.3s ease;
+}
+
+.hierarchy-integrated-visual:hover {
+  border-color: rgba(255, 193, 7, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.hierarchy-integrated-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.hierarchy-integrated-node {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  min-width: 180px;
+  cursor: pointer;
+}
+
+.hierarchy-integrated-node:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.hierarchy-node-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.hierarchy-integrated-node:hover .hierarchy-node-icon {
+  transform: scale(1.1);
+}
+
+.hierarchy-node-content h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  color: white;
+}
+
+.hierarchy-node-content p {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.hierarchy-node-site {
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.hierarchy-node-site .hierarchy-node-icon {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+}
+
+.hierarchy-node-zone {
+  border-color: rgba(209, 24, 49, 0.3);
+}
+
+.hierarchy-node-zone .hierarchy-node-icon {
+  background: rgba(209, 24, 49, 0.15);
+  color: #d11831;
+}
+
+.hierarchy-node-lecteur {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.hierarchy-node-lecteur .hierarchy-node-icon {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.hierarchy-integrated-arrow {
+  font-size: 1.5rem;
+  color: rgba(255, 193, 7, 0.6);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.hierarchy-integrated-visual:hover .hierarchy-integrated-arrow {
+  color: #ffc107;
+  transform: translateX(4px);
+}
+
+.hierarchy-integrated-features {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hierarchy-feature-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+}
+
+.hierarchy-feature-badge:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.hierarchy-feature-badge i {
+  color: #ffc107;
+  font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .music-player {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .player-album-art {
+    width: 160px;
+    height: 160px;
+  }
+  
+  .player-info {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-hero h1 {
+    font-size: 2.2rem;
+  }
+  
+  .music-player {
+    padding: 1.5rem;
+  }
+  
+  .player-track-info h3.track-title {
+    font-size: 1.4rem;
+  }
+  
+  .player-extra-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .volume-control {
+    max-width: none;
+    width: 100%;
+  }
+}
+
+/* ===== HEADERS COMPACTS ===== */
+.section-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header-compact h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-header-compact h2 i {
+  color: #ffc107;
+  font-size: 1.5rem;
+}
+
+.section-header-compact p {
+  opacity: 0.7;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.btn-section-header {
+  padding: 0.6rem 1.25rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 10px;
+  color: #ffc107;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-section-header:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
+  color: #ffd54f;
+  transform: translateX(4px);
+}
+
+/* ===== SECTION PLAYLISTS - Grille de fonctionnalités ===== */
+.playlists-section {
+  margin-top: 3rem;
+  padding-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.playlists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.playlist-card-feature {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.75rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.playlist-card-feature:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 193, 7, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.playlist-card-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  color: #ffc107;
+  transition: all 0.3s ease;
+}
+
+.playlist-card-feature:hover .playlist-card-icon {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.3);
+  transform: scale(1.1);
+}
+
+.playlist-card-feature h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: white;
+}
+
+.playlist-card-feature p {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin: 0;
+  line-height: 1.4;
+}
+
+
+/* ===== SECTION LECTEURS OPS - Dashboard avec stats ===== */
+.lecteurs-ops-section {
+  margin-top: 3rem;
+  padding-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ops-dashboard {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+}
+
+.ops-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.ops-stat-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.ops-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 193, 7, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ops-stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.ops-stat-online {
+  background: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+}
+
+.ops-stat-sync {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.ops-stat-health {
+  background: rgba(0, 123, 255, 0.2);
+  color: #007bff;
+}
+
+.ops-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+}
+
+.ops-stat-label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.ops-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ops-action-btn {
+  flex: 1;
+  min-width: 150px;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 12px;
+  color: #ffc107;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.ops-action-btn:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
+  color: #ffd54f;
+  transform: translateY(-2px);
+}
+
+.ops-action-btn i {
+  font-size: 1.2rem;
+}
+
+/* ===== SECTION ALERTES - Design avec compteurs ===== */
+.alertes-section {
+  margin-top: 3rem;
+  padding-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.alertes-live {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+}
+
+.alertes-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.alert-summary-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.alert-summary-item:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.alert-summary-critical {
+  border-left: 3px solid #dc3545;
+}
+
+.alert-summary-warning {
+  border-left: 3px solid #ffc107;
+}
+
+.alert-summary-info {
+  border-left: 3px solid #17a2b8;
+}
+
+.alert-summary-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.alert-summary-critical .alert-summary-icon {
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.alert-summary-warning .alert-summary-icon {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.alert-summary-info .alert-summary-icon {
+  background: rgba(23, 162, 184, 0.2);
+  color: #17a2b8;
+}
+
+.alert-summary-count {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+}
+
+.alert-summary-label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.alertes-quick-access {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.alert-quick-item {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.875rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.alert-quick-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.alert-quick-item i {
+  font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .section-header-compact {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .btn-section-header {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .playlists-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hierarchy-integrated-flow {
+    flex-direction: column;
+  }
+
+  .hierarchy-integrated-arrow {
+    transform: rotate(90deg);
+  }
+
+  .hierarchy-integrated-node {
+    min-width: 100%;
+  }
+
+  .hierarchy-integrated-features {
+    flex-direction: column;
+  }
+
+  .hierarchy-feature-badge {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ops-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ops-actions {
+    flex-direction: column;
+  }
+
+  .ops-action-btn {
+    width: 100%;
+  }
+
+  .alertes-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .alertes-quick-access {
+    flex-direction: column;
+  }
+
+  .alert-quick-item {
+    width: 100%;
+  }
+}
+</style>
+
+<script>
+// Scripts pour le lecteur de musique (simulation)
+document.addEventListener('DOMContentLoaded', function() {
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  const playPauseIcon = document.getElementById('playPauseIcon');
+  const progressFill = document.getElementById('progressFill');
+  const progressBar = document.getElementById('progressBar');
+  const progressHandle = document.getElementById('progressHandle');
+  const timeCurrent = document.querySelector('.time-current');
+  
+  let isPlaying = true;
+  let currentTime = 0;
+  let totalTime = 225; // 3:45 en secondes
+  
+  // Play/Pause
+  playPauseBtn.addEventListener('click', function() {
+    isPlaying = !isPlaying;
+    playPauseIcon.className = isPlaying ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+  });
+  
+  // Simulation de la progression
+  setInterval(function() {
+    if (isPlaying && currentTime < totalTime) {
+      currentTime += 1;
+      const percentage = (currentTime / totalTime) * 100;
+      progressFill.style.width = percentage + '%';
+      progressHandle.style.left = percentage + '%';
+      
+      // Mise à jour du temps
+      const minutes = Math.floor(currentTime / 60);
+      const seconds = currentTime % 60;
+      timeCurrent.textContent = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+    }
+  }, 1000);
+  
+  // Interaction avec la barre de progression
+  progressBar.addEventListener('click', function(e) {
+    const rect = progressBar.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = (x / rect.width) * 100;
+    progressFill.style.width = percentage + '%';
+    progressHandle.style.left = percentage + '%';
+    currentTime = (percentage / 100) * totalTime;
+  });
+});
+</script>
+
+{% endblock %}

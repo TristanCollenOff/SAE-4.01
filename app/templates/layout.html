@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>{% if metadata and metadata.get('title') %}{{metadata['title']}}{% else %}RYTHMO{% endif %}</title>
+		
+		<!-- Google Fonts - Manrope -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+		
+		<!-- Bootstrap CSS -->
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+		
+		<style>
+			/* ===== POLICE MANROPE GLOBALE ===== */
+			* {
+				font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+			}
+			
+			/* ===== VARIABLES CSS POUR COHÉRENCE ===== */
+			:root {
+				--rythmo-gradient-start: #281012;
+				--rythmo-gradient-end: #1a060c;
+				--rythmo-gradient-mid: #3b1519;
+				--rythmo-yellow: #ffc107;
+				--rythmo-red: #d11831;
+				--rythmo-text-light: #fff4c7;
+			}
+			
+			/* ===== FOND DE BASE POUR PAGES ÉTENDUES ===== */
+			body {
+				background: radial-gradient(ellipse at 60% 45%, var(--rythmo-gradient-start), var(--rythmo-gradient-end) 70%);
+				min-height: 100vh;
+				color: white;
+				padding-top: 76px; /* Compensation pour navbar fixe */
+			}
+		</style>
+	</head>
+
+	<body>
+		{% if session.get('logged') %}
+			{% include 'includes/nav.html' %}
+		{% endif %}
+		{% block content %}{% endblock %}
+		
+		{% if session.get('logged') %}
+			{% include 'includes/footer.html' %}
+		{% endif %}
+
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+	</body>
+
+</html>
+

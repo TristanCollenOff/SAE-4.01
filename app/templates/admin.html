@@ -1,0 +1,477 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="admin-hero">
+  <div class="container">
+    <h1><i class="bi bi-people-fill"></i> Gestion des Utilisateurs</h1>
+    <p>Administrez les comptes et les accès au système</p>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div class="container mt-4 pb-5">
+  <!-- Retour -->
+  <div class="admin-actions mb-4">
+    <a href="{{ url_for('index') }}" class="btn btn-rythmo-back">
+      <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+    </a>
+  </div>
+
+  <!-- Carte du tableau -->
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <div class="admin-header-info">
+        <i class="bi bi-shield-lock-fill"></i>
+        <div>
+          <h2>Utilisateurs inscrits</h2>
+          <p>{{ users|length }} compte{{ 's' if users|length > 1 else '' }} au total</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>
+              <i class="bi bi-person"></i> Username
+            </th>
+            <th>
+              <i class="bi bi-envelope"></i> Email
+            </th>
+            <th>
+              <i class="bi bi-person-badge"></i> Rôle
+            </th>
+            <th>
+              <i class="bi bi-clock-history"></i> Dernière connexion
+            </th>
+            <th>
+              <i class="bi bi-circle-fill"></i> État
+            </th>
+            <th>
+              <i class="bi bi-gear"></i> Action
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr class="admin-table-row">
+            <td class="user-username">
+              <div class="user-avatar">
+                <i class="bi bi-person-circle"></i>
+              </div>
+              <span>{{ u.username }}</span>
+            </td>
+            <td class="user-email">{{ u.email }}</td>
+            <td>
+              <span class="role-badge role-{{ u.role|lower }}">
+                {% if u.role == 'admin' %}
+                  <i class="bi bi-shield-fill"></i> Admin
+                {% elif u.role == 'superviseur' %}
+                  <i class="bi bi-eye-fill"></i> Superviseur
+                {% else %}
+                  <i class="bi bi-person"></i> Utilisateur
+                {% endif %}
+              </span>
+            </td>
+            <td class="user-lastlogin">
+              {% if u.last_login %}
+                <i class="bi bi-check-circle"></i> {{ u.last_login }}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.block_until %}
+                <span class="status-badge status-blocked">
+                  <i class="bi bi-x-circle-fill"></i> Bloqué
+                </span>
+              {% else %}
+                <span class="status-badge status-active">
+                  <i class="bi bi-check-circle-fill"></i> Actif
+                </span>
+              {% endif %}
+            </td>
+            <td class="user-actions">
+              {% if u.block_until %}
+                <a href="{{ url_for('admin.unblock_user', user_id=u.id) }}"
+                   class="btn btn-action-unblock">
+                  <i class="bi bi-unlock"></i> Débloquer
+                </a>
+              {% else %}
+                <a href="{{ url_for('admin.block_user', user_id=u.id) }}"
+                   class="btn btn-action-block"
+                   onclick="return confirm('Êtes-vous sûr de vouloir bloquer cet utilisateur ?');">
+                  <i class="bi bi-lock"></i> Bloquer
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="admin-empty">
+              <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p>Aucun utilisateur trouvé</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== HERO ===== */
+.admin-hero {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+.admin-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+.admin-hero h1 i {
+  color: #ffc107;
+  margin-right: 0.5rem;
+}
+.admin-hero p {
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+/* ===== ACTIONS ===== */
+.admin-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-rythmo-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-rythmo-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+/* ===== CARTE PRINCIPALE ===== */
+.admin-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 193, 7, 0.15),
+    rgba(255, 230, 150, 0.12),
+    rgba(255, 255, 255, 0.05)
+  );
+  backdrop-filter: blur(28px);
+  border-radius: 24px;
+  border: 1.5px solid rgba(255, 193, 7, 0.35);
+  box-shadow: 0 18px 55px rgba(255, 193, 7, 0.25);
+  overflow: hidden;
+}
+
+.admin-card-header {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-header-info {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.admin-header-info i {
+  font-size: 2.5rem;
+  color: #ffc107;
+}
+
+.admin-header-info h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  color: white;
+}
+
+.admin-header-info p {
+  opacity: 0.8;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* ===== TABLEAU ===== */
+.admin-table-wrapper {
+  overflow-x: auto;
+  padding: 1.5rem 2rem 2rem;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
+}
+
+.admin-table thead {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.admin-table th {
+  padding: 1.25rem 1rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  color: #fff4c7;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-table th i {
+  color: #ffc107;
+  margin-right: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.admin-table-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.admin-table-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1.01);
+}
+
+.admin-table td {
+  padding: 1.25rem 1rem;
+  vertical-align: middle;
+}
+
+/* Username avec avatar */
+.user-username {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 193, 7, 0.3), rgba(255, 193, 7, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.user-email {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+}
+
+.user-lastlogin {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.user-lastlogin i {
+  color: #28a745;
+  margin-right: 0.5rem;
+}
+
+/* Badges de rôle */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.role-admin {
+  background: rgba(255, 193, 7, 0.25);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+.role-superviseur {
+  background: rgba(0, 123, 255, 0.25);
+  color: #6cb2ff;
+  border: 1px solid rgba(0, 123, 255, 0.4);
+}
+
+.role-utilisateur {
+  background: rgba(108, 117, 125, 0.25);
+  color: #adb5bd;
+  border: 1px solid rgba(108, 117, 125, 0.4);
+}
+
+/* Badges de statut */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.status-active {
+  background: rgba(40, 167, 69, 0.25);
+  color: #6eff8c;
+  border: 1px solid rgba(40, 167, 69, 0.4);
+}
+
+.status-blocked {
+  background: rgba(220, 53, 69, 0.25);
+  color: #ff6b6b;
+  border: 1px solid rgba(220, 53, 69, 0.4);
+}
+
+.status-badge i {
+  font-size: 0.85rem;
+}
+
+/* Actions */
+.user-actions {
+  white-space: nowrap;
+}
+
+.btn-action-block,
+.btn-action-unblock {
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  border: 1.5px solid;
+}
+
+.btn-action-block {
+  background: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.5);
+  color: #ff6b6b;
+}
+
+.btn-action-block:hover {
+  background: rgba(220, 53, 69, 0.3);
+  border-color: #dc3545;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-action-unblock {
+  background: rgba(40, 167, 69, 0.2);
+  border-color: rgba(40, 167, 69, 0.5);
+  color: #6eff8c;
+}
+
+.btn-action-unblock:hover {
+  background: rgba(40, 167, 69, 0.3);
+  border-color: #28a745;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* État vide */
+.admin-empty {
+  padding: 3rem 1rem !important;
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 4rem;
+  color: rgba(255, 193, 7, 0.5);
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  opacity: 0.7;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .admin-table-wrapper {
+    padding: 1rem;
+  }
+  
+  .admin-table {
+    font-size: 0.9rem;
+  }
+  
+  .admin-table th,
+  .admin-table td {
+    padding: 0.875rem 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .admin-card-header {
+    padding: 1.5rem;
+  }
+  
+  .admin-header-info {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .admin-table {
+    font-size: 0.85rem;
+  }
+  
+  .user-username {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .btn-action-block,
+  .btn-action-unblock {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
+  }
+}
+</style>
+
+{% endblock %}

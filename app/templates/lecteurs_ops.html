@@ -1,0 +1,881 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="lecteurs-ops-hero">
+  <div class="container">
+    <h1><i class="bi bi-tools"></i> Gestion Opérationnelle</h1>
+    <p>Surveillez et maintenez vos appareils en temps réel</p>
+  </div>
+</div>
+
+<!-- Contenu principal -->
+<div class="container mt-4 pb-5">
+  
+  <!-- Actions principales -->
+  <div class="ops-actions mb-4">
+    <a href="{{ url_for('index') }}" class="btn btn-rythmo-back">
+      <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+    </a>
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="list">
+        <i class="bi bi-list-ul"></i> Liste
+      </button>
+      <button class="view-btn" data-view="grid">
+        <i class="bi bi-grid-3x3-gap"></i> Grille
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques globales -->
+  <div class="ops-stats mb-4">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-total">
+        <i class="bi bi-speaker-fill"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ lecteurs_enriched|length }}</div>
+        <div class="stat-label">Total lecteurs</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-online">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ lecteurs_enriched|selectattr('lecteur.est_en_ligne', 'equalto', True)|list|length }}</div>
+        <div class="stat-label">En ligne</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-offline">
+        <i class="bi bi-x-circle-fill"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ lecteurs_enriched|selectattr('lecteur.est_en_ligne', 'equalto', False)|list|length }}</div>
+        <div class="stat-label">Hors ligne</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-warning">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ lecteurs_enriched|selectattr('health.stabilite', 'equalto', 'faible')|list|length }}</div>
+        <div class="stat-label">En incident</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des lecteurs -->
+  <div class="lecteurs-ops-list" id="lecteursList">
+    {% for item in lecteurs_enriched %}
+      {% set lecteur = item.lecteur %}
+      {% set health = item.health %}
+      {% set state = item.current_state %}
+      
+      <div class="lecteur-ops-card {% if not lecteur.est_en_ligne() %}offline{% endif %}" 
+           data-status="{% if lecteur.est_en_ligne() %}online{% else %}offline{% endif %}"
+           data-health="{{ health.stabilite }}">
+        <!-- En-tête -->
+        <div class="lecteur-ops-header">
+          <div class="lecteur-ops-header-left">
+            <div class="lecteur-status-indicator {% if lecteur.est_en_ligne() %}status-online{% else %}status-offline{% endif %}">
+              {% if lecteur.est_en_ligne() %}
+                <i class="bi bi-circle-fill"></i>
+              {% else %}
+                <i class="bi bi-circle"></i>
+              {% endif %}
+            </div>
+            <div class="lecteur-main-info">
+              <h3 class="lecteur-ops-name">{{ lecteur.nom_lecteur }}</h3>
+              <div class="lecteur-ops-meta">
+                <span class="meta-item">
+                  <i class="bi bi-router"></i> {{ lecteur.adresseIP }}
+                </span>
+                <span class="meta-item">
+                  <i class="bi bi-geo-alt"></i> {{ lecteur.adresse_lecteur or 'Non assigné' }}
+                </span>
+                {% if state.version_firmware %}
+                <span class="meta-item">
+                  <i class="bi bi-code-slash"></i> v{{ state.version_firmware }}
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="lecteur-ops-header-right">
+            <div class="health-indicator health-{{ health.stabilite }}">
+              {% if health.stabilite == 'bonne' %}
+                <i class="bi bi-check-circle-fill"></i> Stable
+              {% elif health.stabilite == 'moyenne' %}
+                <i class="bi bi-exclamation-circle-fill"></i> Instable
+              {% else %}
+                <i class="bi bi-x-circle-fill"></i> Critique
+              {% endif %}
+            </div>
+            <a href="{{ url_for('lecteurs_ops.lecteur_ops_detail', lecteur_id=lecteur.id_lecteur) }}" 
+               class="btn btn-view-detail">
+              <i class="bi bi-arrow-right"></i> Détails
+            </a>
+          </div>
+        </div>
+
+        <!-- Corps -->
+        <div class="lecteur-ops-body">
+          <div class="ops-grid">
+            <!-- État temps réel -->
+            <div class="ops-section">
+              <div class="section-label">
+                <i class="bi bi-activity"></i> État temps réel
+              </div>
+              <div class="section-content">
+                <div class="state-item">
+                  <span class="state-label">Statut :</span>
+                  <span class="state-value {% if lecteur.est_en_ligne() %}value-online{% else %}value-offline{% endif %}">
+                    {% if lecteur.est_en_ligne() %}UP{% else %}DOWN{% endif %}
+                  </span>
+                </div>
+                <div class="state-item">
+                  <span class="state-label">Dernier contact :</span>
+                  <span class="state-value">{{ lecteur.derniere_synchro or 'Jamais' }}</span>
+                </div>
+                <div class="state-item">
+                  <span class="state-label">Dernière sync :</span>
+                  <span class="state-value">{{ lecteur.derniere_synchro or 'Jamais' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lecture en cours -->
+            <div class="ops-section">
+              <div class="section-label">
+                <i class="bi bi-music-note-beamed"></i> Lecture
+              </div>
+              <div class="section-content">
+                <div class="state-item">
+                  <span class="state-label">Playlist :</span>
+                  <span class="state-value">{{ state.playlist_assignee }}</span>
+                </div>
+                <div class="state-item">
+                  <span class="state-label">Piste :</span>
+                  <span class="state-value">{{ state.piste_en_cours.nom }}</span>
+                </div>
+                <div class="state-item">
+                  <span class="state-label">Position :</span>
+                  <span class="state-value">{{ state.piste_en_cours.position }} / {{ state.piste_en_cours.duree }}</span>
+                </div>
+                <div class="state-item">
+                  <span class="state-label">Volume :</span>
+                  <span class="state-value">{{ state.volume }}%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Santé -->
+            <div class="ops-section">
+              <div class="section-label">
+                <i class="bi bi-heart-pulse"></i> Santé
+              </div>
+              <div class="section-content">
+                <div class="state-item">
+                  <span class="state-label">Stabilité :</span>
+                  <span class="state-value value-{{ health.stabilite }}">
+                    {{ health.stabilite|title }}
+                  </span>
+                </div>
+                <div class="state-item">
+                  <span class="state-label">Uptime :</span>
+                  <span class="state-value">{{ health.uptime_percent }}%</span>
+                </div>
+                {% if health.down_frequents %}
+                <div class="state-item state-warning">
+                  <span class="state-label"><i class="bi bi-exclamation-triangle"></i> Down fréquents</span>
+                </div>
+                {% endif %}
+                {% if health.derive_sync > 0 %}
+                <div class="state-item state-warning">
+                  <span class="state-label"><i class="bi bi-clock-history"></i> Dérive : {{ health.derive_sync }}s</span>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions rapides -->
+          <div class="ops-actions-quick">
+            <button class="action-quick-btn" 
+                    data-lecteur-id="{{ lecteur.id_lecteur }}"
+                    data-action="sync"
+                    {% if not lecteur.est_en_ligne() %}disabled title="Lecteur hors ligne"{% endif %}>
+              <i class="bi bi-arrow-repeat"></i> Sync
+            </button>
+            <button class="action-quick-btn" 
+                    data-lecteur-id="{{ lecteur.id_lecteur }}"
+                    data-action="restart"
+                    {% if not lecteur.est_en_ligne() %}disabled title="Lecteur hors ligne"{% endif %}>
+              <i class="bi bi-arrow-clockwise"></i> Redémarrer
+            </button>
+            <button class="action-quick-btn" 
+                    data-lecteur-id="{{ lecteur.id_lecteur }}"
+                    data-action="fallback"
+                    {% if not lecteur.est_en_ligne() %}disabled title="Lecteur hors ligne"{% endif %}>
+              <i class="bi bi-shield-check"></i> Secours
+            </button>
+            <button class="action-quick-btn" 
+                    data-lecteur-id="{{ lecteur.id_lecteur }}"
+                    data-action="test"
+                    {% if not lecteur.est_en_ligne() %}disabled title="Lecteur hors ligne"{% endif %}>
+              <i class="bi bi-play-circle"></i> Test
+            </button>
+            <button class="action-quick-btn action-danger" 
+                    data-lecteur-id="{{ lecteur.id_lecteur }}"
+                    data-action="disable">
+              <i class="bi bi-pause-circle"></i> Désactiver
+            </button>
+          </div>
+        </div>
+      </div>
+    {% else %}
+    <div class="empty-state-large">
+      <div class="empty-icon-large">
+        <i class="bi bi-speaker"></i>
+      </div>
+      <h3>Aucun lecteur</h3>
+      <p>Ajoutez des lecteurs pour commencer la surveillance</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+/* ===== NAVBAR ===== */
+.navbar-brand {
+  letter-spacing: 0.12em;
+  font-size: 1.7rem;
+  color: #ffc107 !important;
+  display: flex;
+  align-items: center;
+  margin-left: 40px;
+}
+.navbar-brand i {
+  color: #d11831;
+  margin-right: 10px;
+}
+
+#music-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 26px;
+  margin-left: 14px;
+}
+#music-bar div {
+  width: 4px;
+  background: linear-gradient(#ffc107, #d11831);
+  border-radius: 2px;
+  animation: bounce 1s infinite ease-in-out;
+}
+#music-bar div:nth-child(2){animation-delay:.1s}
+#music-bar div:nth-child(3){animation-delay:.2s}
+#music-bar div:nth-child(4){animation-delay:.3s}
+#music-bar div:nth-child(5){animation-delay:.4s}
+
+@keyframes bounce {
+  0%,100%{height:40%}
+  50%{height:100%}
+}
+
+/* ===== HERO ===== */
+.lecteurs-ops-hero {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+.lecteurs-ops-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+  letter-spacing: -0.02em;
+}
+.lecteurs-ops-hero h1 i {
+  color: #ffc107;
+  margin-right: 0.5rem;
+}
+.lecteurs-ops-hero p {
+  opacity: 0.85;
+  font-size: 1.1rem;
+}
+
+/* ===== ACTIONS ===== */
+.btn-rythmo-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-rythmo-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.ops-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.view-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  outline: none;
+}
+
+.view-btn:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.view-btn.active {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+}
+
+/* ===== STATISTIQUES ===== */
+.ops-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 193, 7, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.stat-icon-total {
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.stat-icon-online {
+  background: rgba(40, 167, 69, 0.12);
+  border: 1px solid rgba(40, 167, 69, 0.2);
+  color: #28a745;
+}
+
+.stat-icon-offline {
+  background: rgba(220, 53, 69, 0.12);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.stat-icon-warning {
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+/* ===== LISTE DES LECTEURS ===== */
+.lecteurs-ops-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.lecteur-ops-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.lecteur-ops-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 193, 7, 0.2);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+}
+
+.lecteur-ops-card.offline {
+  opacity: 0.8;
+  border-color: rgba(220, 53, 69, 0.3);
+}
+
+.lecteur-ops-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.lecteur-ops-header-left {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex: 1;
+}
+
+.lecteur-status-indicator {
+  flex-shrink: 0;
+  font-size: 1.2rem;
+}
+
+.status-online {
+  color: #28a745;
+  animation: pulse 2s infinite;
+}
+
+.status-offline {
+  color: #dc3545;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.lecteur-main-info {
+  flex: 1;
+}
+
+.lecteur-ops-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  color: white;
+}
+
+.lecteur-ops-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.meta-item {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.meta-item i {
+  color: #ffc107;
+  font-size: 0.95rem;
+}
+
+.lecteur-ops-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-shrink: 0;
+}
+
+.health-indicator {
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.health-bonne {
+  background: rgba(40, 167, 69, 0.15);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #6eff8c;
+}
+
+.health-moyenne {
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.health-faible {
+  background: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #ff6b6b;
+}
+
+.btn-view-detail {
+  padding: 0.7rem 1.5rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1.5px solid rgba(255, 193, 7, 0.3);
+  border-radius: 12px;
+  color: #ffc107;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-view-detail:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
+  color: #ffc107;
+  transform: translateX(5px);
+}
+
+/* ===== CORPS ===== */
+.lecteur-ops-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.ops-section {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.section-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #ffc107;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-label i {
+  font-size: 1.1rem;
+}
+
+.section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.state-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.state-item:last-child {
+  border-bottom: none;
+}
+
+.state-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.state-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+}
+
+.value-online {
+  color: #6eff8c;
+}
+
+.value-offline {
+  color: #ff6b6b;
+}
+
+.value-bonne {
+  color: #6eff8c;
+}
+
+.value-moyenne {
+  color: #ffc107;
+}
+
+.value-faible {
+  color: #ff6b6b;
+}
+
+.state-warning {
+  background: rgba(255, 193, 7, 0.1);
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.state-warning .state-label {
+  color: #ffc107;
+  margin: 0;
+}
+
+/* ===== ACTIONS RAPIDES ===== */
+.ops-actions-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-quick-btn {
+  padding: 0.6rem 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  outline: none;
+}
+
+.action-quick-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.action-quick-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-quick-btn.action-danger {
+  background: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.3);
+  color: #ff6b6b;
+}
+
+.action-quick-btn.action-danger:hover:not(:disabled) {
+  background: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.5);
+  color: white;
+}
+
+/* État vide */
+.empty-state-large {
+  text-align: center;
+  padding: 5rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1.5px dashed rgba(255, 193, 7, 0.3);
+}
+
+.empty-icon-large {
+  font-size: 6rem;
+  color: rgba(255, 193, 7, 0.5);
+  margin-bottom: 1.5rem;
+}
+
+.empty-state-large h3 {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-large p {
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .ops-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .lecteurs-ops-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .ops-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .view-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .lecteur-ops-header {
+    flex-direction: column;
+  }
+  
+  .lecteur-ops-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .ops-actions-quick {
+    justify-content: center;
+  }
+  
+  .action-quick-btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Actions rapides
+  document.querySelectorAll('.action-quick-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      if (this.disabled) return;
+      
+      const lecteurId = this.dataset.lecteurId;
+      const action = this.dataset.action;
+      
+      if (action === 'disable' || action === 'restart') {
+        if (!confirm(`Êtes-vous sûr de vouloir ${action === 'disable' ? 'désactiver' : 'redémarrer'} ce lecteur ?`)) {
+          return;
+        }
+      }
+      
+      try {
+        const response = await fetch('{{ url_for("lecteurs_ops.lecteur_action") }}', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            lecteur_id: lecteurId,
+            action: action
+          })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert(data.message);
+          // Optionnel : recharger la page ou mettre à jour l'état
+          setTimeout(() => location.reload(), 1000);
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors de l\'action');
+      }
+    });
+  });
+
+  // Toggle vue liste/grille
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      const view = this.dataset.view;
+      const list = document.getElementById('lecteursList');
+      
+      if (view === 'grid') {
+        list.style.display = 'grid';
+        list.style.gridTemplateColumns = 'repeat(auto-fill, minmax(400px, 1fr))';
+      } else {
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %}
