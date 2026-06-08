@@ -27,7 +27,7 @@ class LecteurDAO:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
-            cursor.execute("SELECT * FROM Lecteur")
+            cursor.execute("SELECT * FROM lecteur")
             rows = cursor.fetchall()
             conn.close()
 
@@ -39,7 +39,9 @@ class LecteurDAO:
                     row['adresseIP'],
                     row['etat_lecteur'],
                     row['derniere_synchro'],
-                    row['adresse_lecteur']
+                    row['adresse_lecteur'],
+                    row['alerte'],
+                    row['id_organisation']
                 )
                 lecteurs.append(lecteur)
             return lecteurs
@@ -54,7 +56,7 @@ class LecteurDAO:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
-            cursor.execute("SELECT * FROM Lecteur WHERE id_lecteur = ?", (id_lecteur,))
+            cursor.execute("SELECT * FROM lecteur WHERE id_lecteur = ?", (id_lecteur,))
             row = cursor.fetchone()
             conn.close()
 
@@ -65,7 +67,9 @@ class LecteurDAO:
                     row['adresseIP'],
                     row['etat_lecteur'],
                     row['derniere_synchro'],
-                    row['adresse_lecteur']
+                    row['adresse_lecteur'],
+                    row['alerte'],
+                    row['id_organisation']
                 )
             return None
         except Exception as e:
@@ -79,7 +83,7 @@ class LecteurDAO:
             
             # On ajoute id_organisation (met 1 par défaut pour tes tests)
             query = """
-                INSERT INTO Lecteur (nom_lecteur, adresseIP, adresse_lecteur, etat_lecteur, derniere_synchro, id_organisation)
+                INSERT INTO lecteur (nom_lecteur, adresseIP, adresse_lecteur, etat_lecteur, derniere_synchro, id_organisation)
                 VALUES (?, ?, ?, 'Hors ligne', 'Jamais', 1)
             """
             
@@ -96,7 +100,7 @@ class LecteurDAO:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             # On cible uniquement la colonne nom_lecteur
-            cursor.execute("UPDATE Lecteur SET nom_lecteur = ? WHERE id_lecteur = ?", (nouveau_nom, id_lecteur))
+            cursor.execute("UPDATE lecteur SET nom_lecteur = ? WHERE id_lecteur = ?", (nouveau_nom, id_lecteur))
             conn.commit()
             conn.close()
             return True
@@ -109,7 +113,7 @@ class LecteurDAO:
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
                 
-                cursor.execute("DELETE FROM Lecteur WHERE id_lecteur = ?", (id_lecteur,))
+                cursor.execute("DELETE FROM lecteur WHERE id_lecteur = ?", (id_lecteur,))
                 
                 conn.commit()
                 conn.close()
@@ -124,7 +128,7 @@ class LecteurDAO:
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
                 # On met 'OK' et l'heure actuelle
-                cursor.execute("UPDATE Lecteur SET etat_lecteur = 'UP', derniere_synchro = datetime('now', 'localtime') WHERE id_lecteur = ?", (id_lecteur,))
+                cursor.execute("UPDATE lecteur SET etat_lecteur = 'UP', derniere_synchro = datetime('now', 'localtime') WHERE id_lecteur = ?", (id_lecteur,))
                 conn.commit()
                 conn.close()
                 return True
@@ -136,7 +140,7 @@ class LecteurDAO:
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            cursor.execute("UPDATE Lecteur SET playlist_active = ? WHERE id_lecteur = ?", (nom_playlist, id_lecteur))
+            cursor.execute("UPDATE lecteur SET playlist_active = ? WHERE id_lecteur = ?", (nom_playlist, id_lecteur))
             conn.commit()
             conn.close()
             return True
@@ -149,7 +153,7 @@ class LecteurDAO:
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            cursor.execute("UPDATE Lecteur SET alerte_active = ? WHERE id_lecteur = ?", (etat, id_lecteur))
+            cursor.execute("UPDATE lecteur SET alerte_active = ? WHERE id_lecteur = ?", (etat, id_lecteur))
             conn.commit()
             conn.close()
             return True

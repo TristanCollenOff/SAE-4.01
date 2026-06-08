@@ -12,16 +12,15 @@ class PlanificationDAO:
     def add(self, p):
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
-                INSERT INTO Planification (
-                    id_lecteur, id_playlist, jour_semaine, heure_debut, heure_fin
+                INSERT INTO planification (
+                    heure_debut, heure_fin, date_, id_playlist
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?)
             """, (
-                p.id_lecteur,
-                p.id_playlist,
-                p.jour_semaine,
                 p.heure_debut,
-                p.heure_fin
+                p.heure_fin,
+                p.date_,
+                p.id_playlist
             ))
             conn.commit()
 
@@ -29,26 +28,18 @@ class PlanificationDAO:
         query = """
         SELECT 
             p.id_planification,
-            p.id_lecteur,
+            l.id_lecteur,
             p.id_playlist,
-            p.jour_semaine,
             p.heure_debut,
             p.heure_fin,
-            p.date_specifique,
+            p.date_,
             pl.nom_playlist
-        FROM Planification p
-        LEFT JOIN Playlist pl ON p.id_playlist = pl.id_playlist
-        WHERE p.id_lecteur = ?
+        FROM planification p
+        LEFT JOIN playlist pl ON p.id_playlist = pl.id_playlist
+        JOIN organisation o ON pl.id_organisation = o.id_organisation
+        JOIN lecteur l ON o.id_organisation = l.id_organisation
+        WHERE l.id_lecteur = ?
         ORDER BY 
-            CASE p.jour_semaine
-                WHEN 'Lundi' THEN 1
-                WHEN 'Mardi' THEN 2
-                WHEN 'Mercredi' THEN 3
-                WHEN 'Jeudi' THEN 4
-                WHEN 'Vendredi' THEN 5
-                WHEN 'Samedi' THEN 6
-                WHEN 'Dimanche' THEN 7
-            END,
             p.heure_debut
         """
         with sqlite3.connect(self.db_path) as conn:
@@ -60,10 +51,9 @@ class PlanificationDAO:
             planif = Planification(
                 row[1],  # id_lecteur
                 row[2],  # id_playlist
-                row[3],  # jour_semaine
-                row[4],  # heure_debut
-                row[5],  # heure_fin
-                row[6],  # date_specifique
+                row[3],  # heure_debut
+                row[4],  # heure_fin
+                row[5],  # date_
                 row[0],  # id_planification
             )
             # Ajouter le nom de la playlist comme attribut dynamique
@@ -74,7 +64,7 @@ class PlanificationDAO:
     
     def find_one(self, id_planif):
         """Récupère une planification par son ID"""
-        query = "SELECT * FROM Planification WHERE id_planification = ?"
+        query = "SELECT * FROM planification WHERE id_planification = ?"
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(query, (id_planif,))
             row = cursor.fetchone()
@@ -85,15 +75,14 @@ class PlanificationDAO:
         return Planification(
             row[1],  # id_lecteur
             row[2],  # id_playlist
-            row[3],  # jour_semaine
-            row[4],  # heure_debut
-            row[5],  # heure_fin
-            row[6],  # date_specifique
+            row[3],  # heure_debut
+            row[4],  # heure_fin
+            row[5],  # date_
             row[0],  # id_planification
         )
     
     def delete(self, id_planif):
         """Supprime une planification"""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("DELETE FROM Planification WHERE id_planification = ?", (id_planif,))
+            conn.execute("DELETE FROM planification WHERE id_planification = ?", (id_planif,))
             conn.commit()

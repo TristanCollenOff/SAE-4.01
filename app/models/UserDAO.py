@@ -1,5 +1,6 @@
 import os
 import bcrypt
+import re
 import sqlite3
 from datetime import datetime, timedelta
 from app import app
@@ -21,33 +22,12 @@ class UserSqliteDAO(UserDAOInterface):
         conn.row_factory = sqlite3.Row
         return conn
 
-    def _initTable(self):
-        conn = self._getDbConnection()
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS Utilisateur(
-               id_utilisateur INTEGER PRIMARY KEY AUTOINCREMENT,
-               nom_utilisateur VARCHAR(50) UNIQUE,
-               prenom VARCHAR(50),
-               nom VARCHAR(50),
-               age INTEGER,
-               email VARCHAR(100) UNIQUE,
-               motdepasse VARCHAR(128),
-               role VARCHAR(50),
-               login_attempts INTEGER DEFAULT 0,
-               block_until DATETIME,
-               last_login DATETIME
-            )
-        ''')
-        conn.commit()
-        conn.close()
-
     # Hash mot de passe
     def _generatePwdHash(self, password):
         return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     # Vérifie complexité mot de passe
     def _is_password_strong(self, password):
-        import re
         return (
             len(password) >= 10 and
             re.search(r"[A-Z]", password) and
@@ -64,17 +44,16 @@ class UserSqliteDAO(UserDAOInterface):
         hashed_password = self._generatePwdHash(password)
         try:
             conn.execute(
-                "INSERT INTO Utilisateur (nom_utilisateur, motdepasse, role, prenom, nom, age, email) "
-                "VALUES (:u, :p, :r, :f, :l, :a, :e)",
-                {
-                    "u": username,
-                    "p": hashed_password,
-                    "r": role,
-                    "f": prenom,
-                    "l": nom,
-                    "a": age,
-                    "e": email
-                }
+                "INSERT INTO utilisateur (nom_utilisateur, motdepasse, prenom, nom, email, nom_role) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    username,
+                    hashed_password,
+                    prenom,
+                    nom,
+                    email,
+                    nom_role
+                )
             )
             conn.commit()
             return True
@@ -88,8 +67,8 @@ class UserSqliteDAO(UserDAOInterface):
     def findByUsername(self, username):
         conn = self._getDbConnection()
         user = conn.execute(
-            "SELECT * FROM Utilisateur WHERE nom_utilisateur = :u",
-            {"u": username}
+            "SELECT * FROM utilisateur WHERE nom_utilisateur = ?",
+            (username,)
         ).fetchone()
         conn.close()
         return User(user) if user else None
@@ -98,8 +77,8 @@ class UserSqliteDAO(UserDAOInterface):
     def verifyUser(self, username, password):
         conn = self._getDbConnection()
         user_row = conn.execute(
-            "SELECT * FROM Utilisateur WHERE nom_utilisateur = :u",
-            {"u": username}
+            "SELECT * FROM utilisateur WHERE nom_utilisateur = ?",
+            (username,)
         ).fetchone()
         
         if not user_row:
@@ -124,8 +103,8 @@ class UserSqliteDAO(UserDAOInterface):
         if bcrypt.checkpw(password.encode('utf-8'), user_row["motdepasse"].encode('utf-8')):
             # Login OK → reset tentative et update last_login
             conn.execute(
-                "UPDATE Utilisateur SET login_attempts = 0, block_until = NULL, last_login = :l WHERE id_utilisateur = :id",
-                {"l": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "id": user.id}
+                "UPDATE connexion SET login_attempts = 0, block_until = NULL, last_login = ? WHERE id_utilisateur = ?",
+                (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), user.id)
             )
             conn.commit()
             conn.close()
@@ -137,10 +116,8 @@ class UserSqliteDAO(UserDAOInterface):
             if attempts >= self.MAX_LOGIN_ATTEMPTS:
                 new_block_until = datetime.now() + self.BLOCK_TIME + timedelta(minutes=(attempts - self.MAX_LOGIN_ATTEMPTS) * 5)
             conn.execute(
-                "UPDATE Utilisateur SET login_attempts = :att, block_until = :block WHERE id_utilisateur = :id",
-                {"att": attempts,
-                 "block": new_block_until.strftime("%Y-%m-%d %H:%M:%S") if new_block_until else None,
-                 "id": user.id}
+                "UPDATE connexion SET login_attempts = ?, block_until = ? WHERE id_utilisateur = ?",
+                (attempts, new_block_until.strftime("%Y-%m-%d %H:%M:%S") if new_block_until else None, user.id)
             )
             conn.commit()
             conn.close()
@@ -149,7 +126,7 @@ class UserSqliteDAO(UserDAOInterface):
     # Trouver tous les utilisateurs
     def findAll(self):
         conn = self._getDbConnection()
-        users = conn.execute("SELECT * FROM Utilisateur").fetchall()
+        users = conn.execute("SELECT * FROM utilisateur").fetchall()
         conn.close()
         return [User(dict(u)) for u in users]
 
@@ -160,8 +137,8 @@ class UserSqliteDAO(UserDAOInterface):
         hashed = self._generatePwdHash(new_password)
         conn = self._getDbConnection()
         conn.execute(
-            "UPDATE Utilisateur SET motdepasse = :p WHERE id_utilisateur = :id",
-            {"p": hashed, "id": user_id}
+            "UPDATE utilisateur SET motdepasse = ? WHERE id_utilisateur = ?",
+            (hashed, user_id)
         )
         conn.commit()
         conn.close()
@@ -173,8 +150,8 @@ class UserSqliteDAO(UserDAOInterface):
      block_until = datetime.now() + timedelta(minutes=minutes)
      conn = self._getDbConnection()
      conn.execute(
-        "UPDATE Utilisateur SET block_until = :b WHERE id_utilisateur = :id", 
-          {"b": block_until.strftime("%Y-%m-%d %H:%M:%S"), "id": user_id}
+        "UPDATE connexion SET block_until = ? WHERE id_utilisateur = ?", 
+          (block_until.strftime("%Y-%m-%d %H:%M:%S"), user_id)
         )
      conn.commit()
      conn.close()
@@ -182,8 +159,8 @@ class UserSqliteDAO(UserDAOInterface):
     def unblock_user(self, user_id):
       conn = self._getDbConnection()
       conn.execute(
-        "UPDATE Utilisateur SET block_until = NULL, login_attempts = 0 WHERE id_utilisateur = :id",
-        {"id": user_id}
+        "UPDATE connexion SET block_until = NULL, login_attempts = 0 WHERE id_utilisateur = ?",
+        (user_id,)
     )
       conn.commit()
       conn.close()
@@ -193,8 +170,8 @@ class UserSqliteDAO(UserDAOInterface):
     def findById(self, user_id):
       conn = self._getDbConnection()
       row = conn.execute(
-        "SELECT * FROM Utilisateur WHERE id_utilisateur = :id",
-        {"id": user_id}
+        "SELECT * FROM utilisateur WHERE id_utilisateur = ?",
+        (user_id,)
     ).fetchone()
       conn.close()
       return User(row) if row else None
