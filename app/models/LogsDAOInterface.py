@@ -7,56 +7,49 @@ class LogsDAOInterface(ABC):
     @abstractmethod
     def add_log(self, log: Logs) -> bool:
         """
-        Ajoute une nouvelle entrée de log
-
+        Ajoute une nouvelle entrée de log dans la table fichier_log
         """
         pass
     
     @abstractmethod
     def get_all_logs(self) -> List[Logs]:
         """
-        Récupère tous les logs
-
+        Récupère tous les logs triés par date décroissante
         """
         pass
     
     @abstractmethod
     def get_log_by_id(self, log_id: int) -> Optional[Logs]:
         """
-        Récupère un log par son ID
-
+        Récupère un log par son id_log
         """
         pass
     
     @abstractmethod
-    def get_logs_by_user(self, user_id: int) -> List[Logs]:
+    def get_logs_by_organisation(self, org_id: int) -> List[Logs]:
         """
-        Récupère tous les logs d'un utilisateur
-
+        Récupère tous les logs liés à une organisation spécifique
         """
         pass
     
     @abstractmethod
     def get_logs_by_type(self, log_type: str) -> List[Logs]:
         """
-        Récupère tous les logs d'un type spécifique
- 
+        Récupère tous les logs d'un type d'action spécifique
         """
         pass
     
     @abstractmethod
     def search_logs(self, search_term: str) -> List[Logs]:
         """
-        Recherche des logs par terme de recherche (dans username ou message)
-        
+        Recherche des logs par terme de recherche (dans le message)
         """
         pass
     
     @abstractmethod
     def delete_log(self, log_id: int) -> bool:
         """
-        Supprime un log par son ID
-
+        Supprime un log par son id_log
         """
         pass
     
@@ -64,6 +57,5 @@ class LogsDAOInterface(ABC):
     def delete_old_logs(self, days: int) -> int:
         """
         Supprime les logs plus anciens que X jours
-
         """
         pass
