@@ -4,42 +4,46 @@ from datetime import datetime
 
 DB_PATH = app.root_path + '/database.db'
 
-# On définit LOG_TYPES pour corriger l'ImportError dans LogsController
 LOG_TYPES = {
-    'INFO': 'info',
-    'WARNING': 'warning',
-    'ERROR': 'error',
-    'ALERTE': 'error'
+    'INFO': 'INFO',
+    'WARNING': 'WARNING',
+    'ERROR': 'ERROR',
+    'CONNEXION': 'CONNEXION'
 }
 
-def add_log(log_type, username, message):
-    """Enregistre un log avec le type exact pour les statistiques du template"""
+def add_log(log_type: str, id_organisation: int, message: str):
+    """Enregistre un log en base de données selon le schéma officiel"""
     try:
         conn = sqlite3.connect(DB_PATH)
-        # Utilisation des colonnes type_log et username pour le template
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
         conn.execute('''
-            INSERT INTO FichierLog (type_log, username, message, date_fichierlog)
+            INSERT INTO fichier_log (type_action, message, date_fichierlog, id_organisation)
             VALUES (?, ?, ?, ?)
-        ''', (log_type, username, message, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        ''', (log_type, message, current_time, id_organisation))
+        
         conn.commit()
         conn.close()
     except Exception as e:
         print(f"Erreur lors de l'écriture du log : {e}")
 
-# --- Fonctions pour les Controllers ---
-
 def log_login(user):
-    # 'info' incrémente le compteur "Infos" dans logs.html
-    add_log(LOG_TYPES['INFO'], user.username, "S'est connecté")
+
+    id_org = getattr(user, 'id_organisation', 1) 
+    add_log(LOG_TYPES['CONNEXION'], id_org, f"L'utilisateur {user.nom_utilisateur} s'est connecté")
 
 def log_logout(user):
-    add_log(LOG_TYPES['INFO'], user.username, "S'est déconnecté")
+    id_org = getattr(user, 'id_organisation', 1)
+    add_log(LOG_TYPES['CONNEXION'], id_org, f"L'utilisateur {user.nom_utilisateur} s'est déconnecté")
 
-def log_failed_login(username, reason="Mot de passe incorrect"):
-    """Log une tentative de connexion échouée"""
-    add_log(LOG_TYPES['ERROR'], username, f"Tentative de connexion échouée : {reason}")
+def log_failed_login(id_organisation, username, reason="Mot de passe incorrect"):
+    """Log une tentative de connexion échouée (nécessite l'id de l'organisation cible ou par défaut)"""
+    add_log(LOG_TYPES['ERROR'], id_organisation, f"Tentative de connexion échouée pour {username} : {reason}")
 
 def log_action(user, action_msg):
-    # Rétablit la fonction pour AdminController.py
-    username = user.username if hasattr(user, 'username') else str(user)
-    add_log(LOG_TYPES['WARNING'], username, action_msg)
+    """Log une action utilisateur pour AdminController.py"""
+    id_org = getattr(user, 'id_organisation', 1)
+    username = user.nom_utilisateur if hasattr(user, 'nom_utilisateur') else str(user)
+
+    full_message = f"[{username}] {action_msg}"
+    add_log(LOG_TYPES['WARNING'], id_org, full_message)
