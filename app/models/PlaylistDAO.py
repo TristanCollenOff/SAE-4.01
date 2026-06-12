@@ -12,7 +12,7 @@ class PlaylistDAO(PlaylistDAOInterface):
 
     def find_all(self):
         conn = self._get_connection()
-        cursor = conn.execute("SELECT * FROM Playlist ORDER BY date_derniere_maj DESC")
+        cursor = conn.execute("SELECT * FROM playlist ORDER BY date_derniere_maj DESC")
 
         playlists = []
         for row in cursor.fetchall():
@@ -40,7 +40,7 @@ class PlaylistDAO(PlaylistDAOInterface):
 
     def find_one(self, id_playlist):
         conn = self._get_connection()
-        cursor = conn.execute("SELECT * FROM Playlist WHERE id_playlist = ?", (id_playlist,))
+        cursor = conn.execute("SELECT * FROM playlist WHERE id_playlist = ?", (id_playlist,))
         row = cursor.fetchone()
 
         if not row:
@@ -70,9 +70,9 @@ class PlaylistDAO(PlaylistDAOInterface):
         Compte le nombre de pistes, calcule la durée totale et détecte les problèmes
         """
         cursor = conn.execute(
-            "SELECT f.*, e.id_playlist FROM Est_composé_d_une e "
-            "JOIN Fichier f ON e.id_fichier = f.id_fichier "
-            "WHERE e.id_playlist = ?",
+            "SELECT f.*, c.id_playlist FROM Contenir c "
+            "JOIN fichier f ON c.id_fichier = f.id_fichier "
+            "WHERE c.id_playlist = ?",
             (id_playlist,)
         )
         rows = cursor.fetchall()
@@ -87,8 +87,8 @@ class PlaylistDAO(PlaylistDAOInterface):
             duree_totale += duree
 
             # Vérifier si la colonne existe et si elle est vide
-            emplacement = row['emplacement'] if 'emplacement' in row.keys() else None
-            if not emplacement:
+            chemin = row['chemin'] if 'chemin' in row.keys() else None
+            if not chemin:
                 problemes.append(f"Fichier manquant: {row['nom']}")
 
         if nb_pistes < 5:
