@@ -15,7 +15,7 @@ class UserSqliteDAO(UserDAOInterface):
         self.databasename = os.path.join(os.path.dirname(__file__), '..', 'database.db')
         self.databasename = os.path.abspath(self.databasename)
 
-        self._initTable()
+        
 
     def _getDbConnection(self):
         conn = sqlite3.connect(self.databasename)
@@ -52,7 +52,7 @@ class UserSqliteDAO(UserDAOInterface):
                     prenom,
                     nom,
                     email,
-                    nom_role
+                    role
                 )
             )
             conn.commit()
