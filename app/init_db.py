@@ -1,6 +1,11 @@
 import os
 import sqlite3
+import bcrypt
 from datetime import datetime, timedelta
+
+
+def hash_password(password):
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 
 def init_db():
@@ -53,7 +58,7 @@ def init_db():
     except Exception as e:
         print(f"❌ Erreur rôles : {e}")
 
-    # 👤 USERS (CORRIGÉ INDENTATION + CONN)
+    # 👤 USERS AVEC BCRYPT
     try:
         with sqlite3.connect(db_path) as conn:
 
@@ -64,13 +69,13 @@ def init_db():
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 [
-                    ("Admin", "Admin@12345", "Admin", "System", "admin@test.com", "admin"),
-                    ("Antoine", "Antoine@12345", "Antoine", "User", "antoine@test.com", "utilisateur"),
-                    ("Superviseur", "Superviseur@12345", "Superviseur", "User", "superviseur@test.com", "superviseur")
+                    ("Admin", hash_password("Admin@12345"), "Admin", "System", "admin@test.com", "admin"),
+                    ("Antoine", hash_password("Antoine@12345"), "Antoine", "User", "antoine@test.com", "utilisateur"),
+                    ("Superviseur", hash_password("Superviseur@12345"), "Superviseur", "User", "superviseur@test.com", "superviseur")
                 ]
             )
 
-            print("👤 Users OK")
+            print("👤 Users OK (bcrypt)")
 
     except Exception as e:
         print("❌ Erreur users :", e)
