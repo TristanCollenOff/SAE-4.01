@@ -1,79 +1,81 @@
 import os
 import sqlite3
 from datetime import datetime, timedelta
-from app import app
-from app.models.UserDAO import UserSqliteDAO
 
 
 def init_db():
 
-    db_path = os.path.join(app.root_path, 'database.db')
-    schema_path = os.path.join(app.root_path, 'schema.sql')
+    BASE_DIR = os.path.dirname(__file__)
+
+    db_path = os.path.join(BASE_DIR, "database.db")
+    schema_path = os.path.join(BASE_DIR, "schema.sql")
 
     print(f"--- Initialisation de la base : {db_path} ---")
 
- 
+    # 📄 Vérification schema
     if not os.path.exists(schema_path):
-        print(" schema.sql introuvable")
+        print("❌ schema.sql introuvable")
         return
 
+    # 🏗️ Création tables
     try:
         with sqlite3.connect(db_path) as conn:
-            with open(schema_path, 'r', encoding='utf-8') as f:
+            with open(schema_path, "r", encoding="utf-8") as f:
                 conn.executescript(f.read())
             conn.commit()
 
         print("✅ Tables créées")
 
     except sqlite3.Error as e:
-        print(f" Erreur SQL : {e}")
+        print(f"❌ Erreur SQL : {e}")
         return
 
-    with sqlite3.connect(db_path) as conn:
-        cursor = conn.cursor()
-
-        roles = [
-            ("admin", "Administrateur"),
-            ("superviseur", "Superviseur"),
-            ("utilisateur", "Utilisateur")
-        ]
-
-        cursor.executemany(
-            "INSERT OR IGNORE INTO role VALUES (?, ?)",
-            roles
-        )
-
-        conn.commit()
-
-    print("✅ Rôles OK")
-
-   
+    # 👑 Rôles
     try:
-        udao = UserSqliteDAO()
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
 
-        utilisateurs = [
-            ("Admin", "Admin@12345", "admin", "admin@test.com", "Admin", "System"),
-            ("Antoine", "Antoine@12345", "utilisateur", "antoine@test.com", "Antoine", "User"),
-            ("Superviseur", "Superviseur@12345", "superviseur", "superviseur@test.com", "Superviseur", "User")
-        ]
+            roles = [
+                ("admin", "Administrateur"),
+                ("superviseur", "Superviseur"),
+                ("utilisateur", "Utilisateur")
+            ]
 
-        for username, mdp, role, email, prenom, nom in utilisateurs:
+            cursor.executemany(
+                "INSERT OR IGNORE INTO role VALUES (?, ?)",
+                roles
+            )
 
-            if not udao.findByUsername(username):
-                udao.createUser(
-                    username,
-                    mdp,
-                    role,
-                    email=email,
-                    prenom=prenom,
-                    nom=nom
-                )
-                print(f"👤 {username} créé")
+            conn.commit()
+
+        print("✅ Rôles OK")
 
     except Exception as e:
-        print(f" Erreur users : {e}")
+        print(f"❌ Erreur rôles : {e}")
 
+    # 👤 USERS (CORRIGÉ INDENTATION + CONN)
+    try:
+        with sqlite3.connect(db_path) as conn:
 
+            conn.executemany(
+                """
+                INSERT OR IGNORE INTO utilisateur
+                (nom_utilisateur, motdepasse, prenom, nom, email, nom_role)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    ("Admin", "Admin@12345", "Admin", "System", "admin@test.com", "admin"),
+                    ("Antoine", "Antoine@12345", "Antoine", "User", "antoine@test.com", "utilisateur"),
+                    ("Superviseur", "Superviseur@12345", "Superviseur", "User", "superviseur@test.com", "superviseur")
+                ]
+            )
+
+            print("👤 Users OK")
+
+    except Exception as e:
+        print("❌ Erreur users :", e)
+
+    # 🏢 Organisation + lecteur
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
@@ -111,12 +113,12 @@ def init_db():
 
             conn.commit()
 
-        print("Organisation + lecteur OK")
+        print("✅ Organisation + lecteur OK")
 
     except Exception as e:
-        print(f" Erreur org/lecteur : {e}")
+        print(f"❌ Erreur org/lecteur : {e}")
 
-  
+    # 🔗 Affiliation
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
@@ -133,12 +135,12 @@ def init_db():
 
             conn.commit()
 
-        print(" Affiliation OK")
+        print("✅ Affiliation OK")
 
     except Exception as e:
-        print(f" Erreur affilier : {e}")
+        print(f"❌ Erreur affilier : {e}")
 
-   
+    # 🎬 Démo
     print("\n--- Génération démo ---")
     generate_demo_playlists(db_path)
 
@@ -199,7 +201,10 @@ def generate_demo_playlists(db_path):
         id_playlist = cursor.lastrowid
 
         for nom, _, _ in fichiers:
-            cursor.execute("SELECT id_fichier FROM fichier WHERE nom = ?", (nom,))
+            cursor.execute(
+                "SELECT id_fichier FROM fichier WHERE nom = ?",
+                (nom,)
+            )
             res = cursor.fetchone()
 
             if res:
@@ -212,10 +217,10 @@ def generate_demo_playlists(db_path):
         conn.commit()
         conn.close()
 
-        print(" Démo OK")
+        print("✅ Démo OK")
 
     except Exception as e:
-        print(f" erreur démo : {e}")
+        print(f"❌ erreur démo : {e}")
 
 
 if __name__ == "__main__":
