@@ -30,11 +30,11 @@ def add_log(log_type: str, id_organisation: int, message: str):
 def log_login(user):
 
     id_org = getattr(user, 'id_organisation', 1) 
-    add_log(LOG_TYPES['CONNEXION'], id_org, f"L'utilisateur {user.nom_utilisateur} s'est connecté")
+    add_log(LOG_TYPES['CONNEXION'], id_org, f"L'utilisateur {user.username} s'est connecté")
 
 def log_logout(user):
     id_org = getattr(user, 'id_organisation', 1)
-    add_log(LOG_TYPES['CONNEXION'], id_org, f"L'utilisateur {user.nom_utilisateur} s'est déconnecté")
+    add_log(LOG_TYPES['CONNEXION'], id_org, f"L'utilisateur {user.username} s'est déconnecté")
 
 def log_failed_login(id_organisation, username, reason="Mot de passe incorrect"):
     """Log une tentative de connexion échouée (nécessite l'id de l'organisation cible ou par défaut)"""
@@ -43,7 +43,7 @@ def log_failed_login(id_organisation, username, reason="Mot de passe incorrect")
 def log_action(user, action_msg):
     """Log une action utilisateur pour AdminController.py"""
     id_org = getattr(user, 'id_organisation', 1)
-    username = user.nom_utilisateur if hasattr(user, 'nom_utilisateur') else str(user)
+    username = user.username if hasattr(user, 'nom_utilisateur') else str(user)
 
     full_message = f"[{username}] {action_msg}"
     add_log(LOG_TYPES['WARNING'], id_org, full_message)
