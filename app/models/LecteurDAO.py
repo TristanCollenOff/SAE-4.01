@@ -38,6 +38,7 @@ class LecteurDAO:
                     row['nom_lecteur'],
                     row['adresseIP'],
                     row['etat_lecteur'],
+                    row['emplacement'],
                     row['derniere_synchro'],
                     row['adresse_lecteur'],
                     row['alerte'],
@@ -66,6 +67,7 @@ class LecteurDAO:
                     row['nom_lecteur'],
                     row['adresseIP'],
                     row['etat_lecteur'],
+                    row['emplacement'],
                     row['derniere_synchro'],
                     row['adresse_lecteur'],
                     row['alerte'],
@@ -76,18 +78,18 @@ class LecteurDAO:
             print(f"Erreur find_one : {e}")
             return None
         
-    def create(self, nom_lecteur, adresseIP, adresse_lecteur):
+    def create(self, nom_lecteur, adresseIP, adresse_lecteur, emplacement="non renseigné"):
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             # On ajoute id_organisation (met 1 par défaut pour tes tests)
             query = """
-                INSERT INTO lecteur (nom_lecteur, adresseIP, adresse_lecteur, etat_lecteur, derniere_synchro, id_organisation)
-                VALUES (?, ?, ?, 'Hors ligne', 'Jamais', 1)
+                INSERT INTO lecteur (nom_lecteur, adresseIP, etat_lecteur, emplacement, derniere_synchro, adresse_lecteur, alerte, id_organisation)
+                VALUES (?, ?, 'KO', ?,datetime('now', 'locatime'), ?, 0, 1)
             """
             
-            cursor.execute(query, (nom_lecteur, adresseIP, adresse_lecteur))
+            cursor.execute(query, (nom_lecteur, adresseIP, emplacement, adresse_lecteur))
             conn.commit()
             conn.close()
             return True
@@ -136,24 +138,26 @@ class LecteurDAO:
                 print(f"Erreur set_online : {e}")
                 return False
     def changer_playlist(self, id_lecteur, nom_playlist):
-        """Change la playlist active (matin, midi ou soir)"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            cursor.execute("UPDATE lecteur SET playlist_active = ? WHERE id_lecteur = ?", (nom_playlist, id_lecteur))
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            print(f"Erreur changement playlist : {e}")
-            return False
+        print("changer_playlist n'existe plus, maintenant il faut utiliser planification")
+        return False
+#       """Change la playlist active (matin, midi ou soir)"""
+#        try:
+#           conn = sqlite3.connect(self.db_path)
+#            cursor = conn.cursor()
+#            cursor.execute("UPDATE lecteur SET playlist_active = ? WHERE id_lecteur = ?", (nom_playlist, id_lecteur))
+#            conn.commit()
+#            conn.close()
+#            return True
+#        except Exception as e:
+#            print(f"Erreur changement playlist : {e}")
+#            return False
 
     def toggle_alerte(self, id_lecteur, etat):
         """Active ou désactive l'alerte d'urgence (0 ou 1)"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            cursor.execute("UPDATE lecteur SET alerte_active = ? WHERE id_lecteur = ?", (etat, id_lecteur))
+            cursor.execute("UPDATE lecteur SET alerte = ? WHERE id_lecteur = ?", (etat, id_lecteur))
             conn.commit()
             conn.close()
             return True
