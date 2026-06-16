@@ -78,7 +78,7 @@ class LecteurDAO:
             print(f"Erreur find_one : {e}")
             return None
         
-    def create(self, nom_lecteur, adresseIP, adresse_lecteur, emplacement="non renseigné"):
+    def create(self, nom_lecteur, adresseIP, adresse_lecteur, emplacement="Non renseigné"):
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
@@ -86,7 +86,7 @@ class LecteurDAO:
             # On ajoute id_organisation (met 1 par défaut pour tes tests)
             query = """
                 INSERT INTO lecteur (nom_lecteur, adresseIP, etat_lecteur, emplacement, derniere_synchro, adresse_lecteur, alerte, id_organisation)
-                VALUES (?, ?, 'KO', ?,datetime('now', 'locatime'), ?, 0, 1)
+                VALUES (?, ?, 'KO', ?, datetime('now', 'localtime'),?, 0, 1)
             """
             
             cursor.execute(query, (nom_lecteur, adresseIP, emplacement, adresse_lecteur))
@@ -138,11 +138,11 @@ class LecteurDAO:
                 print(f"Erreur set_online : {e}")
                 return False
     def changer_playlist(self, id_lecteur, nom_playlist):
-        print("changer_playlist n'existe plus, maintenant il faut utiliser planification")
+        print("changer_playlist désactivée: playlist_active n'existe plus dans la table lecteur")
         return False
-#       """Change la playlist active (matin, midi ou soir)"""
+#        """Change la playlist active (matin, midi ou soir)"""
 #        try:
-#           conn = sqlite3.connect(self.db_path)
+#            conn = sqlite3.connect(self.db_path)
 #            cursor = conn.cursor()
 #            cursor.execute("UPDATE lecteur SET playlist_active = ? WHERE id_lecteur = ?", (nom_playlist, id_lecteur))
 #            conn.commit()
