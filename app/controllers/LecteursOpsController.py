@@ -86,7 +86,7 @@ def api_pub_terminee(id_lecteur):
     try:
         conn = sqlite3.connect('app/database.db')
         cursor = conn.cursor()
-        cursor.execute("UPDATE Lecteur SET etat_lecteur = 'ambiance', emplacement = NULL WHERE id_lecteur = ?", (id_lecteur,))
+        cursor.execute("UPDATE lecteur SET etat_lecteur = 'ambiance' WHERE id_lecteur = ?", (id_lecteur,))
         conn.commit()
         conn.close()
         return jsonify({"status": "success"})
