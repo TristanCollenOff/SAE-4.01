@@ -1,5 +1,3 @@
-# LoginController.py
-# LoginController.py
 from app import app
 from flask import render_template, request, redirect, url_for, session
 from app.services.user_service import UserService
@@ -8,9 +6,10 @@ from functools import wraps
 
 # Service utilisateur
 user_service = UserService()
+us = user_service
 
 # -----------------------------
-# Décorateurs
+# DÉCORATEURS
 # -----------------------------
 def reqlogged(f):
     @wraps(f)
@@ -53,7 +52,7 @@ def login():
         result = user_service.login(username, password)
 
         # -----------------------------
-        # CAS 1 : utilisateur bloqué
+        # CAS 1 : COMPTE BLOQUÉ
         # -----------------------------
         if result == "blocked":
             return render_template(
@@ -63,7 +62,7 @@ def login():
             )
 
         # -----------------------------
-        # CAS 2 : erreur login
+        # CAS 2 : LOGIN FAIL
         # -----------------------------
         if result is None:
             log_failed_login(username, "Identifiants invalides")
@@ -75,13 +74,13 @@ def login():
             )
 
         # -----------------------------
-        # CAS 3 : login OK
+        # CAS 3 : LOGIN OK
         # -----------------------------
         user = result
 
         session["user_id"] = user.id
-        session["username"] = user.nom_utilisateur
-        session["role"] = user.nom_role
+        session["username"] = user.username
+        session["role"] = user.role
         session["logged"] = True
 
         log_login(user)
@@ -98,11 +97,18 @@ def login():
 def logout():
 
     if "user_id" in session:
-        temp_user = user_service.getUserByUsername(session["username"])
 
-        if temp_user:
-            user = temp_user[0]
-            log_logout(user)
+        username = session.get("username")
+
+        if username:
+            user = user_service.getUserByUsername(username)
+
+            # getUserByUsername retourne une liste → on sécurise
+            if isinstance(user, list) and len(user) > 0:
+                user = user[0]
+
+            if user:
+                log_logout(user)
 
     session.clear()
     return redirect(url_for("login"))
