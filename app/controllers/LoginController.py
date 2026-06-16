@@ -1,4 +1,5 @@
 # LoginController.py
+# LoginController.py
 from app import app
 from flask import render_template, request, redirect, url_for, session
 from app.services.user_service import UserService
@@ -7,7 +8,6 @@ from functools import wraps
 
 # Service utilisateur
 user_service = UserService()
-us = user_service  # pour AdminController et IndexController
 
 # -----------------------------
 # Décorateurs
@@ -20,71 +20,89 @@ def reqlogged(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 def reqrole(role):
-    """Vérifie que l'utilisateur connecté a le rôle requis"""
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if session.get("role") != role:
-                return "Accès refusé : rôle requis = " + role
+                return f"Accès refusé : rôle requis = {role}"
             return f(*args, **kwargs)
-        return decorator
+        return decorated_function
     return decorator
 
+
 # -----------------------------
-# Route login
+# LOGIN
 # -----------------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     if request.method == "POST":
-        # Récupération sécurisée des champs du formulaire
-        username = request.form.get('nom_utilisateur', '').strip()
-        password = request.form.get('motdepasse', '').strip()
 
-        # Vérification que les champs ne sont pas vides
+        username = request.form.get("nom_utilisateur", "").strip()
+        password = request.form.get("motdepasse", "").strip()
+
         if not username or not password:
-            return "Veuillez remplir tous les champs"
-
-        user = user_service.login(username, password)
-
-        # ❌ utilisateur ou mot de passe incorrect
-        if user is None:
-            # Log de la tentative échouée
-            log_failed_login(username, "Mot de passe incorrect")
-            
             return render_template(
                 "login.html",
-                msg_error="❌ Utilisateur ou mot de passe incorrect. Veuillez réessayer.",
+                msg_error="❌ Veuillez remplir tous les champs",
                 nom_utilisateur=username
             )
-        elif user:
-            # ✅ Session correcte
-            session['user_id'] = user.id
-            session['username'] = user.username
-            session['role'] = user.role
-            session['logged'] = True
-            session['nom_utilisateur'] = user.username
 
-            # Log de connexion réussie
-            log_login(user)
+        result = user_service.login(username, password)
 
-            return redirect(url_for("index"))
-        else:
-            # Cas générique d'erreur
+        # -----------------------------
+        # CAS 1 : utilisateur bloqué
+        # -----------------------------
+        if result == "blocked":
+            return render_template(
+                "login.html",
+                msg_error="⛔ Compte temporairement bloqué. Réessayez plus tard.",
+                nom_utilisateur=username
+            )
+
+        # -----------------------------
+        # CAS 2 : erreur login
+        # -----------------------------
+        if result is None:
             log_failed_login(username, "Identifiants invalides")
-            return "Nom utilisateur ou mot de passe incorrect"
-            
+
+            return render_template(
+                "login.html",
+                msg_error="❌ Nom utilisateur ou mot de passe incorrect",
+                nom_utilisateur=username
+            )
+
+        # -----------------------------
+        # CAS 3 : login OK
+        # -----------------------------
+        user = result
+
+        session["user_id"] = user.id
+        session["username"] = user.nom_utilisateur
+        session["role"] = user.nom_role
+        session["logged"] = True
+
+        log_login(user)
+
+        return redirect(url_for("index"))
+
     return render_template("login.html")
 
+
 # -----------------------------
-# Route logout
+# LOGOUT
 # -----------------------------
 @app.route("/logout")
 def logout():
-    if 'user_id' in session:
-        temp_user = user_service.getUserByUsername(session['username'])
+
+    if "user_id" in session:
+        temp_user = user_service.getUserByUsername(session["username"])
+
         if temp_user:
             user = temp_user[0]
             log_logout(user)
-        session.clear()
+
+    session.clear()
     return redirect(url_for("login"))
