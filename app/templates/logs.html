@@ -1,7 +1,4 @@
-{% extends 'layout.html' %}
-
 {% block content %}
-<!-- Hero Section -->
 <div class="logs-hero">
   <div class="container">
     <h1><i class="bi bi-journal-text"></i> Journal d'Activité</h1>
@@ -9,9 +6,7 @@
   </div>
 </div>
 
-<!-- Contenu principal -->
 <div class="container mt-4 pb-5">
-  <!-- Actions et recherche -->
   <div class="logs-actions mb-4">
     <a href="{{ url_for('index') }}" class="btn btn-rythmo-back">
       <i class="bi bi-arrow-left"></i> Retour au tableau de bord
@@ -22,12 +17,12 @@
         type="text" 
         id="logSearch" 
         class="logs-search-input" 
-        placeholder="Rechercher dans les logs..."
+        placeholder="Rechercher dans les messages..."
+        value="{{ filter_user if filter_user else '' }}"
       >
     </div>
   </div>
 
-  <!-- Statistiques rapides -->
   <div class="logs-stats mb-4">
     <div class="stat-card stat-total">
       <div class="stat-icon">
@@ -43,8 +38,10 @@
         <i class="bi bi-info-circle"></i>
       </div>
       <div class="stat-content">
-        <div class="stat-value">{{ logs|selectattr('type_log', 'equalto', 'info')|list|length }}</div>
-        <div class="stat-label">Infos</div>
+        <div class="stat-value">
+          {{ (logs|selectattr('type_action', 'equalto', 'INFO')|list|length) + (logs|selectattr('type_action', 'equalto', 'CONNEXION')|list|length) }}
+        </div>
+        <div class="stat-label">Infos / Connexions</div>
       </div>
     </div>
     <div class="stat-card stat-warning">
@@ -52,7 +49,7 @@
         <i class="bi bi-exclamation-triangle"></i>
       </div>
       <div class="stat-content">
-        <div class="stat-value">{{ logs|selectattr('type_log', 'equalto', 'warning')|list|length }}</div>
+        <div class="stat-value">{{ logs|selectattr('type_action', 'equalto', 'WARNING')|list|length }}</div>
         <div class="stat-label">Avertissements</div>
       </div>
     </div>
@@ -61,20 +58,21 @@
         <i class="bi bi-x-circle"></i>
       </div>
       <div class="stat-content">
-        <div class="stat-value">{{ logs|selectattr('type_log', 'equalto', 'error')|list|length }}</div>
-        <div class="stat-label">Erreurs</div>
+        <div class="stat-value">
+          {{ (logs|selectattr('type_action', 'equalto', 'ERROR')|list|length) + (logs|selectattr('type_action', 'equalto', 'ALERTE')|list|length) }}
+        </div>
+        <div class="stat-label">Erreurs / Alertes</div>
       </div>
     </div>
   </div>
 
-  <!-- Carte du tableau -->
   <div class="logs-card">
     <div class="logs-card-header">
       <div class="logs-header-info">
         <i class="bi bi-activity"></i>
         <div>
           <h2>Événements système</h2>
-          <p>Historique complet des actions et événements</p>
+          <p>Historique complet des actions et événements par organisation</p>
         </div>
       </div>
     </div>
@@ -87,10 +85,10 @@
               <i class="bi bi-calendar3"></i> Date
             </th>
             <th>
-              <i class="bi bi-tag"></i> Type
+              <i class="bi bi-tag"></i> Type d'action
             </th>
             <th>
-              <i class="bi bi-person"></i> Utilisateur
+              <i class="bi bi-building"></i> ID Org
             </th>
             <th>
               <i class="bi bi-chat-left-text"></i> Message
@@ -105,15 +103,20 @@
               {{ log.date_fichierlog }}
             </td>
             <td>
-              {% if log.type_log == 'warning' %}
+              {% if log.type_action in ['WARNING'] %}
                 <span class="log-badge log-badge-warning">
                   <i class="bi bi-exclamation-triangle-fill"></i>
                   Warning
                 </span>
-              {% elif log.type_log == 'error' %}
+              {% elif log.type_action in ['ERROR', 'ALERTE'] %}
                 <span class="log-badge log-badge-error">
                   <i class="bi bi-x-circle-fill"></i>
-                  Error
+                  {{ log.type_action|title }}
+                </span>
+              {% elif log.type_action == 'CONNEXION' %}
+                <span class="log-badge log-badge-success" style="background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc;">
+                  <i class="bi bi-box-arrow-in-right"></i>
+                  Connexion
                 </span>
               {% else %}
                 <span class="log-badge log-badge-info">
@@ -124,11 +127,14 @@
             </td>
             <td class="log-user">
               <div class="user-badge">
-                <i class="bi bi-person-circle"></i>
-                <strong>{{ log.username }}</strong>
+                <i class="bi bi-hash"></i>
+                <strong>{{ log.id_organisation }}</strong>
               </div>
             </td>
-            <td class="log-message">{{ log.message }}</td>
+            <td class="log-message">
+              {# Le message affiche naturellement "[nom_utilisateur] message" grâce à log_service #}
+              {{ log.message }}
+            </td>
           </tr>
           {% else %}
           <tr>
@@ -151,20 +157,15 @@
 document.getElementById('logSearch').addEventListener('keyup', function() {
     let filter = this.value.toLowerCase();
     let rows = document.querySelectorAll('#logTable .log-row');
-    let visibleCount = 0;
     
     rows.forEach(row => {
         let text = row.innerText.toLowerCase();
         if (text.includes(filter)) {
             row.style.display = "";
-            visibleCount++;
         } else {
             row.style.display = "none";
         }
     });
-    
-    // Mettre à jour le compteur (optionnel)
-    // console.log(`${visibleCount} résultats trouvés`);
 });
 </script>
 
