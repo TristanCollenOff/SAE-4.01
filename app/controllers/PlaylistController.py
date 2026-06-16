@@ -103,7 +103,7 @@ def playlist_detail(id_playlist):
 )
 
 
-def get_playlist_pistes(id_playlist):
+def get_playlist_pistes(id_playlist):   
     """Récupère les pistes d'une playlist"""
     db_path = app.root_path + '/database.db'
     
@@ -112,10 +112,10 @@ def get_playlist_pistes(id_playlist):
         conn.row_factory = sqlite3.Row
         
         cursor = conn.execute("""
-            SELECT f.*, e.id_playlist
-            FROM Est_composé_d_une e
-            JOIN Fichier f ON e.id_fichier = f.id_fichier
-            WHERE e.id_playlist = ?
+            SELECT f.*, c.id_playlist
+            FROM Contenir e
+            JOIN fichier f ON c.id_fichier = f.id_fichier
+            WHERE c.id_playlist = ?
             ORDER BY f.id_fichier
         """, (id_playlist,))
         
