@@ -63,7 +63,7 @@ def api_ping(id_lecteur):
         conn.row_factory = sqlite3.Row 
         cursor = conn.cursor()
         # On récupère l'emplacement (le nom du mp3)
-        cursor.execute("SELECT etat_lecteur, emplacement, volume FROM Lecteur WHERE id_lecteur = ?", (id_lecteur,))
+        cursor.execute("SELECT etat_lecteur, emplacement FROM lecteur WHERE id_lecteur = ?", (id_lecteur,))
         row = cursor.fetchone()
         conn.close()
 
@@ -73,7 +73,7 @@ def api_ping(id_lecteur):
                 "statut": "success",
                 "action": "play",
                 "playlist": "matin",
-                "volume": row['volume'],
+                "volume": 75,
                 "emplacement": row['emplacement'] # <--- TA LIGNE EST ICI !
             })
         return jsonify({"statut": "error", "message": "Lecteur introuvable"}), 404
