@@ -109,20 +109,20 @@ class LecteurDAO:
         except Exception as e:
             print(f"Erreur update_nom : {e}")
             return False
-        def delete(self, id_lecteur):
-            """ Supprime un lecteur définitivement """
-            try:
-                conn = sqlite3.connect(self.db_path)
-                cursor = conn.cursor()
-                
-                cursor.execute("DELETE FROM lecteur WHERE id_lecteur = ?", (id_lecteur,))
-                
-                conn.commit()
-                conn.close()
-                return True
-            except Exception as e:
-                print(f"Erreur suppression lecteur : {e}")
-                return False
+    def delete(self, id_lecteur):
+        """ Supprime un lecteur définitivement """
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+                    
+            cursor.execute("DELETE FROM lecteur WHERE id_lecteur = ?", (id_lecteur,))
+                    
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Erreur suppression lecteur : {e}")
+            return False
             
     def set_online(self, id_lecteur):
             """ Note que le lecteur est EN LIGNE et met à jour l'heure """
