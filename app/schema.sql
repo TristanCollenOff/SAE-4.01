@@ -26,7 +26,7 @@ CREATE TABLE type_fichier(
 );
 
 CREATE TABLE utilisateur(
-   id_utilisateur INTEGER UNIQUE NOT NULL,
+   id_utilisateur INTEGER PRIMARY KEY,
    nom_utilisateur VARCHAR(50) UNIQUE NOT NULL,
    motdepasse VARCHAR(50) NOT NULL,
    prenom VARCHAR(50) NOT NULL,

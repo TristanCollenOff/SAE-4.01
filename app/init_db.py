@@ -62,7 +62,8 @@ def init_db():
     try:
         with sqlite3.connect(db_path) as conn:
 
-            conn.executemany(
+            cursor = conn.cursor()
+            cursor.executemany(
                 """
                 INSERT OR IGNORE INTO utilisateur
                 (nom_utilisateur, motdepasse, prenom, nom, email, nom_role)
@@ -74,6 +75,8 @@ def init_db():
                     ("Superviseur", hash_password("Superviseur@12345"), "Superviseur", "User", "superviseur@test.com", "superviseur")
                 ]
             )
+
+            conn.commit()
 
             print("👤 Users OK (bcrypt)")
 
