@@ -124,13 +124,13 @@ def get_playlist_pistes(id_playlist):
             duree = row.get('duree_fichier', 180)
             
             piste_problemes = []
-            if not row.get('emplacement'):
+            if not row.get('chemin'):
                 piste_problemes.append("Fichier manquant")
             
             pistes.append({
                 'id_fichier': row['id_fichier'],
                 'nom': row['nom'],
-                'emplacement': row.get('emplacement', ''),
+                'emplacement': row.get("chemin"),
                 'duree': duree,
                 'problemes': piste_problemes
             })
