@@ -113,7 +113,7 @@ def get_playlist_pistes(id_playlist):
         
         cursor = conn.execute("""
             SELECT f.*, c.id_playlist
-            FROM Contenir e
+            FROM Contenir c
             JOIN fichier f ON c.id_fichier = f.id_fichier
             WHERE c.id_playlist = ?
             ORDER BY f.id_fichier
