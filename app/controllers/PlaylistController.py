@@ -33,7 +33,7 @@ def get_sites(lecteurs):
         for lecteur in lecteurs:
             if lecteur.id_organisation:
                 cursor = conn.execute(
-                    "SELECT id_organisation, nom_organisation FROM Organisation WHERE id_organisation = ?",
+                    "SELECT id_organisation, nom_organisation FROM organisation WHERE id_organisation = ?",
                     (lecteur.id_organisation,)
                 )
                 org = cursor.fetchone()
