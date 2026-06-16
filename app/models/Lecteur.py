@@ -1,13 +1,16 @@
 from datetime import datetime
 
 class Lecteur:
-    def __init__(self, id_lecteur, nom_lecteur, adresseIP, etat_lecteur, derniere_synchro, adresse_lecteur=None):
+    def __init__(self, id_lecteur, nom_lecteur, adresseIP, etat_lecteur, emplacement, derniere_synchro, adresse_lecteur=None, alerte=0, id_organisation=None):
         self.id_lecteur = id_lecteur
         self.nom_lecteur = nom_lecteur
         self.adresseIP = adresseIP
-        self.etat_lecteur = etat_lecteur      # "UP" ou "KO"
-        self.derniere_synchro = derniere_synchro  # Texte "2025-01-16 15:30:00"
+        self.etat_lecteur = etat_lecteur
+        self.emplacement = emplacement
+        self.derniere_synchro = derniere_synchro
         self.adresse_lecteur = adresse_lecteur
+        self.alerte = alerte
+        self.id_organisation = id_organisation
 
     def est_en_ligne(self):
         if not self.derniere_synchro:
