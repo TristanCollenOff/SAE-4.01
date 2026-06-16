@@ -47,7 +47,7 @@ def api_lancer_pub(id_lecteur):
         conn = sqlite3.connect('app/database.db')
         cursor = conn.cursor()
         # On écrit l'état 'pub' et le nom du fichier
-        cursor.execute("UPDATE Lecteur SET etat_lecteur = 'pub', emplacement = ? WHERE id_lecteur = ?", (fichier_pub, id_lecteur))
+        cursor.execute("UPDATE lecteur SET etat_lecteur = 'pub', emplacement = ? WHERE id_lecteur = ?", (fichier_pub, id_lecteur))
         conn.commit()
         conn.close()
 
