@@ -53,9 +53,12 @@ def load_user():
 
 @app.context_processor
 def inject_globals():
+    theme = session.get("theme", "default")
+    if theme == "chill":
+        theme = "romantique"
     return {
         "current_user": g.get("current_user", None),
-        "theme": session.get("theme", "default")
+        "theme": theme
     }
 
 

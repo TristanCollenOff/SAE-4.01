@@ -158,16 +158,125 @@
 			100% { transform: translateY(105vh) rotate(360deg) translateX(40px); opacity: 0; }
 		}
 
-		body.chill {
-			--rythmo-bg: #1a0a1f;
-			--rythmo-gradient-start: #2a1040;
-			--rythmo-gradient-end: #120818;
-			--rythmo-accent: #ab47bc;
-			--rythmo-accent-light: #ce93d8;
-			--rythmo-accent-rgb: 171, 71, 188;
-			--rythmo-secondary: #6a1b9a;
-			--rythmo-secondary-rgb: 106, 27, 154;
-			--rythmo-text-light: #f3e5f5;
+		body.romantique {
+			--rythmo-bg: #2a0a18;
+			--rythmo-gradient-start: #c2185b;
+			--rythmo-gradient-end: #1a0610;
+			--rythmo-accent: #ff4081;
+			--rythmo-accent-light: #ff80ab;
+			--rythmo-accent-rgb: 255, 64, 129;
+			--rythmo-secondary: #e91e63;
+			--rythmo-secondary-rgb: 233, 30, 99;
+			--rythmo-text-light: #fff0f5;
+		}
+
+		/* ===== DÉCOR ROMANTIQUE (cœurs + fleurs roses) ===== */
+		.theme-romantique-bg {
+			position: fixed;
+			inset: 0;
+			z-index: 0;
+			pointer-events: none;
+			overflow: hidden;
+		}
+
+		.romantique-sky-glow {
+			position: absolute;
+			top: -5%;
+			left: 50%;
+			transform: translateX(-50%);
+			width: 80%;
+			height: 50%;
+			background: radial-gradient(ellipse, rgba(255, 105, 180, 0.2) 0%, rgba(233, 30, 99, 0.08) 40%, transparent 70%);
+		}
+
+		.romantique-hills {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 30%;
+			background:
+				radial-gradient(ellipse 120% 100% at 25% 100%, rgba(194, 24, 91, 0.4) 0%, transparent 55%),
+				radial-gradient(ellipse 100% 90% at 80% 100%, rgba(233, 30, 99, 0.35) 0%, transparent 50%),
+				linear-gradient(180deg, transparent 0%, rgba(74, 14, 46, 0.5) 100%);
+		}
+
+		.romantique-flower {
+			position: absolute;
+			bottom: 0;
+			filter: drop-shadow(0 0 15px rgba(244, 143, 177, 0.25));
+		}
+
+		.romantique-flower-left {
+			left: 3%;
+			width: clamp(90px, 12vw, 140px);
+			animation: romantiqueSway 7s ease-in-out infinite;
+		}
+
+		.romantique-flower-right {
+			right: 5%;
+			width: clamp(70px, 10vw, 110px);
+			animation: romantiqueSway 9s ease-in-out infinite reverse;
+		}
+
+		.romantique-flower-far {
+			left: 42%;
+			width: clamp(50px, 7vw, 80px);
+			opacity: 0.5;
+			animation: romantiqueSway 11s ease-in-out infinite;
+			animation-delay: -4s;
+		}
+
+		@keyframes romantiqueSway {
+			0%, 100% { transform: rotate(0deg) translateY(0); }
+			50% { transform: rotate(0.8deg) translateY(-3px); }
+		}
+
+		.romantique-heart {
+			position: absolute;
+			font-size: clamp(14px, 2vw, 22px);
+			opacity: 0;
+			animation: heartFloat ease-in-out infinite;
+			filter: drop-shadow(0 0 6px rgba(220, 20, 60, 0.4));
+		}
+
+		.romantique-heart-1 { left: 12%;  animation-duration: 12s; animation-delay: 0s;    top: 15%; }
+		.romantique-heart-2 { left: 78%;  animation-duration: 14s; animation-delay: -3s;   top: 25%; font-size: clamp(12px, 1.8vw, 18px); }
+		.romantique-heart-3 { left: 45%;  animation-duration: 16s; animation-delay: -7s;   top: 10%; }
+		.romantique-heart-4 { left: 88%;  animation-duration: 11s; animation-delay: -5s;   top: 40%; font-size: clamp(10px, 1.5vw, 16px); }
+		.romantique-heart-5 { left: 25%;  animation-duration: 13s; animation-delay: -9s;   top: 50%; }
+		.romantique-heart-6 { left: 62%;  animation-duration: 15s; animation-delay: -2s;   top: 35%; font-size: clamp(11px, 1.6vw, 17px); }
+
+		@keyframes heartFloat {
+			0%   { transform: translateY(0) scale(1); opacity: 0; }
+			15%  { opacity: 0.7; }
+			50%  { transform: translateY(-25px) scale(1.1); opacity: 0.85; }
+			85%  { opacity: 0.5; }
+			100% { transform: translateY(-50px) scale(0.9); opacity: 0; }
+		}
+
+		.romantique-petal {
+			position: absolute;
+			width: 12px;
+			height: 14px;
+			background: linear-gradient(135deg, #f48fb1, #ec407a);
+			border-radius: 50% 0 50% 0;
+			opacity: 0;
+			animation: petalFall linear infinite;
+		}
+
+		.romantique-petal-1 { left: 10%;  animation-duration: 13s; animation-delay: 0s;    top: -5%; }
+		.romantique-petal-2 { left: 30%;  animation-duration: 16s; animation-delay: -5s;   top: -5%; width: 9px; height: 11px; }
+		.romantique-petal-3 { left: 50%;  animation-duration: 14s; animation-delay: -9s;   top: -5%; }
+		.romantique-petal-4 { left: 68%;  animation-duration: 18s; animation-delay: -2s;   top: -5%; width: 10px; height: 12px; opacity: 0.3; }
+		.romantique-petal-5 { left: 85%;  animation-duration: 15s; animation-delay: -11s;  top: -5%; }
+		.romantique-petal-6 { left: 95%;  animation-duration: 17s; animation-delay: -7s;   top: -5%; width: 8px; height: 10px; }
+
+		@keyframes petalFall {
+			0%   { transform: translateY(0) rotate(0deg) translateX(0); opacity: 0; }
+			10%  { opacity: 0.45; }
+			90%  { opacity: 0.25; }
+			100% { transform: translateY(105vh) rotate(360deg) translateX(30px); opacity: 0; }
 		}
 
 		body {
@@ -195,15 +304,29 @@
 				radial-gradient(circle at 50% 100%, rgba(27, 94, 32, 0.3) 0%, transparent 50%),
 				linear-gradient(180deg, #0d3314 0%, #030a04 45%, #020804 100%);
 		}
+
+		body.romantique {
+			background-color: var(--rythmo-bg);
+			background-image:
+				radial-gradient(ellipse 90% 55% at 50% -5%, rgba(255, 105, 180, 0.35) 0%, transparent 55%),
+				radial-gradient(circle at 15% 85%, rgba(233, 30, 99, 0.25) 0%, transparent 42%),
+				radial-gradient(circle at 85% 70%, rgba(244, 143, 177, 0.2) 0%, transparent 38%),
+				radial-gradient(circle at 50% 100%, rgba(194, 24, 91, 0.3) 0%, transparent 50%),
+				linear-gradient(180deg, #8b1045 0%, #4a0e2e 35%, #2a0a18 65%, #1a0610 100%);
+		}
 	</style>
 
 	{% block styles %}{% endblock %}
 </head>
 
-<body class="{{ session.get('theme', 'default') }} {% if hide_layout %}no-layout{% endif %}">
+<body class="{% if session.get('theme') == 'chill' %}romantique{% else %}{{ session.get('theme', 'default') }}{% endif %} {% if hide_layout %}no-layout{% endif %}">
 
 	{% if session.get('theme') == 'nature' %}
 		{% include 'includes/theme-nature-bg.html' %}
+	{% endif %}
+
+	{% if session.get('theme') == 'romantique' or session.get('theme') == 'chill' %}
+		{% include 'includes/theme-romantique-bg.html' %}
 	{% endif %}
 
 	{# 👉 NAV + FOOTER seulement si pas page spéciale #}

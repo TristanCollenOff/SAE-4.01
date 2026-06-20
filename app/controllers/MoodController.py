@@ -10,10 +10,13 @@ def mood():
 @mood_bp.route("/set_theme/<theme>")
 def set_theme(theme):
 
-    themes_valides = ["nature", "triste", "joyeux", "chill", "default"]
+    themes_valides = ["nature", "triste", "joyeux", "romantique", "default"]
 
     if theme not in themes_valides:
         theme = "default"
+
+    if theme == "chill":
+        theme = "romantique"
 
     session["theme"] = theme
     session.modified = True

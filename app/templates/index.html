@@ -6,7 +6,7 @@
     <div class="hero-greeting">
       <span class="greeting-text">Bonjour</span>
       <span class="greeting-name">{{ session['nom_utilisateur'] }}</span>
-      <div class="greeting-emoji">{% if theme == 'nature' %}🌿{% else %}👋{% endif %}</div>
+      <div class="greeting-emoji">{% if theme == 'nature' %}🌿{% elif theme == 'romantique' %}💕{% else %}👋{% endif %}</div>
     </div>
     <h1 class="hero-title">
       <span class="title-main">Tableau de</span>
@@ -48,6 +48,11 @@
     <div class="nature-hero-fern nature-hero-fern-1"></div>
     <div class="nature-hero-fern nature-hero-fern-2"></div>
     <div class="nature-hero-mist"></div>
+    {% elif theme == 'romantique' %}
+    <div class="romantique-hero-glow"></div>
+    <span class="romantique-hero-heart romantique-hero-heart-1">❤️</span>
+    <span class="romantique-hero-heart romantique-hero-heart-2">💕</span>
+    <span class="romantique-hero-heart romantique-hero-heart-3">💗</span>
     {% else %}
     <div class="decoration-circle decoration-circle-1"></div>
     <div class="decoration-circle decoration-circle-2"></div>
@@ -685,6 +690,52 @@ body.nature .stat-icon {
   background: rgba(124, 179, 66, 0.18) !important;
   border-color: rgba(129, 199, 132, 0.35) !important;
   color: #aed581 !important;
+}
+
+/* ===== HERO ROMANTIQUE ===== */
+.romantique-hero-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 25% 55%, rgba(255, 105, 180, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 35%, rgba(233, 30, 99, 0.1) 0%, transparent 45%);
+}
+
+.romantique-hero-heart {
+  position: absolute;
+  font-size: 1.8rem;
+  opacity: 0.5;
+  animation: romantiqueHeroHeart 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(220, 20, 60, 0.35));
+}
+
+.romantique-hero-heart-1 { top: 18%; left: 10%; animation-delay: 0s; }
+.romantique-hero-heart-2 { bottom: 25%; right: 12%; font-size: 1.4rem; animation-delay: 2s; }
+.romantique-hero-heart-3 { top: 40%; right: 25%; font-size: 1.2rem; animation-delay: 4s; }
+
+@keyframes romantiqueHeroHeart {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
+  50% { transform: translateY(-12px) scale(1.15); opacity: 0.75; }
+}
+
+body.romantique .dashboard-card:hover {
+  border-color: rgba(244, 143, 177, 0.35);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 0 24px rgba(233, 30, 99, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.romantique .hub-card:hover {
+  border-color: rgba(255, 64, 129, 0.4);
+  box-shadow: 0 8px 32px rgba(233, 30, 99, 0.15);
+}
+
+body.romantique .icon-bg,
+body.romantique .stat-icon {
+  background: rgba(244, 143, 177, 0.18) !important;
+  border-color: rgba(255, 105, 180, 0.35) !important;
+  color: #ff80ab !important;
 }
 
 @keyframes slideInDown {
