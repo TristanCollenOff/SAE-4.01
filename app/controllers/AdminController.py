@@ -37,23 +37,24 @@ def block_user(user_id):
     return redirect(url_for("admin.admin"))
 
 
-@admin_bp.route("/unblock/<int:user_id>")
-def unblock_user(user_id):
+@admin_bp.route("/block/<int:user_id>")
+def block_user(user_id):
     admin_required()
-    # Récupérer l'utilisateur cible
+
     target_user = user_service.getUserById(user_id)
     if not target_user:
         abort(404)
 
-    # Débloquer l'utilisateur
-    user_service.unblock_user(user_id)
+    user_service.block_user(user_id, minutes=60)
 
-    # Log de l'action admin
-    admin_user = session.get("nom_utilisateur", "admin inconnu")
-    log_action(admin_user, f"A débloqué l'utilisateur {target_user.username}")
+    admin_user = session.get("nom_utilisateur", "admin")
+
+    log_action(
+        admin_user,
+        f"A bloqué l'utilisateur {getattr(target_user, 'username', 'inconnu')}"
+    )
 
     return redirect(url_for("admin.admin"))
-
 
 
 
