@@ -24,24 +24,76 @@
 			font-family: 'Manrope', sans-serif !important;
 		}
 
-		:root {
+		:root,
+		body.default {
+			--rythmo-bg: #1a060c;
 			--rythmo-gradient-start: #281012;
 			--rythmo-gradient-end: #1a060c;
-			--rythmo-yellow: #ffc107;
-			--rythmo-red: #d11831;
+			--rythmo-accent: #ffc107;
+			--rythmo-accent-light: #ffd54f;
+			--rythmo-accent-rgb: 255, 193, 7;
+			--rythmo-secondary: #d11831;
+			--rythmo-secondary-rgb: 209, 24, 49;
 			--rythmo-text-light: #fff4c7;
 		}
 
+		body.joyeux {
+			--rythmo-bg: #1a0f00;
+			--rythmo-gradient-start: #3d2200;
+			--rythmo-gradient-end: #1a0f00;
+			--rythmo-accent: #fbc02d;
+			--rythmo-accent-light: #ffd54f;
+			--rythmo-accent-rgb: 251, 192, 45;
+			--rythmo-secondary: #f57c00;
+			--rythmo-secondary-rgb: 245, 124, 0;
+			--rythmo-text-light: #fff8e1;
+		}
+
+		body.triste {
+			--rythmo-bg: #0a1628;
+			--rythmo-gradient-start: #0d2137;
+			--rythmo-gradient-end: #061018;
+			--rythmo-accent: #42a5f5;
+			--rythmo-accent-light: #64b5f6;
+			--rythmo-accent-rgb: 66, 165, 245;
+			--rythmo-secondary: #1e88e5;
+			--rythmo-secondary-rgb: 30, 136, 229;
+			--rythmo-text-light: #e3f2fd;
+		}
+
+		body.nature {
+			--rythmo-bg: #0a1a0c;
+			--rythmo-gradient-start: #0f2812;
+			--rythmo-gradient-end: #061008;
+			--rythmo-accent: #66bb6a;
+			--rythmo-accent-light: #81c784;
+			--rythmo-accent-rgb: 102, 187, 106;
+			--rythmo-secondary: #2e7d32;
+			--rythmo-secondary-rgb: 46, 125, 50;
+			--rythmo-text-light: #e8f5e9;
+		}
+
+		body.chill {
+			--rythmo-bg: #1a0a1f;
+			--rythmo-gradient-start: #2a1040;
+			--rythmo-gradient-end: #120818;
+			--rythmo-accent: #ab47bc;
+			--rythmo-accent-light: #ce93d8;
+			--rythmo-accent-rgb: 171, 71, 188;
+			--rythmo-secondary: #6a1b9a;
+			--rythmo-secondary-rgb: 106, 27, 154;
+			--rythmo-text-light: #f3e5f5;
+		}
+
 		body {
-			background: radial-gradient(
-				ellipse at 60% 45%,
-				var(--rythmo-gradient-start),
-				var(--rythmo-gradient-end) 70%
-			);
+			background: var(--rythmo-bg);
+			background-image:
+				radial-gradient(circle at 20% 50%, rgba(var(--rythmo-accent-rgb), 0.08) 0%, transparent 50%),
+				radial-gradient(circle at 80% 80%, rgba(var(--rythmo-secondary-rgb), 0.08) 0%, transparent 50%);
 			min-height: 100vh;
 			color: white;
 			padding-top: 76px;
-			transition: background 0.6s ease;
+			transition: background 0.6s ease, background-image 0.6s ease;
 		}
 
 		/* 👉 MODE SIMPLE (MOOD PAGE) */

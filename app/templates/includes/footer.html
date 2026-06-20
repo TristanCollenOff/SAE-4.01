@@ -88,7 +88,7 @@
 .footer-modern {
   background: rgba(26, 6, 12, 0.95);
   backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 193, 7, 0.15);
+  border-top: 1px solid rgba(var(--rythmo-accent-rgb), 0.15);
   margin-top: 4rem;
   padding: 3rem 0 1.5rem;
   position: relative;
@@ -125,21 +125,21 @@
 .footer-logo-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, rgba(209, 24, 49, 0.2), rgba(255, 193, 7, 0.2));
-  border: 1px solid rgba(255, 193, 7, 0.3);
+  background: linear-gradient(135deg, rgba(var(--rythmo-secondary-rgb), 0.2), rgba(var(--rythmo-accent-rgb), 0.2));
+  border: 1px solid rgba(var(--rythmo-accent-rgb), 0.3);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  color: #d11831;
+  color: var(--rythmo-secondary);
 }
 
 .footer-brand-text {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.1em;
-  background: linear-gradient(135deg, #ffc107, #ffd54f);
+  background: linear-gradient(135deg, var(--rythmo-accent), var(--rythmo-accent-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -163,7 +163,7 @@
 
 .footer-music-visualizer .bar {
   width: 3px;
-  background: linear-gradient(to top, #d11831, #ffc107);
+  background: linear-gradient(to top, var(--rythmo-secondary), var(--rythmo-accent));
   border-radius: 2px;
   animation: footerMusicWave 1.2s infinite ease-in-out;
 }
@@ -185,7 +185,7 @@
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0 0 1rem 0;
-  color: #ffc107;
+  color: var(--rythmo-accent);
 }
 
 .footer-links ul,
@@ -216,7 +216,7 @@
 }
 
 .footer-links a:hover {
-  color: #ffc107;
+  color: var(--rythmo-accent);
   transform: translateX(4px);
 }
 
@@ -231,7 +231,7 @@
 }
 
 .footer-info li i {
-  color: #ffc107;
+  color: var(--rythmo-accent);
   font-size: 0.9rem;
   width: 18px;
 }
@@ -239,7 +239,7 @@
 /* Divider */
 .footer-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--rythmo-accent-rgb), 0.2), transparent);
   margin: 2rem 0 1.5rem;
 }
 
@@ -280,11 +280,11 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(255, 193, 7, 0.1);
-  border: 1px solid rgba(255, 193, 7, 0.2);
+  background: rgba(var(--rythmo-accent-rgb), 0.1);
+  border: 1px solid rgba(var(--rythmo-accent-rgb), 0.2);
   border-radius: 8px;
   font-size: 0.85rem;
-  color: #ffc107;
+  color: var(--rythmo-accent);
   font-weight: 600;
 }
 
