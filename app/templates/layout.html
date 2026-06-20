@@ -62,15 +62,100 @@
 		}
 
 		body.nature {
-			--rythmo-bg: #0a1a0c;
-			--rythmo-gradient-start: #0f2812;
-			--rythmo-gradient-end: #061008;
-			--rythmo-accent: #66bb6a;
-			--rythmo-accent-light: #81c784;
-			--rythmo-accent-rgb: 102, 187, 106;
-			--rythmo-secondary: #2e7d32;
-			--rythmo-secondary-rgb: 46, 125, 50;
-			--rythmo-text-light: #e8f5e9;
+			--rythmo-bg: #030a04;
+			--rythmo-gradient-start: #1b5e20;
+			--rythmo-gradient-end: #020804;
+			--rythmo-accent: #7cb342;
+			--rythmo-accent-light: #aed581;
+			--rythmo-accent-rgb: 124, 179, 66;
+			--rythmo-secondary: #1b5e20;
+			--rythmo-secondary-rgb: 27, 94, 32;
+			--rythmo-text-light: #c8e6c9;
+		}
+
+		/* ===== DÉCOR NATURE (arbres + feuilles) ===== */
+		.theme-nature-bg {
+			position: fixed;
+			inset: 0;
+			z-index: 0;
+			pointer-events: none;
+			overflow: hidden;
+		}
+
+		.nature-sky-glow {
+			position: absolute;
+			top: -10%;
+			left: 50%;
+			transform: translateX(-50%);
+			width: 70%;
+			height: 45%;
+			background: radial-gradient(ellipse, rgba(129, 199, 132, 0.12) 0%, transparent 70%);
+		}
+
+		.nature-hills {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 35%;
+			background:
+				radial-gradient(ellipse 120% 100% at 20% 100%, rgba(27, 94, 32, 0.55) 0%, transparent 55%),
+				radial-gradient(ellipse 100% 90% at 75% 100%, rgba(46, 125, 50, 0.45) 0%, transparent 50%),
+				linear-gradient(180deg, transparent 0%, rgba(13, 51, 20, 0.6) 100%);
+		}
+
+		.nature-tree {
+			position: absolute;
+			bottom: 0;
+			filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.15));
+		}
+
+		.nature-tree-left {
+			left: -2%;
+			width: clamp(140px, 18vw, 220px);
+			animation: natureSway 8s ease-in-out infinite;
+		}
+
+		.nature-tree-right {
+			right: 2%;
+			width: clamp(110px, 14vw, 180px);
+			animation: natureSway 10s ease-in-out infinite reverse;
+		}
+
+		.nature-tree-far {
+			left: 38%;
+			width: clamp(70px, 9vw, 120px);
+			opacity: 0.55;
+			animation: natureSway 12s ease-in-out infinite;
+			animation-delay: -3s;
+		}
+
+		@keyframes natureSway {
+			0%, 100% { transform: rotate(0deg) translateY(0); }
+			50% { transform: rotate(0.6deg) translateY(-4px); }
+		}
+
+		.nature-leaf {
+			position: absolute;
+			width: 14px;
+			height: 18px;
+			background: linear-gradient(135deg, #81c784, #388e3c);
+			border-radius: 0 80% 0 80%;
+			opacity: 0.35;
+			animation: leafFall linear infinite;
+		}
+
+		.nature-leaf-1 { left: 8%;  animation-duration: 14s; animation-delay: 0s;   top: -5%; }
+		.nature-leaf-2 { left: 22%; animation-duration: 18s; animation-delay: -4s;  top: -5%; width: 10px; height: 14px; }
+		.nature-leaf-3 { left: 55%; animation-duration: 16s; animation-delay: -8s;  top: -5%; }
+		.nature-leaf-4 { left: 72%; animation-duration: 20s; animation-delay: -2s;  top: -5%; width: 11px; height: 15px; opacity: 0.25; }
+		.nature-leaf-5 { left: 90%; animation-duration: 15s; animation-delay: -11s; top: -5%; }
+
+		@keyframes leafFall {
+			0%   { transform: translateY(0) rotate(0deg) translateX(0); opacity: 0; }
+			10%  { opacity: 0.35; }
+			90%  { opacity: 0.2; }
+			100% { transform: translateY(105vh) rotate(360deg) translateX(40px); opacity: 0; }
 		}
 
 		body.chill {
@@ -100,12 +185,26 @@
 		body.no-layout {
 			padding-top: 0;
 		}
+
+		body.nature {
+			background-color: var(--rythmo-bg);
+			background-image:
+				radial-gradient(ellipse 80% 50% at 50% -10%, rgba(76, 175, 80, 0.35) 0%, transparent 55%),
+				radial-gradient(circle at 12% 90%, rgba(46, 125, 50, 0.22) 0%, transparent 42%),
+				radial-gradient(circle at 88% 75%, rgba(129, 199, 132, 0.18) 0%, transparent 38%),
+				radial-gradient(circle at 50% 100%, rgba(27, 94, 32, 0.3) 0%, transparent 50%),
+				linear-gradient(180deg, #0d3314 0%, #030a04 45%, #020804 100%);
+		}
 	</style>
 
 	{% block styles %}{% endblock %}
 </head>
 
 <body class="{{ session.get('theme', 'default') }} {% if hide_layout %}no-layout{% endif %}">
+
+	{% if session.get('theme') == 'nature' %}
+		{% include 'includes/theme-nature-bg.html' %}
+	{% endif %}
 
 	{# 👉 NAV + FOOTER seulement si pas page spéciale #}
 	{% if not hide_layout and session.get('logged') %}

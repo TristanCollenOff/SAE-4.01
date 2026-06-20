@@ -6,7 +6,7 @@
     <div class="hero-greeting">
       <span class="greeting-text">Bonjour</span>
       <span class="greeting-name">{{ session['nom_utilisateur'] }}</span>
-      <div class="greeting-emoji">👋</div>
+      <div class="greeting-emoji">{% if theme == 'nature' %}🌿{% else %}👋{% endif %}</div>
     </div>
     <h1 class="hero-title">
       <span class="title-main">Tableau de</span>
@@ -44,9 +44,15 @@
     </div>
   </div>
   <div class="hero-decoration">
+    {% if theme == 'nature' %}
+    <div class="nature-hero-fern nature-hero-fern-1"></div>
+    <div class="nature-hero-fern nature-hero-fern-2"></div>
+    <div class="nature-hero-mist"></div>
+    {% else %}
     <div class="decoration-circle decoration-circle-1"></div>
     <div class="decoration-circle decoration-circle-2"></div>
     <div class="decoration-circle decoration-circle-3"></div>
+    {% endif %}
   </div>
 </div>
 
@@ -617,9 +623,68 @@
     opacity: 0.3;
   }
   50% {
-    transform: translateY(-20px) scale(1.1);
+    transform: translateY(-20px) scale(1.05);
     opacity: 0.5;
   }
+}
+
+/* ===== HERO NATURE ===== */
+.nature-hero-mist {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 60%, rgba(129, 199, 132, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 40%, rgba(76, 175, 80, 0.08) 0%, transparent 45%);
+}
+
+.nature-hero-fern {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 0 70% 0 70%;
+  background: linear-gradient(145deg, rgba(129, 199, 132, 0.25), rgba(46, 125, 50, 0.15));
+  border: 1px solid rgba(129, 199, 132, 0.2);
+  animation: natureFernFloat 7s ease-in-out infinite;
+}
+
+.nature-hero-fern-1 {
+  top: 15%;
+  left: 8%;
+  --fern-rotate: -35deg;
+}
+
+.nature-hero-fern-2 {
+  bottom: 20%;
+  right: 10%;
+  width: 60px;
+  height: 60px;
+  animation-delay: 3s;
+  --fern-rotate: 25deg;
+}
+
+@keyframes natureFernFloat {
+  0%, 100% { transform: rotate(var(--fern-rotate, 0deg)) translateY(0); opacity: 0.45; }
+  50% { transform: rotate(var(--fern-rotate, 0deg)) translateY(-15px); opacity: 0.65; }
+}
+
+body.nature .dashboard-card:hover {
+  border-color: rgba(129, 199, 132, 0.35);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 0 24px rgba(76, 175, 80, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.nature .hub-card:hover {
+  border-color: rgba(124, 179, 66, 0.4);
+  box-shadow: 0 8px 32px rgba(76, 175, 80, 0.15);
+}
+
+body.nature .icon-bg,
+body.nature .stat-icon {
+  background: rgba(124, 179, 66, 0.18) !important;
+  border-color: rgba(129, 199, 132, 0.35) !important;
+  color: #aed581 !important;
 }
 
 @keyframes slideInDown {
