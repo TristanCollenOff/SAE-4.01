@@ -39,26 +39,26 @@
 
 		body.joyeux {
 			--rythmo-bg: #1a0f00;
-			--rythmo-gradient-start: #3d2200;
+			--rythmo-gradient-start: #ff8f00;
 			--rythmo-gradient-end: #1a0f00;
-			--rythmo-accent: #fbc02d;
-			--rythmo-accent-light: #ffd54f;
-			--rythmo-accent-rgb: 251, 192, 45;
-			--rythmo-secondary: #f57c00;
-			--rythmo-secondary-rgb: 245, 124, 0;
+			--rythmo-accent: #ffca28;
+			--rythmo-accent-light: #ffe082;
+			--rythmo-accent-rgb: 255, 202, 40;
+			--rythmo-secondary: #ff6d00;
+			--rythmo-secondary-rgb: 255, 109, 0;
 			--rythmo-text-light: #fff8e1;
 		}
 
 		body.triste {
-			--rythmo-bg: #0a1628;
-			--rythmo-gradient-start: #0d2137;
-			--rythmo-gradient-end: #061018;
-			--rythmo-accent: #42a5f5;
-			--rythmo-accent-light: #64b5f6;
-			--rythmo-accent-rgb: 66, 165, 245;
-			--rythmo-secondary: #1e88e5;
-			--rythmo-secondary-rgb: 30, 136, 229;
-			--rythmo-text-light: #e3f2fd;
+			--rythmo-bg: #061220;
+			--rythmo-gradient-start: #1a3a5c;
+			--rythmo-gradient-end: #030810;
+			--rythmo-accent: #5c9fd4;
+			--rythmo-accent-light: #90caf9;
+			--rythmo-accent-rgb: 92, 159, 212;
+			--rythmo-secondary: #2e5a8a;
+			--rythmo-secondary-rgb: 46, 90, 138;
+			--rythmo-text-light: #c5d8ec;
 		}
 
 		body.nature {
@@ -279,6 +279,257 @@
 			100% { transform: translateY(105vh) rotate(360deg) translateX(30px); opacity: 0; }
 		}
 
+		/* ===== DÉCOR TRISTE (pluie mélancolique) ===== */
+		.theme-triste-bg {
+			position: fixed;
+			inset: 0;
+			z-index: 0;
+			pointer-events: none;
+			overflow: hidden;
+		}
+
+		.triste-sky-glow {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 60%;
+			background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(92, 159, 212, 0.12) 0%, transparent 70%);
+		}
+
+		.triste-mist {
+			position: absolute;
+			bottom: 15%;
+			left: 0;
+			right: 0;
+			height: 40%;
+			background:
+				radial-gradient(ellipse 100% 80% at 30% 100%, rgba(46, 90, 138, 0.25) 0%, transparent 55%),
+				radial-gradient(ellipse 90% 70% at 70% 100%, rgba(30, 60, 100, 0.2) 0%, transparent 50%);
+		}
+
+		.triste-ground {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 12%;
+			background: linear-gradient(180deg, transparent 0%, rgba(10, 25, 45, 0.5) 100%);
+		}
+
+		.triste-rain {
+			position: absolute;
+			width: 1.5px;
+			height: clamp(40px, 8vh, 70px);
+			background: linear-gradient(180deg, transparent 0%, rgba(144, 180, 220, 0.15) 30%, rgba(174, 198, 230, 0.55) 100%);
+			top: -80px;
+			animation: tristeRainFall linear infinite;
+			border-radius: 1px;
+		}
+
+		.triste-rain-1  { left: 3%;   animation-duration: 0.75s; animation-delay: 0s;    }
+		.triste-rain-2  { left: 8%;   animation-duration: 0.9s;  animation-delay: -0.3s; height: 50px; }
+		.triste-rain-3  { left: 13%;  animation-duration: 0.7s;  animation-delay: -0.6s; }
+		.triste-rain-4  { left: 18%;  animation-duration: 0.85s; animation-delay: -0.1s; }
+		.triste-rain-5  { left: 23%;  animation-duration: 0.8s;  animation-delay: -0.5s; height: 55px; }
+		.triste-rain-6  { left: 28%;  animation-duration: 0.95s; animation-delay: -0.8s; }
+		.triste-rain-7  { left: 33%;  animation-duration: 0.72s; animation-delay: -0.2s; }
+		.triste-rain-8  { left: 38%;  animation-duration: 0.88s; animation-delay: -0.7s; height: 45px; }
+		.triste-rain-9  { left: 43%;  animation-duration: 0.78s; animation-delay: -0.4s; }
+		.triste-rain-10 { left: 48%;  animation-duration: 0.92s; animation-delay: -0.9s; }
+		.triste-rain-11 { left: 53%;  animation-duration: 0.74s; animation-delay: -0.15s; height: 60px; }
+		.triste-rain-12 { left: 58%;  animation-duration: 0.86s; animation-delay: -0.55s; }
+		.triste-rain-13 { left: 63%;  animation-duration: 0.8s;  animation-delay: -0.35s; }
+		.triste-rain-14 { left: 68%;  animation-duration: 0.94s; animation-delay: -0.75s; height: 48px; }
+		.triste-rain-15 { left: 73%;  animation-duration: 0.76s; animation-delay: -0.25s; }
+		.triste-rain-16 { left: 78%;  animation-duration: 0.9s;  animation-delay: -0.65s; }
+		.triste-rain-17 { left: 83%;  animation-duration: 0.82s; animation-delay: -0.45s; height: 52px; }
+		.triste-rain-18 { left: 88%;  animation-duration: 0.77s; animation-delay: -0.85s; }
+		.triste-rain-19 { left: 93%;  animation-duration: 0.91s; animation-delay: -0.1s; }
+		.triste-rain-20 { left: 97%;  animation-duration: 0.73s; animation-delay: -0.5s; height: 42px; }
+		.triste-rain-21 { left: 6%;   animation-duration: 0.84s; animation-delay: -1.1s; width: 2px; opacity: 0.7; }
+		.triste-rain-22 { left: 21%;  animation-duration: 0.79s; animation-delay: -1.4s; width: 2px; opacity: 0.6; }
+		.triste-rain-23 { left: 46%;  animation-duration: 0.87s; animation-delay: -1.2s; width: 2px; opacity: 0.65; }
+		.triste-rain-24 { left: 71%;  animation-duration: 0.81s; animation-delay: -1.6s; width: 2px; opacity: 0.7; }
+		.triste-rain-25 { left: 91%;  animation-duration: 0.76s; animation-delay: -1.3s; width: 2px; opacity: 0.55; }
+
+		@keyframes tristeRainFall {
+			0%   { transform: translateY(0) translateX(0); opacity: 0; }
+			10%  { opacity: 0.7; }
+			90%  { opacity: 0.4; }
+			100% { transform: translateY(110vh) translateX(8px); opacity: 0; }
+		}
+
+		.triste-ripple {
+			position: absolute;
+			bottom: 8%;
+			width: 40px;
+			height: 8px;
+			border: 1px solid rgba(144, 180, 220, 0.2);
+			border-radius: 50%;
+			animation: tristeRipple 3s ease-out infinite;
+		}
+
+		.triste-ripple-1 { left: 20%; animation-delay: 0s; }
+		.triste-ripple-2 { left: 55%; animation-delay: 1.2s; width: 30px; }
+		.triste-ripple-3 { left: 80%; animation-delay: 2.4s; width: 25px; }
+
+		@keyframes tristeRipple {
+			0%   { transform: scale(0.5); opacity: 0.4; }
+			100% { transform: scale(2.5); opacity: 0; }
+		}
+
+		/* ===== DÉCOR JOYEUX (soleil + feux d'artifice) ===== */
+		.theme-joyeux-bg {
+			position: fixed;
+			inset: 0;
+			z-index: 0;
+			pointer-events: none;
+			overflow: hidden;
+		}
+
+		.joyeux-sky-glow {
+			position: absolute;
+			top: -10%;
+			right: -5%;
+			width: 50%;
+			height: 50%;
+			background: radial-gradient(ellipse, rgba(255, 202, 40, 0.2) 0%, transparent 65%);
+		}
+
+		.joyeux-sun {
+			position: absolute;
+			top: 8%;
+			right: 12%;
+			width: clamp(70px, 10vw, 100px);
+			height: clamp(70px, 10vw, 100px);
+		}
+
+		.joyeux-sun-core {
+			position: absolute;
+			inset: 20%;
+			border-radius: 50%;
+			background: radial-gradient(circle, #ffe082 0%, #ffca28 50%, #ff8f00 100%);
+			box-shadow: 0 0 40px rgba(255, 202, 40, 0.4), 0 0 80px rgba(255, 152, 0, 0.2);
+			animation: joyeuxSunPulse 4s ease-in-out infinite;
+		}
+
+		.joyeux-sun-rays {
+			position: absolute;
+			inset: 0;
+			border-radius: 50%;
+			background: conic-gradient(from 0deg, transparent 0deg, rgba(255, 224, 130, 0.35) 15deg, transparent 30deg, rgba(255, 224, 130, 0.35) 45deg, transparent 60deg, rgba(255, 224, 130, 0.35) 75deg, transparent 90deg, rgba(255, 224, 130, 0.35) 105deg, transparent 120deg, rgba(255, 224, 130, 0.35) 135deg, transparent 150deg, rgba(255, 224, 130, 0.35) 165deg, transparent 180deg, rgba(255, 224, 130, 0.35) 195deg, transparent 210deg, rgba(255, 224, 130, 0.35) 225deg, transparent 240deg, rgba(255, 224, 130, 0.35) 255deg, transparent 270deg, rgba(255, 224, 130, 0.35) 285deg, transparent 300deg, rgba(255, 224, 130, 0.35) 315deg, transparent 330deg, rgba(255, 224, 130, 0.35) 345deg, transparent 360deg);
+			animation: joyeuxSunRotate 20s linear infinite;
+		}
+
+		@keyframes joyeuxSunPulse {
+			0%, 100% { transform: scale(1); }
+			50% { transform: scale(1.05); }
+		}
+
+		@keyframes joyeuxSunRotate {
+			from { transform: rotate(0deg); }
+			to { transform: rotate(360deg); }
+		}
+
+		.joyeux-firework {
+			position: absolute;
+			width: 4px;
+			height: 4px;
+		}
+
+		.joyeux-firework-1 { top: 25%; left: 20%; }
+		.joyeux-firework-2 { top: 35%; left: 65%; }
+		.joyeux-firework-3 { top: 18%; left: 45%; }
+
+		.fw-particle {
+			position: absolute;
+			width: 4px;
+			height: 4px;
+			border-radius: 50%;
+			top: 0;
+			left: 0;
+			opacity: 0;
+			animation: fireworkBurst 3s ease-out infinite;
+		}
+
+		.joyeux-firework-1 .fw-particle { background: #ff6d00; }
+		.joyeux-firework-2 .fw-particle { background: #ffca28; animation-delay: 1s; }
+		.joyeux-firework-3 .fw-particle { background: #ff4081; animation-delay: 2s; }
+
+		.fw-p1 { animation-delay: 0s;    --fw-x: 0px;   --fw-y: -40px; }
+		.fw-p2 { animation-delay: 0s;    --fw-x: 35px;  --fw-y: -20px; }
+		.fw-p3 { animation-delay: 0s;    --fw-x: 35px;  --fw-y: 20px; }
+		.fw-p4 { animation-delay: 0s;    --fw-x: 0px;   --fw-y: 40px; }
+		.fw-p5 { animation-delay: 0s;    --fw-x: -35px; --fw-y: 20px; }
+		.fw-p6 { animation-delay: 0s;    --fw-x: -35px; --fw-y: -20px; }
+
+		.joyeux-firework-2 .fw-p1 { animation-delay: 1s; }
+		.joyeux-firework-2 .fw-p2 { animation-delay: 1s; }
+		.joyeux-firework-2 .fw-p3 { animation-delay: 1s; }
+		.joyeux-firework-2 .fw-p4 { animation-delay: 1s; }
+		.joyeux-firework-2 .fw-p5 { animation-delay: 1s; }
+		.joyeux-firework-2 .fw-p6 { animation-delay: 1s; }
+
+		.joyeux-firework-3 .fw-p1 { animation-delay: 2s; }
+		.joyeux-firework-3 .fw-p2 { animation-delay: 2s; }
+		.joyeux-firework-3 .fw-p3 { animation-delay: 2s; }
+		.joyeux-firework-3 .fw-p4 { animation-delay: 2s; }
+		.joyeux-firework-3 .fw-p5 { animation-delay: 2s; }
+		.joyeux-firework-3 .fw-p6 { animation-delay: 2s; }
+
+		@keyframes fireworkBurst {
+			0%   { transform: translate(0, 0) scale(1); opacity: 0; }
+			15%  { opacity: 1; }
+			50%  { transform: translate(var(--fw-x), var(--fw-y)) scale(1.5); opacity: 0.8; }
+			100% { transform: translate(calc(var(--fw-x) * 1.3), calc(var(--fw-y) * 1.3)) scale(0.5); opacity: 0; }
+		}
+
+		.joyeux-float {
+			position: absolute;
+			font-size: clamp(16px, 2.2vw, 24px);
+			animation: joyeuxFloat 5s ease-in-out infinite;
+		}
+
+		.joyeux-float-1 { top: 20%; left: 10%;  animation-delay: 0s; }
+		.joyeux-float-2 { top: 45%; left: 25%;  animation-delay: 1s; font-size: clamp(14px, 1.8vw, 20px); }
+		.joyeux-float-3 { top: 30%; left: 75%;  animation-delay: 2s; }
+		.joyeux-float-4 { top: 60%; left: 85%;  animation-delay: 0.5s; font-size: clamp(14px, 1.8vw, 20px); }
+		.joyeux-float-5 { top: 55%; left: 50%;  animation-delay: 1.5s; font-size: clamp(12px, 1.6vw, 18px); }
+		.joyeux-float-6 { top: 15%; left: 55%;  animation-delay: 2.5s; }
+
+		@keyframes joyeuxFloat {
+			0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.5; }
+			50% { transform: translateY(-18px) rotate(8deg); opacity: 0.85; }
+		}
+
+		.joyeux-confetti {
+			position: absolute;
+			width: 8px;
+			height: 12px;
+			top: -20px;
+			opacity: 0;
+			animation: joyeuxConfettiFall linear infinite;
+		}
+
+		.joyeux-confetti-1 { left: 5%;  background: #ffca28; animation-duration: 8s;  animation-delay: 0s;    border-radius: 2px; }
+		.joyeux-confetti-2 { left: 15%; background: #ff6d00; animation-duration: 10s; animation-delay: -2s;   border-radius: 50%; width: 7px; height: 7px; }
+		.joyeux-confetti-3 { left: 30%; background: #ff4081; animation-duration: 9s;  animation-delay: -4s;   border-radius: 2px; }
+		.joyeux-confetti-4 { left: 45%; background: #4caf50; animation-duration: 11s; animation-delay: -1s;   border-radius: 50%; width: 6px; height: 6px; }
+		.joyeux-confetti-5 { left: 60%; background: #ffca28; animation-duration: 8s;  animation-delay: -6s;   border-radius: 2px; }
+		.joyeux-confetti-6 { left: 75%; background: #42a5f5; animation-duration: 10s; animation-delay: -3s;   border-radius: 50%; width: 7px; height: 7px; }
+		.joyeux-confetti-7 { left: 85%; background: #ff6d00; animation-duration: 9s;  animation-delay: -5s;   border-radius: 2px; }
+		.joyeux-confetti-8 { left: 95%; background: #e91e63; animation-duration: 12s; animation-delay: -7s;   border-radius: 50%; width: 6px; height: 6px; }
+
+		@keyframes joyeuxConfettiFall {
+			0%   { transform: translateY(0) rotate(0deg) translateX(0); opacity: 0; }
+			10%  { opacity: 0.7; }
+			90%  { opacity: 0.4; }
+			100% { transform: translateY(105vh) rotate(720deg) translateX(30px); opacity: 0; }
+		}
+
+		/* ===== DÉCOR DEFAULT (notes de musique + clé de sol) — voir includes/theme-default-styles.html ===== */
+
 		body {
 			background: var(--rythmo-bg);
 			background-image:
@@ -314,7 +565,27 @@
 				radial-gradient(circle at 50% 100%, rgba(194, 24, 91, 0.3) 0%, transparent 50%),
 				linear-gradient(180deg, #8b1045 0%, #4a0e2e 35%, #2a0a18 65%, #1a0610 100%);
 		}
+
+		body.triste {
+			background-color: var(--rythmo-bg);
+			background-image:
+				radial-gradient(ellipse 100% 60% at 50% 0%, rgba(46, 90, 138, 0.25) 0%, transparent 55%),
+				radial-gradient(circle at 20% 80%, rgba(30, 60, 100, 0.2) 0%, transparent 45%),
+				radial-gradient(circle at 80% 70%, rgba(92, 159, 212, 0.12) 0%, transparent 40%),
+				linear-gradient(180deg, #1a3a5c 0%, #0d2240 30%, #061220 65%, #030810 100%);
+		}
+
+		body.joyeux {
+			background-color: var(--rythmo-bg);
+			background-image:
+				radial-gradient(ellipse 70% 50% at 85% 15%, rgba(255, 202, 40, 0.3) 0%, transparent 55%),
+				radial-gradient(circle at 20% 30%, rgba(255, 152, 0, 0.15) 0%, transparent 45%),
+				radial-gradient(circle at 50% 100%, rgba(255, 109, 0, 0.15) 0%, transparent 50%),
+				linear-gradient(180deg, #ff8f00 0%, #e65100 25%, #3d2200 55%, #1a0f00 100%);
+		}
 	</style>
+
+	{% include 'includes/theme-default-styles.html' %}
 
 	{% block styles %}{% endblock %}
 </head>
@@ -327,6 +598,18 @@
 
 	{% if session.get('theme') == 'romantique' or session.get('theme') == 'chill' %}
 		{% include 'includes/theme-romantique-bg.html' %}
+	{% endif %}
+
+	{% if session.get('theme') == 'triste' %}
+		{% include 'includes/theme-triste-bg.html' %}
+	{% endif %}
+
+	{% if session.get('theme') == 'joyeux' %}
+		{% include 'includes/theme-joyeux-bg.html' %}
+	{% endif %}
+
+	{% if session.get('theme', 'default') == 'default' %}
+		{% include 'includes/theme-default-bg.html' %}
 	{% endif %}
 
 	{# 👉 NAV + FOOTER seulement si pas page spéciale #}

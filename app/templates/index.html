@@ -6,7 +6,7 @@
     <div class="hero-greeting">
       <span class="greeting-text">Bonjour</span>
       <span class="greeting-name">{{ session['nom_utilisateur'] }}</span>
-      <div class="greeting-emoji">{% if theme == 'nature' %}🌿{% elif theme == 'romantique' %}💕{% else %}👋{% endif %}</div>
+      <div class="greeting-emoji">{% if theme == 'nature' %}🌿{% elif theme == 'romantique' %}💕{% elif theme == 'triste' %}🌧️{% elif theme == 'joyeux' %}☀️{% elif theme == 'default' %}🎵{% else %}👋{% endif %}</div>
     </div>
     <h1 class="hero-title">
       <span class="title-main">Tableau de</span>
@@ -53,6 +53,21 @@
     <span class="romantique-hero-heart romantique-hero-heart-1">❤️</span>
     <span class="romantique-hero-heart romantique-hero-heart-2">💕</span>
     <span class="romantique-hero-heart romantique-hero-heart-3">💗</span>
+    {% elif theme == 'triste' %}
+    <div class="triste-hero-mist"></div>
+    <span class="triste-hero-drop triste-hero-drop-1"></span>
+    <span class="triste-hero-drop triste-hero-drop-2"></span>
+    <span class="triste-hero-drop triste-hero-drop-3"></span>
+    {% elif theme == 'joyeux' %}
+    <div class="joyeux-hero-glow"></div>
+    <span class="joyeux-hero-emoji joyeux-hero-emoji-1">😊</span>
+    <span class="joyeux-hero-emoji joyeux-hero-emoji-2">🎉</span>
+    <span class="joyeux-hero-emoji joyeux-hero-emoji-3">✨</span>
+    {% elif theme == 'default' %}
+    <div class="default-hero-glow"></div>
+    <span class="default-hero-note default-hero-note-1">♪</span>
+    <span class="default-hero-note default-hero-note-2">♫</span>
+    <span class="default-hero-note default-hero-note-3">♬</span>
     {% else %}
     <div class="decoration-circle decoration-circle-1"></div>
     <div class="decoration-circle decoration-circle-2"></div>
@@ -736,6 +751,145 @@ body.romantique .stat-icon {
   background: rgba(244, 143, 177, 0.18) !important;
   border-color: rgba(255, 105, 180, 0.35) !important;
   color: #ff80ab !important;
+}
+
+/* ===== HERO TRISTE ===== */
+.triste-hero-mist {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 40% 70%, rgba(92, 159, 212, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 50%, rgba(46, 90, 138, 0.08) 0%, transparent 45%);
+}
+
+.triste-hero-drop {
+  position: absolute;
+  width: 2px;
+  height: 30px;
+  background: linear-gradient(180deg, transparent, rgba(144, 180, 220, 0.5));
+  animation: tristeHeroDrop 1.2s linear infinite;
+}
+
+.triste-hero-drop-1 { top: 10%; left: 15%; animation-delay: 0s; }
+.triste-hero-drop-2 { top: 25%; left: 70%; animation-delay: 0.4s; height: 25px; }
+.triste-hero-drop-3 { top: 5%;  left: 45%; animation-delay: 0.8s; height: 20px; }
+
+@keyframes tristeHeroDrop {
+  0%   { transform: translateY(0); opacity: 0; }
+  20%  { opacity: 0.7; }
+  100% { transform: translateY(80px); opacity: 0; }
+}
+
+body.triste .dashboard-card:hover {
+  border-color: rgba(144, 202, 249, 0.3);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 0 24px rgba(92, 159, 212, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.triste .hub-card:hover {
+  border-color: rgba(92, 159, 212, 0.35);
+  box-shadow: 0 8px 32px rgba(46, 90, 138, 0.15);
+}
+
+body.triste .icon-bg,
+body.triste .stat-icon {
+  background: rgba(92, 159, 212, 0.15) !important;
+  border-color: rgba(144, 202, 249, 0.3) !important;
+  color: #90caf9 !important;
+}
+
+/* ===== HERO JOYEUX ===== */
+.joyeux-hero-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 80% 30%, rgba(255, 202, 40, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 60%, rgba(255, 152, 0, 0.08) 0%, transparent 45%);
+}
+
+.joyeux-hero-emoji {
+  position: absolute;
+  font-size: 1.6rem;
+  animation: joyeuxHeroBounce 4s ease-in-out infinite;
+}
+
+.joyeux-hero-emoji-1 { top: 20%; left: 12%; animation-delay: 0s; }
+.joyeux-hero-emoji-2 { bottom: 30%; right: 15%; font-size: 1.3rem; animation-delay: 1.3s; }
+.joyeux-hero-emoji-3 { top: 35%; right: 30%; font-size: 1.1rem; animation-delay: 2.6s; }
+
+@keyframes joyeuxHeroBounce {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.5; }
+  50% { transform: translateY(-14px) scale(1.1); opacity: 0.85; }
+}
+
+body.joyeux .dashboard-card:hover {
+  border-color: rgba(255, 224, 130, 0.35);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 0 24px rgba(255, 202, 40, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.joyeux .hub-card:hover {
+  border-color: rgba(255, 202, 40, 0.4);
+  box-shadow: 0 8px 32px rgba(255, 152, 0, 0.15);
+}
+
+body.joyeux .icon-bg,
+body.joyeux .stat-icon {
+  background: rgba(255, 202, 40, 0.18) !important;
+  border-color: rgba(255, 224, 130, 0.35) !important;
+  color: #ffe082 !important;
+}
+
+/* ===== HERO DEFAULT ===== */
+.default-hero-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 50%, rgba(209, 24, 49, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 40%, rgba(255, 193, 7, 0.08) 0%, transparent 45%);
+}
+
+.default-hero-note {
+  position: absolute;
+  font-size: 1.8rem;
+  color: rgba(255, 193, 7, 0.35);
+  animation: defaultHeroNote 5s ease-in-out infinite;
+}
+
+.default-hero-note-2 { color: rgba(209, 24, 49, 0.3); font-size: 1.4rem; animation-delay: 1.5s; }
+.default-hero-note-3 { color: rgba(255, 193, 7, 0.3); font-size: 1.2rem; animation-delay: 3s; }
+
+.default-hero-note-1 { top: 18%; left: 10%; animation-delay: 0s; }
+.default-hero-note-2 { bottom: 25%; right: 12%; }
+.default-hero-note-3 { top: 40%; right: 28%; }
+
+@keyframes defaultHeroNote {
+  0%, 100% { transform: translateY(0) rotate(-8deg); opacity: 0.35; }
+  50% { transform: translateY(-15px) rotate(8deg); opacity: 0.6; }
+}
+
+body.default .dashboard-card:hover {
+  border-color: rgba(255, 193, 7, 0.3);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 0 24px rgba(209, 24, 49, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.default .hub-card:hover {
+  border-color: rgba(255, 193, 7, 0.35);
+  box-shadow: 0 8px 32px rgba(209, 24, 49, 0.12);
+}
+
+body.default .icon-bg,
+body.default .stat-icon {
+  background: rgba(255, 193, 7, 0.15) !important;
+  border-color: rgba(255, 213, 79, 0.3) !important;
+  color: #ffd54f !important;
 }
 
 @keyframes slideInDown {
