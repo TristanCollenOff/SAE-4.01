@@ -3,6 +3,7 @@ from flask import render_template, request, redirect, session, url_for, jsonify
 from app import app
 from app.controllers.LoginController import reqlogged, us
 from app.models.LecteurDAO import LecteurDAO
+from app.services.playback_service import PlaybackService
 
 # --- ACCUEIL ---
 @app.route("/", methods=['GET'])
@@ -27,11 +28,14 @@ def index():
     except:
         pass 
 
+    playback = PlaybackService(db_path).get_dashboard_playback()
+
     metadata = {"title": "Accueil Rythmo", "pagename": "index"}
     return render_template(
     'index.html',
     metadata=metadata,
     stats=stats,
+    playback=playback,
     theme=session.get("theme", "default")
 )
 

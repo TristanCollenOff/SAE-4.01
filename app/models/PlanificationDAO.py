@@ -19,7 +19,7 @@ class PlanificationDAO:
             """, (
                 p.heure_debut,
                 p.heure_fin,
-                p.date_,
+                getattr(p, "jour_semaine", None) or getattr(p, "date_", None) or getattr(p, "date_specifique", None),
                 p.id_playlist
             ))
             conn.commit()
@@ -57,7 +57,7 @@ class PlanificationDAO:
                 row[0],  # id_planification
             )
             # Ajouter le nom de la playlist comme attribut dynamique
-            planif.nom_playlist = row[7]  # nom_playlist depuis la jointure
+            planif.nom_playlist = row[6]
             planifications.append(planif)
         
         return planifications

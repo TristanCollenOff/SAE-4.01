@@ -19,7 +19,7 @@
           <i class="bi bi-music-note-beamed"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-value">Active</div>
+          <div class="stat-value">{{ playback.playlist_nom or playback.statut_label }}</div>
           <div class="stat-label">Lecture en cours</div>
         </div>
       </div>
@@ -90,8 +90,20 @@
 
       <div class="player-info">
         <div class="player-track-info">
-          <h3 class="track-title">Ambiance Matin</h3>
-          <p class="track-artist">Playlist d'ambiance</p>
+          <h3 class="track-title">{{ playback.piste_nom }}</h3>
+          <p class="track-artist">
+            {% if playback.playlist_nom %}
+              Playlist · {{ playback.playlist_nom }}
+              {% if playback.lecteur_nom %} · {{ playback.lecteur_nom }}{% endif %}
+            {% else %}
+              Aucune playlist programmée
+            {% endif %}
+          </p>
+          {% if playback.heure_debut and playback.heure_fin %}
+          <p class="track-schedule">
+            <i class="bi bi-clock"></i> {{ playback.heure_debut }} – {{ playback.heure_fin }}
+          </p>
+          {% endif %}
         </div>
 
         <div class="player-controls">
@@ -114,7 +126,7 @@
               <div class="progress-handle" id="progressHandle"></div>
             </div>
           </div>
-          <span class="time-display time-total">3:45</span>
+          <span class="time-display time-total">{{ playback.piste_duree }}</span>
         </div>
 
         <div class="player-extra-controls">
@@ -138,6 +150,11 @@
           <a href="{{ url_for('musique.musique') }}" class="extra-btn settings-btn" title="Paramètres et contrôle avancé">
             <i class="bi bi-gear-fill"></i>
           </a>
+          {% if playback.playlist_id %}
+          <a href="{{ url_for('playlist.playlist_detail', id_playlist=playback.playlist_id) }}" class="extra-btn settings-btn" title="Voir la playlist">
+            <i class="bi bi-music-note-list"></i>
+          </a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -200,24 +217,32 @@
         <h2><i class="bi bi-calendar-week-fill"></i> Planification Hebdomadaire</h2>
         <p>Programmation automatique des playlists sur le Lecteur Principal</p>
       </div>
-      <a href="{{ url_for('planification.planifier_lecteur', id_lecteur=1) }}" class="btn-section-header">
+      <a href="{{ url_for('planification.planifier_lecteur', id_lecteur=playback.lecteur_id or 1) }}" class="btn-section-header">
         Gérer le planning <i class="bi bi-arrow-right"></i>
       </a>
     </div>
 
     <div class="planif-container">
       <div class="planif-grid">
-        {% set jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] %}
-        {% for jour in jours %}
+        {% for jour, planifs in playback.planif_semaine.items() %}
         <div class="planif-day-card">
           <div class="day-label">{{ jour }}</div>
           <div class="day-status">
+            {% if planifs %}
             <i class="bi bi-calendar-check"></i>
             <span>Configuré</span>
+            {% else %}
+            <i class="bi bi-calendar-x"></i>
+            <span>Vide</span>
+            {% endif %}
           </div>
           <div class="day-playlist-badge">
             <i class="bi bi-music-note-list"></i>
-            <span>Matin / Soir</span>
+            {% if planifs %}
+            <span>{{ planifs[0].nom }}{% if planifs|length > 1 %} +{{ planifs|length - 1 }}{% endif %}</span>
+            {% else %}
+            <span>—</span>
+            {% endif %}
           </div>
         </div>
         {% endfor %}
@@ -1059,6 +1084,16 @@ body.default .stat-icon {
   opacity: 0.7;
   margin: 0;
   font-weight: 400;
+}
+
+.player-track-info p.track-schedule {
+  font-size: 0.85rem;
+  opacity: 0.55;
+  margin: 0.35rem 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 /* Contrôles principaux */
@@ -2117,9 +2152,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const progressHandle = document.getElementById('progressHandle');
   const timeCurrent = document.querySelector('.time-current');
   
-  let isPlaying = true;
+  let isPlaying = {{ 'true' if playback.lecteur_en_ligne else 'false' }};
   let currentTime = 0;
-  let totalTime = 225; // 3:45 en secondes
+  let totalTime = {{ playback.piste_duree_sec or 0 }};
+  
+  playPauseIcon.className = isPlaying ? 'bi bi-pause-fill' : 'bi bi-play-fill';
   
   // Play/Pause
   playPauseBtn.addEventListener('click', function() {
@@ -2129,6 +2166,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Simulation de la progression
   setInterval(function() {
+    if (totalTime <= 0) return;
     if (isPlaying && currentTime < totalTime) {
       currentTime += 1;
       const percentage = (currentTime / totalTime) * 100;
