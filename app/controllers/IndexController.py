@@ -93,3 +93,4 @@ def ping_lecteur(id_lecteur):
     except Exception as e:
         print(f"Erreur lors du ping : {e}")
         return jsonify({"statut": "error"}), 500
+    

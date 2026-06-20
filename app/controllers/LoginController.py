@@ -85,7 +85,7 @@ def login():
 
         log_login(user)
 
-        return redirect(url_for("index"))
+        return redirect(url_for("mood"))
 
     return render_template("login.html")
 
@@ -111,4 +111,4 @@ def logout():
                 log_logout(user)
 
     session.clear()
-    return redirect(url_for("login"))
+    return redirect(url_for("mood"))

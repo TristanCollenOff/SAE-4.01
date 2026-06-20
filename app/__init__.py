@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 # -------------------------
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'ma_cle_secrete_unique'
-app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_SECURE"] = False
+
 
 
 # -------------------------
@@ -51,8 +52,11 @@ def load_user():
         g.current_user = None
 
 @app.context_processor
-def inject_user():
-    return dict(current_user=g.get("current_user", None))
+def inject_globals():
+    return {
+        "current_user": g.get("current_user", None),
+        "theme": session.get("theme", "default")
+    }
 
 
 # -------------------------
