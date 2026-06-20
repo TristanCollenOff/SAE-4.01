@@ -3,117 +3,409 @@
 {% block content %}
 
 <style>
-/* ===== MOOD PAGE (DARK THEME COMPATIBLE) ===== */
+/* ===== MOOD PAGE — cartes 3D premium ===== */
 
-.mood-container {
-    max-width: 750px;
-    margin: auto;
-    text-align: center;
-    animation: fadeIn 0.8s ease;
-    color: var(--rythmo-text-light);
+.mood-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+    position: relative;
+    z-index: 1;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
+.mood-container {
+    width: 100%;
+    max-width: 920px;
+    animation: moodFadeIn 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes moodFadeIn {
+    from { opacity: 0; transform: translateY(24px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
+.mood-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.mood-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
 .mood-title {
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin-bottom: 10px;
+    font-size: clamp(1.85rem, 4vw, 2.6rem);
+    font-weight: 800;
+    margin-bottom: 0.75rem;
     color: var(--rythmo-text-light);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
 }
 
 .mood-subtitle {
-    opacity: 0.8;
-    margin-bottom: 40px;
+    font-size: 1.05rem;
+    opacity: 0.75;
+    max-width: 480px;
+    margin: 0 auto;
     color: var(--rythmo-text-light);
+    line-height: 1.5;
 }
 
-/* ===== GRID ===== */
+/* ===== GRILLE ===== */
 
 .mood-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
 }
 
-/* ===== BOUTONS ===== */
+.mood-grid .mood-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    max-width: 420px;
+    margin: 0 auto;
+    width: 100%;
+}
 
-.mood-btn {
-    padding: 18px;
-    border-radius: 15px;
-    font-size: 1.1rem;
-    font-weight: 600;
+/* ===== CARTE 3D ===== */
+
+.mood-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.75rem 1.25rem 1.5rem;
+    border-radius: 22px;
     text-decoration: none;
-    transition: all 0.25s ease;
-    color: white;
-    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    overflow: hidden;
+    isolation: isolate;
+    transition:
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    transform-style: preserve-3d;
+    perspective: 800px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.25) inset,
+        0 -1px 0 rgba(0, 0, 0, 0.15) inset,
+        0 12px 28px rgba(0, 0, 0, 0.35),
+        0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* hover */
-.mood-btn:hover {
-    transform: scale(1.05);
-    filter: brightness(1.2);
+.mood-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        165deg,
+        rgba(255, 255, 255, 0.28) 0%,
+        rgba(255, 255, 255, 0.06) 28%,
+        transparent 52%
+    );
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
 }
 
-/* couleurs harmonisées (dark mode friendly) — scopées sous .mood-btn pour ne pas cibler body.theme */
-
-.mood-btn.joyeux {
-    background: linear-gradient(135deg, #fbc02d, #f57c00);
+.mood-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 45%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.22), transparent);
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
 }
 
-.mood-btn.triste {
-    background: linear-gradient(135deg, #42a5f5, #1e88e5);
+.mood-card-shine {
+    position: absolute;
+    top: -50%;
+    left: -30%;
+    width: 60%;
+    height: 120%;
+    background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.12) 50%,
+        transparent 60%
+    );
+    transform: rotate(-8deg);
+    z-index: 2;
+    pointer-events: none;
+    transition: left 0.6s ease;
 }
 
-.mood-btn.nature {
-    background: linear-gradient(135deg, #66bb6a, #2e7d32);
+.mood-card:hover .mood-card-shine {
+    left: 120%;
 }
 
-.mood-btn.romantique {
-    background: linear-gradient(135deg, #ff80ab, #c2185b);
+.mood-card-icon {
+    position: relative;
+    z-index: 3;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow:
+        0 4px 0 rgba(0, 0, 0, 0.15),
+        0 8px 20px rgba(0, 0, 0, 0.25),
+        inset 0 2px 4px rgba(255, 255, 255, 0.35);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.mood-btn.default {
-    background: linear-gradient(135deg, #d11831, #281012);
+.mood-card-body {
+    position: relative;
+    z-index: 3;
 }
 
+.mood-card-name {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.35rem;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.mood-card-desc {
+    display: block;
+    font-size: 0.82rem;
+    opacity: 0.85;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.mood-card-glow {
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+    opacity: 0.35;
+    filter: blur(40px);
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+}
+
+.mood-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.3) inset,
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        0 8px 16px rgba(0, 0, 0, 0.25);
+    color: #fff;
+}
+
+.mood-card:hover .mood-card-icon {
+    transform: translateY(-4px) scale(1.08);
+}
+
+.mood-card:hover .mood-card-glow {
+    opacity: 0.55;
+}
+
+.mood-card:active {
+    transform: translateY(-2px) scale(0.99);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.2) inset,
+        0 6px 16px rgba(0, 0, 0, 0.35);
+    transition-duration: 0.1s;
+}
+
+/* ===== THÈMES ===== */
+
+.mood-card-joyeux {
+    background: linear-gradient(145deg, #ffd54f 0%, #ff8f00 45%, #e65100 100%);
+}
+
+.mood-card-joyeux .mood-card-glow {
+    background: radial-gradient(circle, #ffca28, transparent 70%);
+}
+
+.mood-card-triste {
+    background: linear-gradient(145deg, #64b5f6 0%, #1e88e5 45%, #0d47a1 100%);
+}
+
+.mood-card-triste .mood-card-glow {
+    background: radial-gradient(circle, #42a5f5, transparent 70%);
+}
+
+.mood-card-nature {
+    background: linear-gradient(145deg, #aed581 0%, #43a047 45%, #1b5e20 100%);
+}
+
+.mood-card-nature .mood-card-glow {
+    background: radial-gradient(circle, #7cb342, transparent 70%);
+}
+
+.mood-card-romantique {
+    background: linear-gradient(145deg, #ff80ab 0%, #e91e63 45%, #880e4f 100%);
+}
+
+.mood-card-romantique .mood-card-glow {
+    background: radial-gradient(circle, #f06292, transparent 70%);
+}
+
+.mood-card-default {
+    background: linear-gradient(145deg, #ffc107 0%, #d11831 48%, #281012 100%);
+}
+
+.mood-card-default .mood-card-glow {
+    background: radial-gradient(circle, #d11831, transparent 70%);
+}
+
+/* ===== ANIMATION ENTRÉE DÉCALÉE ===== */
+
+.mood-card {
+    animation: moodCardPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mood-card:nth-child(1) { animation-delay: 0.08s; }
+.mood-card:nth-child(2) { animation-delay: 0.16s; }
+.mood-card:nth-child(3) { animation-delay: 0.24s; }
+.mood-card:nth-child(4) { animation-delay: 0.32s; }
+.mood-card:nth-child(5) { animation-delay: 0.40s; }
+
+@keyframes moodCardPop {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 640px) {
+    .mood-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .mood-grid .mood-card:last-child:nth-child(odd) {
+        max-width: none;
+    }
+
+    .mood-card {
+        flex-direction: row;
+        text-align: left;
+        padding: 1.15rem 1.25rem;
+        gap: 1rem;
+    }
+
+    .mood-card-icon {
+        width: 58px;
+        height: 58px;
+        font-size: 1.75rem;
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+
+    .mood-card-body {
+        flex: 1;
+    }
+
+    .mood-card-name {
+        font-size: 1.1rem;
+    }
+}
 </style>
 
-<div class="mood-container mt-5">
+<div class="mood-page">
+    <div class="mood-container">
 
-    <h1 class="mood-title">Comment tu te sens aujourd’hui ?</h1>
+        <header class="mood-header">
+            <div class="mood-badge">
+                <i class="bi bi-sliders"></i> Personnalisation
+            </div>
+            <h1 class="mood-title">Comment tu te sens aujourd'hui ?</h1>
+            <p class="mood-subtitle">
+                Choisis une ambiance pour adapter ton expérience musicale sur Rythmo
+            </p>
+        </header>
 
-    <p class="mood-subtitle">
-        Choisis une ambiance pour adapter ton expérience musicale 🎧
-    </p>
+        <div class="mood-grid">
 
-    <div class="mood-grid">
+            <a href="{{ url_for('mood.set_theme', theme='joyeux', next=url_for('index')) }}" class="mood-card mood-card-joyeux">
+                <div class="mood-card-glow"></div>
+                <div class="mood-card-shine"></div>
+                <div class="mood-card-icon">☀️</div>
+                <div class="mood-card-body">
+                    <span class="mood-card-name">Joyeux</span>
+                    <span class="mood-card-desc">Soleil, confettis & énergie positive</span>
+                </div>
+            </a>
 
-        <a href="/set_theme/joyeux" class="mood-btn joyeux">
-            😊 Joyeux
-        </a>
+            <a href="{{ url_for('mood.set_theme', theme='triste', next=url_for('index')) }}" class="mood-card mood-card-triste">
+                <div class="mood-card-glow"></div>
+                <div class="mood-card-shine"></div>
+                <div class="mood-card-icon">🌧️</div>
+                <div class="mood-card-body">
+                    <span class="mood-card-name">Triste</span>
+                    <span class="mood-card-desc">Pluie mélancolique & bleu apaisant</span>
+                </div>
+            </a>
 
-        <a href="/set_theme/triste" class="mood-btn triste">
-            😢 Triste
-        </a>
+            <a href="{{ url_for('mood.set_theme', theme='nature', next=url_for('index')) }}" class="mood-card mood-card-nature">
+                <div class="mood-card-glow"></div>
+                <div class="mood-card-shine"></div>
+                <div class="mood-card-icon">🌿</div>
+                <div class="mood-card-body">
+                    <span class="mood-card-name">Nature</span>
+                    <span class="mood-card-desc">Forêt, feuilles & calme vert</span>
+                </div>
+            </a>
 
-        <a href="/set_theme/nature" class="mood-btn nature">
-            🌿 Nature
-        </a>
+            <a href="{{ url_for('mood.set_theme', theme='romantique', next=url_for('index')) }}" class="mood-card mood-card-romantique">
+                <div class="mood-card-glow"></div>
+                <div class="mood-card-shine"></div>
+                <div class="mood-card-icon">💕</div>
+                <div class="mood-card-body">
+                    <span class="mood-card-name">Romantique</span>
+                    <span class="mood-card-desc">Rose, cœurs & fleurs délicates</span>
+                </div>
+            </a>
 
-        <a href="/set_theme/romantique" class="mood-btn romantique">
-            💕 Romantique
-        </a>
+            <a href="{{ url_for('mood.set_theme', theme='default', next=url_for('index')) }}" class="mood-card mood-card-default">
+                <div class="mood-card-glow"></div>
+                <div class="mood-card-shine"></div>
+                <div class="mood-card-icon">🎵</div>
+                <div class="mood-card-body">
+                    <span class="mood-card-name">Mix Rythmo</span>
+                    <span class="mood-card-desc">Notes de musique & identité signature</span>
+                </div>
+            </a>
 
-        <a href="/set_theme/default" class="mood-btn default">
-            🟠 Mix (défaut)
-        </a>
+        </div>
 
     </div>
-
 </div>
 
 {% endblock %}
