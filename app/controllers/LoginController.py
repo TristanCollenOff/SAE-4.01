@@ -111,4 +111,4 @@ def logout():
                 log_logout(user)
 
     session.clear()
-    return redirect(url_for("mood"))
+    return redirect(url_for("login"))

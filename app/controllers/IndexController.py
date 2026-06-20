@@ -1,5 +1,5 @@
 import sqlite3
-from flask import render_template, request, redirect, url_for, jsonify
+from flask import render_template, request, redirect, session, url_for, jsonify
 from app import app
 from app.controllers.LoginController import reqlogged, us
 from app.models.LecteurDAO import LecteurDAO
@@ -28,7 +28,12 @@ def index():
         pass 
 
     metadata = {"title": "Accueil Rythmo", "pagename": "index"}
-    return render_template('index.html', metadata=metadata, stats=stats)
+    return render_template(
+    'index.html',
+    metadata=metadata,
+    stats=stats,
+    theme=session.get("theme", "default")
+)
 
 
 # --- LA LISTE DES LECTEURS (Celle qui plantait) ---

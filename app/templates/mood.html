@@ -1,0 +1,119 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<style>
+/* ===== MOOD PAGE (DARK THEME COMPATIBLE) ===== */
+
+.mood-container {
+    max-width: 750px;
+    margin: auto;
+    text-align: center;
+    animation: fadeIn 0.8s ease;
+    color: var(--rythmo-text-light);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.mood-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--rythmo-text-light);
+}
+
+.mood-subtitle {
+    opacity: 0.8;
+    margin-bottom: 40px;
+    color: var(--rythmo-text-light);
+}
+
+/* ===== GRID ===== */
+
+.mood-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 15px;
+}
+
+/* ===== BOUTONS ===== */
+
+.mood-btn {
+    padding: 18px;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* hover */
+.mood-btn:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+}
+
+/* couleurs harmonisées (dark mode friendly) */
+
+.joyeux {
+    background: linear-gradient(135deg, #fbc02d, #f57c00);
+}
+
+.triste {
+    background: linear-gradient(135deg, #42a5f5, #1e88e5);
+}
+
+.nature {
+    background: linear-gradient(135deg, #66bb6a, #2e7d32);
+}
+
+.chill {
+    background: linear-gradient(135deg, #ab47bc, #6a1b9a);
+}
+
+.default {
+    background: linear-gradient(135deg, #d11831, #281012);
+}
+
+</style>
+
+<div class="mood-container mt-5">
+
+    <h1 class="mood-title">Comment tu te sens aujourd’hui ?</h1>
+
+    <p class="mood-subtitle">
+        Choisis une ambiance pour adapter ton expérience musicale 🎧
+    </p>
+
+    <div class="mood-grid">
+
+        <a href="/set_theme/joyeux" class="mood-btn joyeux">
+            😊 Joyeux
+        </a>
+
+        <a href="/set_theme/triste" class="mood-btn triste">
+            😢 Triste
+        </a>
+
+        <a href="/set_theme/nature" class="mood-btn nature">
+            🌿 Nature
+        </a>
+
+        <a href="/set_theme/chill" class="mood-btn chill">
+            🌙 Chill
+        </a>
+
+        <a href="/set_theme/default" class="mood-btn default">
+            🟠 Mix (défaut)
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}
