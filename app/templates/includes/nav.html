@@ -19,6 +19,61 @@
         <div class="bar"></div>
         <div class="bar"></div>
       </div>
+
+      <!-- Sélecteur de thème / mood -->
+      <div class="theme-switcher d-none d-md-block">
+        <button class="theme-switcher-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Changer de thème">
+          <span class="theme-switcher-icon">
+            {% if theme == 'joyeux' %}☀️
+            {% elif theme == 'triste' %}🌧️
+            {% elif theme == 'nature' %}🌿
+            {% elif theme == 'romantique' %}💕
+            {% else %}🎵{% endif %}
+          </span>
+          <span class="theme-switcher-label d-none d-lg-inline">Ambiance</span>
+          <i class="bi bi-chevron-down theme-switcher-arrow"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-start theme-switcher-menu">
+          <li class="dropdown-header theme-switcher-header">
+            <i class="bi bi-palette-fill"></i> Changer de thème
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'default' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='default', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-default"></span>
+              <span>🎵 Mix (défaut)</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'joyeux' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='joyeux', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-joyeux"></span>
+              <span>☀️ Joyeux</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'triste' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='triste', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-triste"></span>
+              <span>🌧️ Triste</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'nature' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='nature', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-nature"></span>
+              <span>🌿 Nature</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'romantique' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='romantique', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-romantique"></span>
+              <span>💕 Romantique</span>
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!-- Menu de navigation principal -->
@@ -97,6 +152,59 @@
 
     <!-- Section utilisateur et actions -->
     <div class="navbar-user-section">
+      <!-- Sélecteur de thème (mobile) -->
+      <div class="theme-switcher d-md-none">
+        <button class="theme-switcher-trigger theme-switcher-trigger-compact" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Changer de thème">
+          <span class="theme-switcher-icon">
+            {% if theme == 'joyeux' %}☀️
+            {% elif theme == 'triste' %}🌧️
+            {% elif theme == 'nature' %}🌿
+            {% elif theme == 'romantique' %}💕
+            {% else %}🎵{% endif %}
+          </span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end theme-switcher-menu">
+          <li class="dropdown-header theme-switcher-header">
+            <i class="bi bi-palette-fill"></i> Changer de thème
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'default' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='default', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-default"></span>
+              <span>🎵 Mix</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'joyeux' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='joyeux', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-joyeux"></span>
+              <span>☀️ Joyeux</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'triste' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='triste', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-triste"></span>
+              <span>🌧️ Triste</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'nature' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='nature', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-nature"></span>
+              <span>🌿 Nature</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'romantique' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='romantique', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-romantique"></span>
+              <span>💕 Romantique</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
       <!-- Dropdown utilisateur -->
       <div class="user-dropdown">
         <button class="user-menu-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -488,6 +596,117 @@
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
+}
+
+/* ===== THEME SWITCHER ===== */
+.theme-switcher {
+  position: relative;
+}
+
+.theme-switcher-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 0.45rem 0.85rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.theme-switcher-trigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(var(--rythmo-accent-rgb), 0.35);
+  transform: translateY(-1px);
+}
+
+.theme-switcher-trigger:focus {
+  box-shadow: 0 0 0 3px rgba(var(--rythmo-accent-rgb), 0.2);
+  outline: none;
+}
+
+.theme-switcher-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.theme-switcher-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.theme-switcher-arrow {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  transition: transform 0.3s ease;
+}
+
+.theme-switcher-trigger[aria-expanded="true"] .theme-switcher-arrow {
+  transform: rotate(180deg);
+}
+
+.theme-switcher-trigger-compact {
+  padding: 0.45rem 0.6rem;
+}
+
+.theme-switcher-menu {
+  background: rgba(26, 6, 12, 0.98);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(var(--rythmo-accent-rgb), 0.2);
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  min-width: 210px;
+}
+
+.theme-switcher-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--rythmo-accent) !important;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 1rem;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+}
+
+.theme-dot-default { background: linear-gradient(135deg, #ffc107, #d11831); }
+.theme-dot-joyeux { background: linear-gradient(135deg, #ffca28, #ff6d00); }
+.theme-dot-triste { background: linear-gradient(135deg, #5c9fd4, #2e5a8a); }
+.theme-dot-nature { background: linear-gradient(135deg, #7cb342, #1b5e20); }
+.theme-dot-romantique { background: linear-gradient(135deg, #ff80ab, #c2185b); }
+
+.theme-option.active {
+  background: rgba(var(--rythmo-accent-rgb), 0.12);
+  color: var(--rythmo-accent) !important;
+  font-weight: 600;
+}
+
+.theme-option.active::after {
+  content: '✓';
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--rythmo-accent);
 }
 
 /* ===== USER DROPDOWN ===== */
