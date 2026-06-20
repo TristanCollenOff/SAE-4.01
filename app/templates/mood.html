@@ -5,6 +5,15 @@
 <style>
 /* ===== MOOD PAGE (DARK THEME COMPATIBLE) ===== */
 
+body {
+    background: #1a060c;
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(255, 193, 7, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(209, 24, 49, 0.08) 0%, transparent 50%);
+    min-height: 100vh;
+    color: white;
+}
+
 .mood-container {
     max-width: 750px;
     margin: auto;
@@ -58,25 +67,25 @@
     filter: brightness(1.2);
 }
 
-/* couleurs harmonisées (dark mode friendly) */
+/* couleurs harmonisées (dark mode friendly) — scopées sous .mood-btn pour ne pas cibler body.theme */
 
-.joyeux {
+.mood-btn.joyeux {
     background: linear-gradient(135deg, #fbc02d, #f57c00);
 }
 
-.triste {
+.mood-btn.triste {
     background: linear-gradient(135deg, #42a5f5, #1e88e5);
 }
 
-.nature {
+.mood-btn.nature {
     background: linear-gradient(135deg, #66bb6a, #2e7d32);
 }
 
-.chill {
+.mood-btn.chill {
     background: linear-gradient(135deg, #ab47bc, #6a1b9a);
 }
 
-.default {
+.mood-btn.default {
     background: linear-gradient(135deg, #d11831, #281012);
 }
 

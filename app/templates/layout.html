@@ -1,127 +1,73 @@
 <!DOCTYPE html>
 <html lang="fr">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>{% if metadata and metadata.get('title') %}{{metadata['title']}}{% else %}RYTHMO{% endif %}</title>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-		<!-- Google Fonts - Manrope -->
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-		<!-- Bootstrap -->
-		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-
-		<style>
-			/* ===== POLICE ===== */
-			* {
-				font-family: 'Manrope', sans-serif !important;
-			}
-
-			/* ===== VARIABLES BASE ===== */
-			:root {
-				--rythmo-gradient-start: #281012;
-				--rythmo-gradient-end: #1a060c;
-				--rythmo-gradient-mid: #3b1519;
-				--rythmo-yellow: #ffc107;
-				--rythmo-red: #d11831;
-				--rythmo-text-light: #fff4c7;
-			}
-
-			/* ===== THÈMES ===== */
-
-			.nature {
-				--rythmo-gradient-start: #1b5e20;
-				--rythmo-gradient-end: #0d3b12;
-				--rythmo-gradient-mid: #2e7d32;
-				--rythmo-yellow: #a5d6a7;
-				--rythmo-red: #66bb6a;
-				--rythmo-text-light: #e8f5e9;
-			}
-
-			.triste {
-				--rythmo-gradient-start: #0d1b2a;
-				--rythmo-gradient-end: #050b14;
-				--rythmo-gradient-mid: #1b263b;
-				--rythmo-yellow: #90caf9;
-				--rythmo-red: #42a5f5;
-				--rythmo-text-light: #e3f2fd;
-			}
-
-			.joyeux {
-				--rythmo-gradient-start: #fff176;
-				--rythmo-gradient-end: #fbc02d;
-				--rythmo-gradient-mid: #ffeb3b;
-				--rythmo-yellow: #ff9800;
-				--rythmo-red: #f57c00;
-				--rythmo-text-light: #3e2723;
-			}
-
-			.chill {
-				--rythmo-gradient-start: #b39ddb;
-				--rythmo-gradient-end: #512da8;
-				--rythmo-gradient-mid: #7e57c2;
-				--rythmo-yellow: #ce93d8;
-				--rythmo-red: #ab47bc;
-				--rythmo-text-light: #f3e5f5;
-			}
-
-			.default {
-				--rythmo-gradient-start: #281012;
-				--rythmo-gradient-end: #1a060c;
-				--rythmo-gradient-mid: #3b1519;
-				--rythmo-yellow: #ffc107;
-				--rythmo-red: #d11831;
-				--rythmo-text-light: #fff4c7;
-			}
-
-			/* ===== BODY NEXT LEVEL ===== */
-			body {
-				background: radial-gradient(
-					ellipse at 60% 45%,
-					var(--rythmo-gradient-start),
-					var(--rythmo-gradient-end) 70%
-				);
-
-				min-height: 100vh;
-				color: white;
-				padding-top: 76px;
-
-				/* ⭐ NEXT LEVEL UX */
-				transition: background 0.6s ease, color 0.6s ease;
-			}
-
-			/* ⭐ petit flash visuel quand thème change */
-			body::before {
-				content: "";
-				position: fixed;
-				inset: 0;
-				background: white;
-				opacity: 0;
-				pointer-events: none;
-				transition: opacity 0.3s ease;
-				z-index: 9999;
-			}
-
-			body.theme-flash::before {
-				opacity: 0.08;
-			}
-		</style>
-	</head>
-
-	<body class="{{ theme }}">
-		{% if session.get('logged') %}
-			{% include 'includes/nav.html' %}
+	<title>
+		{% if metadata and metadata.get('title') %}
+			{{ metadata['title'] }}
+		{% else %}
+			RYTHMO
 		{% endif %}
+	</title>
 
-		{% block content %}{% endblock %}
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-		{% if session.get('logged') %}
-			{% include 'includes/footer.html' %}
-		{% endif %}
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-	</body>
+	<style>
+		* {
+			font-family: 'Manrope', sans-serif !important;
+		}
+
+		:root {
+			--rythmo-gradient-start: #281012;
+			--rythmo-gradient-end: #1a060c;
+			--rythmo-yellow: #ffc107;
+			--rythmo-red: #d11831;
+			--rythmo-text-light: #fff4c7;
+		}
+
+		body {
+			background: radial-gradient(
+				ellipse at 60% 45%,
+				var(--rythmo-gradient-start),
+				var(--rythmo-gradient-end) 70%
+			);
+			min-height: 100vh;
+			color: white;
+			padding-top: 76px;
+			transition: background 0.6s ease;
+		}
+
+		/* 👉 MODE SIMPLE (MOOD PAGE) */
+		body.no-layout {
+			padding-top: 0;
+		}
+	</style>
+
+	{% block styles %}{% endblock %}
+</head>
+
+<body class="{{ session.get('theme', 'default') }} {% if hide_layout %}no-layout{% endif %}">
+
+	{# 👉 NAV + FOOTER seulement si pas page spéciale #}
+	{% if not hide_layout and session.get('logged') %}
+		{% include 'includes/nav.html' %}
+	{% endif %}
+
+	{% block content %}{% endblock %}
+
+	{% if not hide_layout and session.get('logged') %}
+		{% include 'includes/footer.html' %}
+	{% endif %}
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+	{% block scripts %}{% endblock %}
+</body>
 </html>

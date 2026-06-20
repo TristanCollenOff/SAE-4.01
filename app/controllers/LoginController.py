@@ -85,7 +85,7 @@ def login():
 
         log_login(user)
 
-        return redirect(url_for("mood"))
+        return redirect(url_for("mood.mood"))
 
     return render_template("login.html")
 

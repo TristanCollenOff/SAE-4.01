@@ -27,7 +27,8 @@ from app.controllers.ContactController import contact_bp
 app.register_blueprint(contact_bp)
 from app.controllers.PlanificationController import planif_bp
 app.register_blueprint(planif_bp)
-
+from app.controllers.MoodController import mood_bp
+app.register_blueprint(mood_bp)
 
 if __name__ == '__main__':
     print(app.url_map)
