@@ -29,7 +29,8 @@ from app.controllers.PlanificationController import planif_bp
 app.register_blueprint(planif_bp)
 from app.controllers.MoodController import mood_bp
 app.register_blueprint(mood_bp)
-
+from app.controllers.supervisor_controller import supervisor_bp
+app.register_blueprint(supervisor_bp)
 if __name__ == '__main__':
     print(app.url_map)
     app.run(host='0.0.0.0', port=8000, debug=True)

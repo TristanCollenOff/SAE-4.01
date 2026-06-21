@@ -1,11 +1,10 @@
-from flask import Blueprint, render_template, request, jsonify, session, abort, redirect, url_for, flash
+from flask import Blueprint, render_template, request, jsonify, session, abort, redirect, url_for
 from app.controllers.LoginController import reqlogged
 from app.models.LecteurDAO import LecteurDAO
 from app.models.PlaylistDAO import PlaylistDAO
 from app.services.PlaylistService import PlaylistService
 from app import app
 import sqlite3
-from datetime import datetime
 
 playlist_bp = Blueprint("playlist", __name__, url_prefix="/playlists")
 
@@ -14,6 +13,23 @@ playlist_dao = PlaylistDAO()
 playlist_service = PlaylistService()
 
 
+# -----------------------------
+# SECURITE SUPERVISEUR
+# -----------------------------
+def check_superviseur():
+    if not session.get("superviseur_ok"):
+        return False
+    return True
+
+
+def require_superviseur():
+    if not check_superviseur():
+        return redirect(url_for("security.superviseur_check"))
+
+
+# -----------------------------
+# ZONES
+# -----------------------------
 def get_zones(lecteurs):
     zones = set()
     for lecteur in lecteurs:
@@ -22,6 +38,9 @@ def get_zones(lecteurs):
     return sorted(list(zones))
 
 
+# -----------------------------
+# SITES
+# -----------------------------
 def get_sites(lecteurs):
     db_path = app.root_path + '/database.db'
     sites = {}
@@ -47,12 +66,21 @@ def get_sites(lecteurs):
     return sites
 
 
+# -----------------------------
+# LIST PLAYLISTS
+# -----------------------------
 @playlist_bp.route("/", methods=["GET"])
 @reqlogged
 def playlists():
+
+    # 🔐 SUPERVISEUR CHECK
+    redirect_response = require_superviseur()
+    if redirect_response:
+        return redirect_response
+
     role = session.get("role", "utilisateur")
 
-    playlists = playlist_dao.find_all()  
+    playlists = playlist_dao.find_all()
     lecteurs = lecteur_dao.find_all()
     zones = get_zones(lecteurs)
     sites = get_sites(lecteurs)
@@ -73,9 +101,17 @@ def playlists():
     )
 
 
+# -----------------------------
+# DETAIL PLAYLIST
+# -----------------------------
 @playlist_bp.route("/<int:id_playlist>", methods=["GET"])
 @reqlogged
 def playlist_detail(id_playlist):
+
+    redirect_response = require_superviseur()
+    if redirect_response:
+        return redirect_response
+
     playlist = playlist_service.get_playlist(id_playlist)
 
     if not playlist:
@@ -93,24 +129,26 @@ def playlist_detail(id_playlist):
     }
 
     return render_template(
-    "playlist_detail.html",
-    metadata=metadata,
-    playlist=playlist,
-    pistes=pistes,  
-    lecteurs=lecteurs,
-    zones=zones,
-    sites=sites
-)
+        "playlist_detail.html",
+        metadata=metadata,
+        playlist=playlist,
+        pistes=pistes,
+        lecteurs=lecteurs,
+        zones=sites
+    )
 
 
-def get_playlist_pistes(id_playlist):   
-    """Récupère les pistes d'une playlist"""
+# -----------------------------
+# PISTES
+# -----------------------------
+def get_playlist_pistes(id_playlist):
+
     db_path = app.root_path + '/database.db'
-    
+
     try:
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
-        
+
         cursor = conn.execute("""
             SELECT f.*, c.id_playlist
             FROM Contenir c
@@ -118,78 +156,22 @@ def get_playlist_pistes(id_playlist):
             WHERE c.id_playlist = ?
             ORDER BY f.id_fichier
         """, (id_playlist,))
-        
+
         pistes = []
+
         for row in cursor.fetchall():
             duree = row.get('duree_fichier', 180)
-            
-            piste_problemes = []
-            if not row.get('chemin'):
-                piste_problemes.append("Fichier manquant")
-            
+
             pistes.append({
                 'id_fichier': row['id_fichier'],
                 'nom': row['nom'],
                 'emplacement': row.get("chemin"),
-                'duree': duree,
-                'problemes': piste_problemes
+                'duree': duree
             })
-        
+
         conn.close()
         return pistes
-        
+
     except Exception as e:
-        print(f"Erreur lors de la récupération des pistes: {e}")
+        print(e)
         return []
-
-
-@playlist_bp.route("/planifier/<int:id_playlist>/<int:id_lecteur>", methods=["GET"])
-@reqlogged
-def planifier_playlist(id_playlist, id_lecteur):
-    """
-    Redirige vers la page de planification
-    avec la playlist présélectionnée
-    """
-    return redirect(
-        url_for(
-            "planification.planifier_lecteur",
-            id_lecteur=id_lecteur,
-            playlist=id_playlist
-        )
-    )
-
-
-@playlist_bp.route("/assign", methods=['POST'])
-@reqlogged
-def assign_playlist():
-    """Affecter une playlist à un lecteur/zone/site"""
-    data = request.get_json()
-    playlist_id = data.get("playlist_id")
-    target_type = data.get("target_type")
-    target_id = data.get("target_id")
-    is_fallback = data.get("is_fallback", False)
-    
-    return jsonify({
-        "success": True,
-        "message": f"Playlist affectée avec succès",
-        "playlist_id": playlist_id,
-        "target_type": target_type,
-        "target_id": target_id,
-        "is_fallback": is_fallback
-    })
-
-
-@playlist_bp.route("/publish", methods=['POST'])
-@reqlogged
-def publish_playlist():
-    """Publier ou dépublier une playlist"""
-    data = request.get_json()
-    playlist_id = data.get("playlist_id")
-    publish = data.get("publish", True)
-    
-    return jsonify({
-        "success": True,
-        "message": "Playlist publiée" if publish else "Playlist mise en brouillon",
-        "playlist_id": playlist_id,
-        "publie": publish
-    })

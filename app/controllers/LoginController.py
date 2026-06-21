@@ -5,6 +5,7 @@ from app.services.log_service import log_login, log_failed_login, log_logout
 from functools import wraps
 
 user_service = UserService()
+us = UserService()
 
 # -----------------------------
 # DÉCORATEURS
@@ -69,9 +70,7 @@ def login():
 
         user = result
 
-        # -----------------------------
         # SESSION
-        # -----------------------------
         session["user_id"] = user.id
         session["username"] = user.username
         session["role"] = user.role
@@ -80,13 +79,14 @@ def login():
 
         log_login(user)
 
-        # -----------------------------
-        # REDIRECTION SELON ROLE
-        # -----------------------------
+        # REDIRECTION
         if user.role == "superviseur":
-            return redirect(url_for("security.supervisor_check"))
+           return redirect(url_for("supervisor.supervisor_check"))
 
         return redirect(url_for("mood.mood"))
+
+    # ✅ IMPORTANT : GET /login
+    return render_template("login.html")
 
 
 # -----------------------------
