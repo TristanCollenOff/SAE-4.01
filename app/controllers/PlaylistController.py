@@ -24,8 +24,7 @@ def check_superviseur():
 
 def require_superviseur():
     if not check_superviseur():
-        return redirect(url_for("security.superviseur_check"))
-
+        return redirect(url_for("supervisor.supervisor_check"))
 
 # -----------------------------
 # ZONES

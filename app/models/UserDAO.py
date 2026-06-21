@@ -159,7 +159,12 @@ class UserSqliteDAO(UserDAOInterface):
     def findAll(self):
         conn = self._getDbConnection()
 
-        rows = conn.execute("SELECT * FROM utilisateur").fetchall()
+        rows = conn.execute("""
+            SELECT u.*, c.login_attempts, c.block_until, c.last_login
+            FROM utilisateur u
+            LEFT JOIN connexion c
+                ON u.id_utilisateur = c.id_utilisateur
+        """).fetchall()
 
         conn.close()
         return [User(dict(r)) for r in rows]
@@ -221,8 +226,11 @@ class UserSqliteDAO(UserDAOInterface):
         conn = self._getDbConnection()
 
         row = conn.execute("""
-            SELECT * FROM utilisateur
-            WHERE id_utilisateur = ?
+            SELECT u.*, c.login_attempts, c.block_until, c.last_login
+            FROM utilisateur u
+            LEFT JOIN connexion c
+                ON u.id_utilisateur = c.id_utilisateur
+            WHERE u.id_utilisateur = ?
         """, (user_id,)).fetchone()
 
         conn.close()
