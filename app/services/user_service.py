@@ -1,6 +1,7 @@
 from app.models.UserDAO import UserSqliteDAO as UserDAO
 from app.models.User import User
 
+
 class UserService:
 
     def __init__(self):
@@ -29,13 +30,6 @@ class UserService:
     # LOGIN FLOW
     # -------------------
     def login(self, username, password):
-        """
-        Retour :
-        - User → OK
-        - "blocked" → compte bloqué
-        - None → erreur login
-        """
-
         result = self.udao.verifyUser(username, password)
 
         if result == "blocked":

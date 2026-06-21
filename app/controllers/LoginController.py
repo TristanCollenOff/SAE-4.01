@@ -4,9 +4,7 @@ from app.services.user_service import UserService
 from app.services.log_service import log_login, log_failed_login, log_logout
 from functools import wraps
 
-# Service utilisateur
 user_service = UserService()
-us = user_service
 
 # -----------------------------
 # DÉCORATEURS
@@ -25,7 +23,7 @@ def reqrole(role):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if session.get("role") != role:
-                return f"Accès refusé : rôle requis = {role}"
+                return "Accès refusé"
             return f(*args, **kwargs)
         return decorated_function
     return decorator
@@ -51,19 +49,7 @@ def login():
 
         result = user_service.login(username, password)
 
-        # -----------------------------
-        # CAS 1 : COMPTE BLOQUÉ
-        # -----------------------------
-        if result == "blocked":
-            return render_template(
-                "login.html",
-                msg_error="⛔ Compte temporairement bloqué. Réessayez plus tard.",
-                nom_utilisateur=username
-            )
-
-        # -----------------------------
-        # CAS 2 : LOGIN FAIL
-        # -----------------------------
+        # ❌ LOGIN FAIL
         if result is None:
             log_failed_login(username, "Identifiants invalides")
 
@@ -73,21 +59,34 @@ def login():
                 nom_utilisateur=username
             )
 
-        # -----------------------------
-        # CAS 3 : LOGIN OK
-        # -----------------------------
+        # ⛔ BLOQUÉ
+        if result == "blocked":
+            return render_template(
+                "login.html",
+                msg_error="⛔ Compte temporairement bloqué",
+                nom_utilisateur=username
+            )
+
         user = result
 
+        # -----------------------------
+        # SESSION
+        # -----------------------------
         session["user_id"] = user.id
         session["username"] = user.username
         session["role"] = user.role
         session["logged"] = True
+        session["supervisor_verified"] = False
 
         log_login(user)
 
-        return redirect(url_for("mood.mood"))
+        # -----------------------------
+        # REDIRECTION SELON ROLE
+        # -----------------------------
+        if user.role == "superviseur":
+            return redirect(url_for("security.supervisor_check"))
 
-    return render_template("login.html")
+        return redirect(url_for("mood.mood"))
 
 
 # -----------------------------
@@ -103,7 +102,6 @@ def logout():
         if username:
             user = user_service.getUserByUsername(username)
 
-            # getUserByUsername retourne une liste → on sécurise
             if isinstance(user, list) and len(user) > 0:
                 user = user[0]
 

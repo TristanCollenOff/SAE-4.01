@@ -1,15 +1,24 @@
 from flask import Blueprint, render_template, redirect, url_for, session, abort
 from app.services.user_service import UserService
 from app.services.log_service import log_action
+from datetime import datetime, timedelta
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin/users")
+
 user_service = UserService()
 
+
+# -----------------------------
+# CHECK ADMIN
+# -----------------------------
 def admin_required():
     if session.get("role") not in ["admin", "Administrateur"]:
         abort(403)
 
 
+# -----------------------------
+# LIST USERS
+# -----------------------------
 @admin_bp.route("/", endpoint="admin")
 def list_users():
     admin_required()
@@ -18,25 +27,9 @@ def list_users():
     return render_template("admin.html", users=users, metadata=metadata)
 
 
-@admin_bp.route("/block/<int:user_id>")
-def block_user(user_id):
-    admin_required()
-
-    # Récupère l'utilisateur cible
-    target_user = user_service.getUserById(user_id)
-    if not target_user:
-        abort(404)  # Si l'utilisateur n'existe pas
-
-    # Bloquer l'utilisateur
-    user_service.block_user(user_id, minutes=60)
-
-    # Log de l'action admin
-    admin_user = session.get("nom_utilisateur")  # admin connecté
-    log_action(admin_user, f"A bloqué l'utilisateur {target_user.username}")
-
-    return redirect(url_for("admin.admin"))
-
-
+# -----------------------------
+# BLOCK USER
+# -----------------------------
 @admin_bp.route("/block/<int:user_id>")
 def block_user(user_id):
     admin_required()
@@ -45,9 +38,10 @@ def block_user(user_id):
     if not target_user:
         abort(404)
 
+    # 🔥 BLOQUAGE PROPRE VIA DAO
     user_service.block_user(user_id, minutes=60)
 
-    admin_user = session.get("nom_utilisateur", "admin")
+    admin_user = session.get("username", "admin")
 
     log_action(
         admin_user,
@@ -57,10 +51,25 @@ def block_user(user_id):
     return redirect(url_for("admin.admin"))
 
 
+# -----------------------------
+# UNBLOCK USER
+# -----------------------------
+@admin_bp.route("/unblock/<int:user_id>")
+def unblock_user(user_id):
+    admin_required()
 
+    target_user = user_service.getUserById(user_id)
+    if not target_user:
+        abort(404)
 
+    # 🔥 UNBLOCK PROPRE VIA DAO
+    user_service.unblock_user(user_id)
 
+    admin_user = session.get("username", "admin")
 
+    log_action(
+        admin_user,
+        f"A débloqué l'utilisateur {getattr(target_user, 'username', 'inconnu')}"
+    )
 
-
-
+    return redirect(url_for("admin.admin"))
