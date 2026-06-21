@@ -241,12 +241,6 @@
               <i class="bi bi-shield-lock"></i> Administration
             </a>
           </li>
-          {% elif current_user.role == "superviseur" %}
-          <li>
-            <a class="dropdown-item" href="{{ url_for('admin.admin') }}">
-              <i class="bi bi-eye-fill"></i> Panel Superviseur
-            </a>
-          </li>
           {% endif %}
           <li><hr class="dropdown-divider"></li>
           <li>
