@@ -1,13 +1,17 @@
 import sqlite3
+import csv
+import io
+import datetime
 import os
 from app import app
-from flask import Blueprint, redirect, render_template, session, abort, request, url_for, flash
-from app.controllers.LoginController import reqlogged
+from flask import Blueprint, Response, redirect, render_template, session, abort, request, url_for, flash
+from app.controllers.LoginController import reqlogged, reqrole
 from app.services.log_service import add_log, LOG_TYPES
+from app.models.LogsDAO import LogsDAO
 from app.models.LecteurDAO import LecteurDAO
 
 log_bp = Blueprint("logs", __name__, url_prefix="/logs")
-
+ldao = LogsDAO()
 def admin_required():
     """Vérifie que l'utilisateur connecté est administrateur"""
     if session.get("role") not in ["admin", "Administrateur"]:
@@ -85,3 +89,33 @@ def action_alerte_uniquelogs(id_lecteur, etat):
             flash(f"Alerte {action_verbe} avec succès.", "success")
             
     return redirect(url_for('voir_lecteur', id_lecteur=id_lecteur))
+
+
+@app.route('/logs/export')
+@reqlogged
+@reqrole('admin')
+def export_logs_csv():
+    logs = ldao.get_all_logs()
+    proxy = io.StringIO()
+    proxy.write('\ufeff')
+    writer = csv.writer(proxy, delimiter=';')
+    writer.writerow(['ID_Log', 'Type_Action', 'message', 'date'])
+
+    for log in logs :
+        writer.writerow([
+            log.id_log,
+            log.type_action,
+            log.message,
+            log.date_fichierlog
+        ])
+
+    date_str = datetime.datetime.now().strftime("%Y-%m-%d_%Hh%M")
+    filename = f"export_logs_{date_str}.csv"
+
+    csv_data = proxy.getvalue()
+    return Response(
+        csv_data,
+        mimetype='text/csv',
+        headers={"Content-Disposition": f"attachment;filename={filename}"}
+    )
+

@@ -149,11 +149,16 @@
   </div>
 
   <div class="logs-stats mb-4">
-    <div class="stat-card">
-      <i class="bi bi-list-ul"></i>
-      <div>
-        <div>{{ logs|length }}</div>
+    <div class="stat-card align-items-center">
+      <i class="bi bi-list-ul fs-4"></i> <div>
+        <div class="fw-bold">{{ logs|length }}</div>
         <small>Total logs</small>
+      </div>
+      
+      <div class="ms-auto">
+          <a href="{{ url_for('export_logs_csv') }}" class="btn btn-success">
+              <i class="fas fa-file-csv"></i> Exporter en CSV
+          </a>
       </div>
     </div>
   </div>
