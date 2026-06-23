@@ -82,9 +82,8 @@ def login():
         if user.role == "marketing":
            return redirect(url_for("supervisor.supervisor_check"))
 
-        return redirect(url_for("mood.mood"))
-
-    # ✅ IMPORTANT : GET /login
+        return redirect(url_for("organisation.choose_organisation"))
+    
     return render_template("login.html")
 
 

@@ -29,7 +29,7 @@ def supervisor_check():
         if mot == secret.upper():
             session["supervisor_verified"] = True
             session.pop("supervisor_word", None)  # reset mot
-            return redirect(url_for("mood.mood"))
+            return redirect(url_for("organisation.choose_organisation"))
 
         # Régénérer le style en cas d'erreur
         captcha_style = captcha_service.generate_captcha_style(secret)
