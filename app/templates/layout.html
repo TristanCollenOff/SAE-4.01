@@ -72,17 +72,6 @@
 			--rythmo-secondary-rgb: 27, 94, 32;
 			--rythmo-text-light: #c8e6c9;
 		}
-		body.nuit {
-			--rythmo-bg: #0a0515;
-			--rythmo-gradient-start: #1a0a2a;
-			--rythmo-gradient-end: #05020a;
-			--rythmo-accent: #7c3aed;
-			--rythmo-accent-light: #a78bfa;
-			--rythmo-accent-rgb: 124, 58, 237;
-			--rythmo-secondary: #4c1d95;
-			--rythmo-secondary-rgb: 76, 29, 149;
-			--rythmo-text-light: #e0d4fc;
-		}
 
 		/* ===== DÉCOR NATURE (arbres + feuilles) ===== */
 		.theme-nature-bg {
@@ -179,6 +168,18 @@
 			--rythmo-secondary: #e91e63;
 			--rythmo-secondary-rgb: 233, 30, 99;
 			--rythmo-text-light: #fff0f5;
+		}
+
+		body.nuit {
+			--rythmo-bg: #0a0515;
+			--rythmo-gradient-start: #1a0a2a;
+			--rythmo-gradient-end: #05020a;
+			--rythmo-accent: #7c3aed;
+			--rythmo-accent-light: #a78bfa;
+			--rythmo-accent-rgb: 124, 58, 237;
+			--rythmo-secondary: #4c1d95;
+			--rythmo-secondary-rgb: 76, 29, 149;
+			--rythmo-text-light: #e0d4fc;
 		}
 
 		/* ===== DÉCOR ROMANTIQUE (cœurs + fleurs roses) ===== */
@@ -539,6 +540,301 @@
 			100% { transform: translateY(105vh) rotate(720deg) translateX(30px); opacity: 0; }
 		}
 
+		/* ===== DÉCOR NUIT (étoiles scintillantes + ciel nocturne) ===== */
+		.theme-nuit-bg {
+			position: fixed;
+			inset: 0;
+			z-index: 0;
+			pointer-events: none;
+			overflow: hidden;
+		}
+
+		.nuit-sky-glow {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 70%;
+			background: radial-gradient(ellipse 80% 70% at 50% 0%, rgba(138, 43, 226, 0.2) 0%, rgba(184, 106, 240, 0.1) 40%, transparent 60%);
+		}
+
+		.nuit-moon-glow {
+			position: absolute;
+			top: 12%;
+			left: 15%;
+			width: clamp(60px, 8vw, 90px);
+			height: clamp(60px, 8vw, 90px);
+			background: radial-gradient(circle, rgba(184, 106, 240, 0.5) 0%, rgba(138, 43, 226, 0.2) 50%, transparent 70%);
+			filter: blur(20px);
+			animation: nuitMoonPulse 6s ease-in-out infinite;
+		}
+
+		@keyframes nuitMoonPulse {
+			0%, 100% { opacity: 0.6; transform: scale(1); }
+			50% { opacity: 0.9; transform: scale(1.1); }
+		}
+
+		.nuit-star {
+			position: absolute;
+			background: #fff;
+			border-radius: 50%;
+			animation: nuitStarTwinkle ease-in-out infinite;
+		}
+
+		.nuit-star-small {
+			width: 2px;
+			height: 2px;
+			box-shadow: 0 0 4px rgba(255, 255, 255, 0.7), 0 0 8px rgba(184, 106, 240, 0.4);
+		}
+
+		.nuit-star-medium {
+			width: 3px;
+			height: 3px;
+			box-shadow: 0 0 6px rgba(255, 255, 255, 0.8), 0 0 12px rgba(184, 106, 240, 0.5), 0 0 18px rgba(138, 43, 226, 0.3);
+		}
+
+		.nuit-star-large {
+			width: 4px;
+			height: 4px;
+			box-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 16px rgba(184, 106, 240, 0.6), 0 0 24px rgba(138, 43, 226, 0.4), 0 0 32px rgba(100, 50, 150, 0.2);
+		}
+
+		.nuit-star-bright {
+			width: 4px;
+			height: 4px;
+			background: #fff;
+			border-radius: 50%;
+			box-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 20px rgba(200, 150, 255, 0.8), 0 0 30px rgba(184, 106, 240, 0.6), 0 0 40px rgba(138, 43, 226, 0.4);
+			position: relative;
+		}
+
+		.nuit-star-bright::before,
+		.nuit-star-bright::after {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+			border-radius: 50%;
+		}
+
+		.nuit-star-bright::before {
+			width: 30px;
+			height: 2px;
+			box-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 16px rgba(200, 150, 255, 0.5);
+		}
+
+		.nuit-star-bright::after {
+			width: 2px;
+			height: 30px;
+			box-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 16px rgba(200, 150, 255, 0.5);
+		}
+
+		.nuit-star-bright-glow {
+			width: 6px;
+			height: 6px;
+			background: #fff;
+			border-radius: 50%;
+			box-shadow: 0 0 15px rgba(255, 255, 255, 1), 0 0 30px rgba(200, 150, 255, 0.9), 0 0 45px rgba(184, 106, 240, 0.7), 0 0 60px rgba(138, 43, 226, 0.5);
+			position: relative;
+		}
+
+		.nuit-star-bright-glow::before,
+		.nuit-star-bright-glow::after {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+			border-radius: 50%;
+		}
+
+		.nuit-star-bright-glow::before {
+			width: 40px;
+			height: 2px;
+			box-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 24px rgba(200, 150, 255, 0.7);
+		}
+
+		.nuit-star-bright-glow::after {
+			width: 2px;
+			height: 40px;
+			box-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 24px rgba(200, 150, 255, 0.7);
+		}
+
+		.nuit-star-1 { top: 8%; left: 25%; animation-duration: 3s; animation-delay: 0s; }
+		.nuit-star-2 { top: 15%; left: 45%; animation-duration: 4s; animation-delay: 0.5s; }
+		.nuit-star-3 { top: 5%; left: 65%; animation-duration: 3.5s; animation-delay: 1s; }
+		.nuit-star-4 { top: 20%; left: 80%; animation-duration: 4.5s; animation-delay: 1.5s; }
+		.nuit-star-5 { top: 12%; left: 10%; animation-duration: 3.2s; animation-delay: 2s; }
+		.nuit-star-6 { top: 25%; left: 35%; animation-duration: 3.8s; animation-delay: 0.8s; }
+		.nuit-star-7 { top: 18%; left: 55%; animation-duration: 4.2s; animation-delay: 1.2s; }
+		.nuit-star-8 { top: 30%; left: 70%; animation-duration: 3.6s; animation-delay: 1.8s; }
+		.nuit-star-9 { top: 35%; left: 20%; animation-duration: 4s; animation-delay: 0.3s; }
+		.nuit-star-10 { top: 28%; left: 50%; animation-duration: 3.4s; animation-delay: 2.2s; }
+		.nuit-star-11 { top: 40%; left: 85%; animation-duration: 4.3s; animation-delay: 0.6s; }
+		.nuit-star-12 { top: 45%; left: 15%; animation-duration: 3.7s; animation-delay: 1.4s; }
+		.nuit-star-13 { top: 38%; left: 40%; animation-duration: 4.1s; animation-delay: 1.9s; }
+		.nuit-star-14 { top: 50%; left: 60%; animation-duration: 3.9s; animation-delay: 0.4s; }
+		.nuit-star-15 { top: 55%; left: 75%; animation-duration: 4.4s; animation-delay: 2.1s; }
+		.nuit-star-16 { top: 7%; left: 5%; animation-duration: 3.1s; animation-delay: 0.2s; }
+		.nuit-star-17 { top: 22%; left: 92%; animation-duration: 4.6s; animation-delay: 1.7s; }
+		.nuit-star-18 { top: 42%; left: 8%; animation-duration: 3.5s; animation-delay: 2.3s; }
+		.nuit-star-19 { top: 52%; left: 92%; animation-duration: 4.0s; animation-delay: 0.9s; }
+		.nuit-star-20 { top: 58%; left: 30%; animation-duration: 3.3s; animation-delay: 1.1s; }
+		.nuit-star-21 { top: 3%; left: 40%; animation-duration: 3.7s; animation-delay: 0.4s; }
+		.nuit-star-22 { top: 65%; left: 5%; animation-duration: 4.2s; animation-delay: 1.8s; }
+		.nuit-star-23 { top: 70%; left: 45%; animation-duration: 3.4s; animation-delay: 2.5s; }
+		.nuit-star-24 { top: 75%; left: 85%; animation-duration: 4.5s; animation-delay: 0.7s; }
+		.nuit-star-25 { top: 62%; left: 65%; animation-duration: 3.6s; animation-delay: 1.3s; }
+		.nuit-star-26 { top: 48%; left: 3%; animation-duration: 4.1s; animation-delay: 2.1s; }
+		.nuit-star-27 { top: 33%; left: 95%; animation-duration: 3.8s; animation-delay: 0.6s; }
+		.nuit-star-28 { top: 68%; left: 25%; animation-duration: 4.3s; animation-delay: 1.5s; }
+		.nuit-star-29 { top: 78%; left: 55%; animation-duration: 3.2s; animation-delay: 2.4s; }
+		.nuit-star-30 { top: 85%; left: 15%; animation-duration: 4.0s; animation-delay: 0.8s; }
+		.nuit-star-31 { top: 2%; left: 75%; animation-duration: 3.5s; animation-delay: 1.9s; }
+		.nuit-star-32 { top: 55%; left: 40%; animation-duration: 4.4s; animation-delay: 2.2s; }
+		.nuit-star-33 { top: 72%; left: 72%; animation-duration: 3.7s; animation-delay: 0.3s; }
+		.nuit-star-34 { top: 45%; left: 18%; animation-duration: 4.1s; animation-delay: 1.6s; }
+		.nuit-star-35 { top: 60%; left: 88%; animation-duration: 3.3s; animation-delay: 2.0s; }
+		.nuit-star-36 { top: 25%; left: 55%; animation-duration: 4.6s; animation-delay: 0.5s; }
+		.nuit-star-37 { top: 80%; left: 35%; animation-duration: 3.9s; animation-delay: 1.2s; }
+		.nuit-star-38 { top: 38%; left: 62%; animation-duration: 4.2s; animation-delay: 2.3s; }
+		.nuit-star-39 { top: 67%; left: 48%; animation-duration: 3.4s; animation-delay: 0.9s; }
+		.nuit-star-40 { top: 82%; left: 78%; animation-duration: 4.5s; animation-delay: 1.7s; }
+
+		@keyframes nuitStarTwinkle {
+			0%, 100% { opacity: 0.3; transform: scale(1) rotate(0deg); }
+			25% { opacity: 0.6; transform: scale(1.1) rotate(45deg); }
+			50% { opacity: 1; transform: scale(1.3) rotate(90deg); }
+			75% { opacity: 0.6; transform: scale(1.1) rotate(135deg); }
+		}
+
+		.nuit-shooting-star {
+			position: absolute;
+			width: 120px;
+			height: 3px;
+			background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), rgba(184, 106, 240, 0.6), transparent);
+			right: -150px;
+			animation: nuitShootingStar 6s ease-in-out infinite;
+			opacity: 0;
+			filter: blur(1px);
+			box-shadow: 0 0 10px rgba(184, 106, 240, 0.8), 0 0 20px rgba(138, 43, 226, 0.5);
+		}
+
+		.nuit-shooting-star-1 { top: 8%; animation-delay: 0s; animation-duration: 5s; }
+		.nuit-shooting-star-2 { top: 20%; animation-delay: 2s; animation-duration: 7s; width: 100px; }
+		.nuit-shooting-star-3 { top: 12%; animation-delay: 4s; animation-duration: 6s; }
+		.nuit-shooting-star-4 { top: 30%; animation-delay: 1s; animation-duration: 8s; width: 140px; }
+		.nuit-shooting-star-5 { top: 5%; animation-delay: 3s; animation-duration: 5.5s; }
+		.nuit-shooting-star-6 { top: 25%; animation-delay: 5s; animation-duration: 6.5s; width: 90px; }
+		.nuit-shooting-star-7 { top: 15%; animation-delay: 2.5s; animation-duration: 7.5s; }
+		.nuit-shooting-star-8 { top: 35%; animation-delay: 4.5s; animation-duration: 5.8s; width: 110px; }
+
+		@keyframes nuitShootingStar {
+			0% { transform: translateX(0) translateY(0) rotate(-15deg) scaleX(0.5); opacity: 0; }
+			3% { opacity: 1; transform: translateX(-50px) translateY(20px) rotate(-15deg) scaleX(1); }
+			10% { transform: translateX(-200px) translateY(80px) rotate(-15deg) scaleX(1.2); opacity: 0.9; }
+			20% { transform: translateX(-450px) translateY(180px) rotate(-15deg) scaleX(1); opacity: 0.7; }
+			25% { transform: translateX(-550px) translateY(220px) rotate(-15deg) scaleX(0.8); opacity: 0; }
+			100% { transform: translateX(-550px) translateY(220px) rotate(-15deg) scaleX(0.8); opacity: 0; }
+		}
+
+		.nuit-constellation {
+			position: absolute;
+			top: 15%;
+			left: 30%;
+			width: 150px;
+			height: 100px;
+			animation: nuitConstellationFloat 20s ease-in-out infinite;
+		}
+
+		.nuit-constellation-star {
+			position: absolute;
+			width: 4px;
+			height: 4px;
+			background: #fff;
+			border-radius: 50%;
+			box-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 16px rgba(184, 106, 240, 0.6);
+		}
+
+		.nuit-constellation-line {
+			position: absolute;
+			height: 1px;
+			background: linear-gradient(90deg, rgba(255, 255, 255, 0.3), rgba(184, 106, 240, 0.2), rgba(255, 255, 255, 0.3));
+			transform-origin: left center;
+		}
+
+		@keyframes nuitConstellationFloat {
+			0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+			50% { transform: translateY(-10px) scale(1.05); opacity: 0.9; }
+		}
+
+		.nuit-nebula {
+			position: absolute;
+			filter: blur(40px);
+			animation: nuitNebulaPulse 12s ease-in-out infinite, nuitNebulaDrift 20s ease-in-out infinite;
+		}
+
+		.nuit-nebula-1 {
+			top: 15%;
+			left: 50%;
+			width: 400px;
+			height: 300px;
+			background: radial-gradient(ellipse, rgba(100, 50, 150, 0.5) 0%, rgba(80, 40, 120, 0.3) 30%, rgba(60, 30, 90, 0.15) 50%, transparent 70%);
+			animation-delay: 0s, 0s;
+		}
+
+		.nuit-nebula-2 {
+			top: 50%;
+			left: 20%;
+			width: 350px;
+			height: 250px;
+			background: radial-gradient(ellipse, rgba(80, 40, 130, 0.45) 0%, rgba(60, 30, 100, 0.3) 35%, rgba(40, 20, 70, 0.15) 55%, transparent 70%);
+			animation-delay: 3s, 5s;
+		}
+
+		.nuit-nebula-3 {
+			top: 25%;
+			left: 75%;
+			width: 300px;
+			height: 200px;
+			background: radial-gradient(ellipse, rgba(120, 60, 160, 0.4) 0%, rgba(100, 50, 130, 0.25) 30%, rgba(80, 40, 100, 0.1) 50%, transparent 70%);
+			animation-delay: 6s, 10s;
+		}
+
+		.nuit-nebula-4 {
+			top: 60%;
+			left: 65%;
+			width: 280px;
+			height: 180px;
+			background: radial-gradient(ellipse, rgba(90, 50, 140, 0.35) 0%, rgba(70, 40, 110, 0.2) 35%, transparent 65%);
+			animation-delay: 9s, 15s;
+		}
+
+		@keyframes nuitNebulaPulse {
+			0%, 100% { opacity: 0.5; transform: scale(1); }
+			25% { opacity: 0.7; transform: scale(1.05); }
+			50% { opacity: 0.6; transform: scale(1.1); }
+			75% { opacity: 0.8; transform: scale(1.05); }
+		}
+
+		@keyframes nuitNebulaDrift {
+			0%, 100% { transform: translate(0, 0) rotate(0deg); }
+			33% { transform: translate(20px, -15px) rotate(2deg); }
+			66% { transform: translate(-15px, 10px) rotate(-2deg); }
+		}
+
+		.nuit-ground {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 15%;
+			background: linear-gradient(180deg, transparent 0%, rgba(5, 8, 20, 0.6) 100%);
+		}
+
 		/* ===== DÉCOR DEFAULT (notes de musique + clé de sol) — voir includes/theme-default-styles.html ===== */
 
 		body {
@@ -594,6 +890,16 @@
 				radial-gradient(circle at 50% 100%, rgba(255, 109, 0, 0.15) 0%, transparent 50%),
 				linear-gradient(180deg, #ff8f00 0%, #e65100 25%, #3d2200 55%, #1a0f00 100%);
 		}
+
+		body.nuit {
+			background-color: #0d0518;
+			background-image:
+				radial-gradient(ellipse 80% 60% at 50% 30%, rgba(100, 50, 150, 0.4) 0%, rgba(80, 40, 120, 0.25) 40%, transparent 60%),
+				radial-gradient(circle at 20% 80%, rgba(80, 40, 130, 0.35) 0%, rgba(60, 30, 100, 0.18) 45%, transparent 55%),
+				radial-gradient(ellipse 70% 50% at 80% 20%, rgba(120, 60, 160, 0.3) 0%, rgba(100, 50, 130, 0.15) 40%, transparent 55%),
+				radial-gradient(ellipse 60% 40% at 30% 40%, rgba(90, 50, 140, 0.25) 0%, transparent 50%),
+				linear-gradient(180deg, #0d0518 0%, #1a0a30 50%, #0d0518 100%);
+		}
 	</style>
 
 	{% include 'includes/theme-default-styles.html' %}
@@ -617,6 +923,10 @@
 
 	{% if session.get('theme') == 'joyeux' %}
 		{% include 'includes/theme-joyeux-bg.html' %}
+	{% endif %}
+
+	{% if session.get('theme') == 'nuit' %}
+		{% include 'includes/theme-nuit-bg.html' %}
 	{% endif %}
 
 	{% if session.get('theme', 'default') == 'default' %}
