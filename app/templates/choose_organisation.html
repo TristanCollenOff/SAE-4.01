@@ -1,0 +1,203 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="org-page">
+  <div class="org-card">
+    <div class="org-header">
+      <div class="org-icon">
+        <i class="bi bi-buildings-fill"></i>
+      </div>
+      <div>
+        <p class="org-subtitle">Espace client</p>
+        <h1>Choisir une organisation</h1>
+      </div>
+    </div>
+
+    <p class="org-description">
+      Sélectionnez l’organisation sur laquelle vous souhaitez travailler.
+      Les lecteurs, playlists et planifications seront filtrés selon ce choix.
+    </p>
+
+    <div class="org-grid">
+      {% for organisation in organisations %}
+        <form method="POST">
+          <input type="hidden" name="id_organisation" value="{{ organisation.id_organisation }}">
+          <button type="submit" class="org-button">
+            <div class="org-logo">
+              {{ organisation.nom_organisation[:1] }}
+            </div>
+            <div class="org-info">
+              <span class="org-name">{{ organisation.nom_organisation }}</span>
+              <span class="org-meta">Accéder à l’espace de gestion</span>
+            </div>
+            <i class="bi bi-arrow-right-circle"></i>
+          </button>
+        </form>
+      {% else %}
+        <div class="org-empty">
+          <i class="bi bi-exclamation-triangle"></i>
+          <p>Aucune organisation associée à votre compte.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+.org-page {
+  min-height: 65vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+}
+
+.org-card {
+  width: min(980px, 100%);
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 193, 7, 0.18);
+  border-radius: 28px;
+  padding: 2.5rem;
+  backdrop-filter: blur(35px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.org-header {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.org-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffc107, #d11831);
+  color: #1a060c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.9rem;
+  box-shadow: 0 10px 30px rgba(255, 193, 7, 0.25);
+}
+
+.org-subtitle {
+  margin: 0 0 0.25rem 0;
+  color: #ffc107;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.8rem;
+}
+
+.org-header h1 {
+  margin: 0;
+  color: white;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+
+.org-description {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 760px;
+  margin-bottom: 2rem;
+}
+
+.org-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.org-button {
+  width: 100%;
+  min-height: 94px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.065);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: left;
+}
+
+.org-button:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 193, 7, 0.45);
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.16), rgba(209, 24, 49, 0.12));
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.3);
+}
+
+.org-logo {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  border-radius: 16px;
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  color: #ffc107;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.org-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.org-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.org-meta {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.org-button i {
+  color: #ffc107;
+  font-size: 1.35rem;
+  opacity: 0.8;
+}
+
+.org-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.org-empty i {
+  color: #ffc107;
+  font-size: 2rem;
+}
+
+@media (max-width: 768px) {
+  .org-card {
+    padding: 1.5rem;
+  }
+
+  .org-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .org-header {
+    align-items: flex-start;
+  }
+}
+</style>
+{% endblock %}
