@@ -873,7 +873,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (this.disabled) return;
       
       const action = this.dataset.action;
-      const lecteurId = {{ lecteur.id_lecteur }};
+      const lecteurId = Number("{{ lecteur.id_lecteur }}");
       
       if (action === 'disable' || action === 'restart') {
         const actionName = action === 'disable' ? 'désactiver' : 'redémarrer';
