@@ -41,6 +41,7 @@ def check_session_timeout():
 # -------------------------
 
 from app.models.UserDAO import UserSqliteDAO
+from app.services.permissions import can, get_role_permissions, role_label, normalize_role
 
 @app.before_request
 def load_user():
@@ -56,9 +57,19 @@ def inject_globals():
     theme = session.get("theme", "default")
     if theme == "chill":
         theme = "romantique"
+
+    user = g.get("current_user", None)
+    role = normalize_role(user.role if user else session.get("role"))
+
+    def user_can(permission):
+        return can(role, permission)
+
     return {
-        "current_user": g.get("current_user", None),
-        "theme": theme
+        "current_user": user,
+        "theme": theme,
+        "permissions": get_role_permissions(role),
+        "role_label": role_label(role),
+        "user_can": user_can,
     }
 
 

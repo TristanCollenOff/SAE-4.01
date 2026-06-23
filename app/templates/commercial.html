@@ -1,0 +1,103 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container mt-4 pb-5">
+  <div class="section-header-compact mb-4">
+    <div>
+      <h1><i class="bi bi-megaphone-fill"></i> Espace Commercial</h1>
+      <p>Publicités, annonces et diffusion sur les lecteurs</p>
+    </div>
+    <a href="{{ url_for('index') }}" class="btn-section-header">
+      <i class="bi bi-arrow-left"></i> Tableau de bord
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="admin-card p-4 h-100">
+        <h3><i class="bi bi-plus-circle"></i> Ajouter une publicité / annonce</h3>
+        <form method="post" class="mt-3">
+          <input type="hidden" name="action" value="create">
+          <div class="mb-3">
+            <label class="form-label">Type de contenu</label>
+            <select name="contenu_type" class="form-select">
+              <option value="publicite">Publicité</option>
+              <option value="annonce">Annonce</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Titre</label>
+            <input type="text" name="titre" class="form-control" required placeholder="Ex. Promo été">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Lecteur cible</label>
+            <select name="id_lecteur" class="form-select" required>
+              {% for lecteur in lecteurs %}
+              <option value="{{ lecteur.id_lecteur }}">{{ lecteur.nom_lecteur }} — {{ lecteur.adresse_lecteur or 'Sans zone' }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-rythmo-primary">
+            <i class="bi bi-save"></i> Enregistrer
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="admin-card p-4 h-100">
+        <h3><i class="bi bi-lightning-charge-fill"></i> Annonce urgente</h3>
+        <p class="text-muted">Diffuse immédiatement une annonce sur le lecteur choisi.</p>
+        <div class="mb-3">
+          <label class="form-label">Lecteur</label>
+          <select id="urgentLecteur" class="form-select">
+            {% for lecteur in lecteurs %}
+            <option value="{{ lecteur.id_lecteur }}">{{ lecteur.nom_lecteur }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="button" class="btn btn-danger" id="urgentBtn">
+          <i class="bi bi-broadcast"></i> Déclencher maintenant
+        </button>
+        <div id="urgentResult" class="mt-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-md-4">
+      <a href="{{ url_for('playlist.playlists') }}" class="hub-card text-decoration-none d-block admin-card p-4">
+        <h4><i class="bi bi-music-note-list"></i> Playlists disponibles</h4>
+        <p>Consulter les playlists publiées</p>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{{ url_for('planification.planifier_lecteur', id_lecteur=lecteurs[0].id_lecteur if lecteurs else 1) }}" class="hub-card text-decoration-none d-block admin-card p-4">
+        <h4><i class="bi bi-calendar-week"></i> Planifier une diffusion</h4>
+        <p>Choisir un créneau ou une playlist</p>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{{ url_for('lecteurs_ops.lecteurs_ops') }}" class="hub-card text-decoration-none d-block admin-card p-4">
+        <h4><i class="bi bi-speaker"></i> État des lecteurs</h4>
+        <p>Consulter le statut en temps réel</p>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('urgentBtn')?.addEventListener('click', async function() {
+  const id = document.getElementById('urgentLecteur').value;
+  const result = document.getElementById('urgentResult');
+  result.textContent = 'Envoi en cours...';
+  try {
+    const response = await fetch('/api/lancer_pub/' + id);
+    const data = await response.json();
+    result.textContent = data.message || data.status;
+  } catch (e) {
+    result.textContent = 'Erreur lors du déclenchement.';
+  }
+});
+</script>
+{% endblock %}

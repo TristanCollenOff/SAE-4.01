@@ -19,8 +19,9 @@ from app.controllers.PlaylistController import playlist_bp
 app.register_blueprint(playlist_bp)
 from app.controllers.SitesZonesController import sites_zones_bp
 app.register_blueprint(sites_zones_bp)
-from app.controllers.LecteursOpsController import lecteurs_ops_bp
+from app.controllers.LecteursOpsController import lecteurs_ops_bp, commercial_bp
 app.register_blueprint(lecteurs_ops_bp)
+app.register_blueprint(commercial_bp)
 from app.controllers.AlertesController import alertes_bp
 app.register_blueprint(alertes_bp)
 from app.controllers.ContactController import contact_bp
