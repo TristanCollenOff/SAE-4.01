@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       try {
-        const response = await fetch('{{ url_for("lecteurs_ops.lecteur_action") }}', {
+        const response = await fetch('{{ url_for("lecteurs_ops.lecteurs_ops") }}', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({

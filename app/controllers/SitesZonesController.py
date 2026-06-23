@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, session, abort
 from app.controllers.LoginController import reqlogged
+from app.services.access_control import require_permission
 from app.models.LecteurDAO import LecteurDAO
 import sqlite3
 import os
@@ -159,6 +160,7 @@ def get_lecteurs_by_site(site_id):
 
 @sites_zones_bp.route("/", methods=['GET'])
 @reqlogged
+@require_permission("manage_sites_zones")
 def sites_zones():
     """Page principale de gestion des sites et zones"""
     role = session.get("role", "utilisateur")
@@ -186,6 +188,7 @@ def sites_zones():
 
 @sites_zones_bp.route("/create-site", methods=['POST'])
 @reqlogged
+@require_permission("manage_sites_zones")
 def create_site():
     """Créer un nouveau site"""
     data = request.get_json()
@@ -202,6 +205,7 @@ def create_site():
 
 @sites_zones_bp.route("/create-zone", methods=['POST'])
 @reqlogged
+@require_permission("manage_sites_zones")
 def create_zone():
     """Créer une nouvelle zone"""
     data = request.get_json()
@@ -217,6 +221,7 @@ def create_zone():
 
 @sites_zones_bp.route("/assign-lecteur", methods=['POST'])
 @reqlogged
+@require_permission("manage_sites_zones")
 def assign_lecteur():
     """Assigner un lecteur à une zone"""
     data = request.get_json()
@@ -233,6 +238,7 @@ def assign_lecteur():
 
 @sites_zones_bp.route("/group-action", methods=['POST'])
 @reqlogged
+@require_permission("manage_sites_zones")
 def group_action():
     """Action groupée sur une zone ou un site"""
     data = request.get_json()

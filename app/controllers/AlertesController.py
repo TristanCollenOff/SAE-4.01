@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, session
 from app.controllers.LoginController import reqlogged
+from app.services.access_control import require_permission
 from app.models.LecteurDAO import LecteurDAO
 from datetime import datetime, timedelta
 import random
@@ -211,6 +212,7 @@ def get_incidents():
 
 @alertes_bp.route("/", methods=['GET'])
 @reqlogged
+@require_permission("manage_alertes")
 def alertes():
     """Page principale des alertes"""
     role = session.get("role", "utilisateur")
@@ -263,6 +265,7 @@ def alertes():
 
 @alertes_bp.route("/<incident_id>", methods=['GET'])
 @reqlogged
+@require_permission("manage_alertes")
 def alerte_detail(incident_id):
     """Vue détaillée d'un incident"""
     role = session.get("role", "utilisateur")
@@ -289,6 +292,7 @@ def alerte_detail(incident_id):
 
 @alertes_bp.route("/action", methods=['POST'])
 @reqlogged
+@require_permission("manage_alertes")
 def incident_action():
     """Exécuter une action sur un incident"""
     data = request.get_json()
