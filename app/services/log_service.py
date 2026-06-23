@@ -4,11 +4,13 @@ from datetime import datetime
 
 DB_PATH = app.root_path + '/database.db'
 
+# Centralisation des types d'actions (parfaitement alignés avec ton schema.sql et logs.html)
 LOG_TYPES = {
     'INFO': 'INFO',
     'WARNING': 'WARNING',
     'ERROR': 'ERROR',
-    'CONNEXION': 'CONNEXION'
+    'CONNEXION': 'CONNEXION',
+    'ALERTE': 'ALERTE'
 }
 
 def add_log(log_type: str, id_organisation: int, message: str):
@@ -28,22 +30,33 @@ def add_log(log_type: str, id_organisation: int, message: str):
         print(f"Erreur lors de l'écriture du log : {e}")
 
 def log_login(user):
-
+    """Log la connexion d'un utilisateur (gère username ou nom_utilisateur)"""
     id_org = getattr(user, 'id_organisation', 1) 
-    add_log(LOG_TYPES['CONNEXION'], id_org, f"L'utilisateur {user.username} s'est connecté")
+    
+    # Sécurité anti-AttributeError : s'adapte à n'importe quel modèle d'objet User
+    username = getattr(user, 'username', getattr(user, 'nom_utilisateur', str(user)))
+    
+    add_log(LOG_TYPES['CONNEXION'], id_org, f"L'utilisateur {username} s'est connecté")
 
 def log_logout(user):
+    """Log la déconnexion d'un utilisateur (gère username ou nom_utilisateur)"""
     id_org = getattr(user, 'id_organisation', 1)
-    add_log(LOG_TYPES['CONNEXION'], id_org, f"L'utilisateur {user.username} s'est déconnecté")
+    
+    # Même sécurité anti-AttributeError
+    username = getattr(user, 'username', getattr(user, 'nom_utilisateur', str(user)))
+    
+    add_log(LOG_TYPES['CONNEXION'], id_org, f"L'utilisateur {username} s'est déconnecté")
 
 def log_failed_login(id_organisation, username, reason="Mot de passe incorrect"):
-    """Log une tentative de connexion échouée (nécessite l'id de l'organisation cible ou par défaut)"""
+    """Log une tentative de connexion échouée"""
     add_log(LOG_TYPES['ERROR'], id_organisation, f"Tentative de connexion échouée pour {username} : {reason}")
 
 def log_action(user, action_msg):
     """Log une action utilisateur pour AdminController.py"""
     id_org = getattr(user, 'id_organisation', 1)
-    username = user.username if hasattr(user, 'nom_utilisateur') else str(user)
+    
+    # Sécurité pour extraire correctement le nom d'utilisateur peu importe l'attribut
+    username = getattr(user, 'username', getattr(user, 'nom_utilisateur', str(user)))
 
     full_message = f"[{username}] {action_msg}"
     add_log(LOG_TYPES['WARNING'], id_org, full_message)
