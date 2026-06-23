@@ -30,7 +30,7 @@ def register():
                 prenom=prenom,
                 nom=nom,
                 email=email,
-                role='utilisateur'
+                role='commercial'
             )
             if success:
                 flash("Compte créé avec succès ! Vous pouvez maintenant vous connecter.", "success")

@@ -1,7 +1,7 @@
 class UserDAOInterface:
     """Interface pour le DAO user"""
 
-    def createUser(self, username, password, role='utilisateur', prenom="", nom="", age=None, email=""):
+    def createUser(self, username, password, role='commercial', prenom="", nom="", age=None, email=""):
         """
         Crée un utilisateur.
         - Vérifie la complexité du mot de passe

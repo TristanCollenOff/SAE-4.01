@@ -42,8 +42,8 @@ def init_db():
 
             roles = [
                 ("admin", "Administrateur"),
-                ("superviseur", "Superviseur"),
-                ("utilisateur", "Utilisateur")
+                ("marketing", "Marketing"),
+                ("commercial", "Commercial"),
             ]
 
             cursor.executemany(
@@ -71,8 +71,8 @@ def init_db():
                 """,
                 [
                     ("Admin", hash_password("Admin@12345"), "Admin", "System", "admin@test.com", "admin"),
-                    ("Antoine", hash_password("Antoine@12345"), "Antoine", "User", "antoine@test.com", "utilisateur"),
-                    ("Superviseur", hash_password("Superviseur@12345"), "Superviseur", "User", "superviseur@test.com", "superviseur")
+                    ("Commercial", hash_password("Commercial@12345"), "Antoine", "User", "commercial@test.com", "commercial"),
+                    ("Marketing", hash_password("Marketing@12345"), "Marie", "User", "marketing@test.com", "marketing"),
                 ]
             )
 

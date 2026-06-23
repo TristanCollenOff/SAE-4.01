@@ -2,6 +2,7 @@ from app import app
 from flask import render_template, request, redirect, url_for, session
 from app.services.user_service import UserService
 from app.services.log_service import log_login, log_failed_login, log_logout
+from app.services.permissions import normalize_role, can
 from functools import wraps
 
 user_service = UserService()
@@ -23,8 +24,8 @@ def reqrole(role):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if session.get("role") != role:
-                return "Accès refusé"
+            if normalize_role(session.get("role")) != normalize_role(role):
+                return "Accès refusé", 403
             return f(*args, **kwargs)
         return decorated_function
     return decorator
@@ -75,18 +76,17 @@ def login():
         session["username"] = user.username
         session["role"] = user.role
         session["logged"] = True
-        session["supervisor_verified"] = False
 
         log_login(user)
 
-        # REDIRECTION
-        if user.role == "superviseur":
+        if user.role == "marketing":
            return redirect(url_for("supervisor.supervisor_check"))
 
         return redirect(url_for("mood.mood"))
 
     # ✅ IMPORTANT : GET /login
     return render_template("login.html")
+
 
 
 # -----------------------------

@@ -10,7 +10,7 @@ class UserService:
     # -------------------
     # CREATE USER
     # -------------------
-    def create_user(self, username, password, role='utilisateur',
+    def create_user(self, username, password, role='commercial',
                     prenom="", nom="", age=None, email=""):
         return self.udao.createUser(username, password, role, prenom, nom, email)
 

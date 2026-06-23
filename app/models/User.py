@@ -12,7 +12,10 @@ class User:
 
         # IMPORTANT : standardisation des noms
         self.username = row["nom_utilisateur"]
-        self.role = row["nom_role"] if "nom_role" in row.keys() else "utilisateur"
+        from app.services.permissions import normalize_role
+
+        raw_role = row["nom_role"] if "nom_role" in row.keys() else "commercial"
+        self.role = normalize_role(raw_role)
 
         self.firstname = row["prenom"] if "prenom" in row.keys() else ""
         self.lastname = row["nom"] if "nom" in row.keys() else ""
@@ -66,9 +69,11 @@ class User:
 
     # ---------------- ROLE ----------------
     def has_access(self, resource_role):
-        if self.role == "superviseur":
+        from app.services.permissions import normalize_role
+
+        if self.role == "admin":
             return True
-        return self.role == resource_role
+        return self.role == normalize_role(resource_role)
 
     # ---------------- FLASK COMPAT ----------------
     def is_authenticated(self):

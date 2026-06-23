@@ -42,7 +42,7 @@ class UserSqliteDAO(UserDAOInterface):
         )
 
     # ---------------- CREATE USER ----------------
-    def createUser(self, username, password, role='utilisateur',
+    def createUser(self, username, password, role='commercial',
                    prenom="", nom="", email=""):
 
         if not self._is_password_strong(password):
