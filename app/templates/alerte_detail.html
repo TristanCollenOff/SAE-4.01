@@ -86,10 +86,14 @@
                 <i class="bi bi-tag-fill"></i> Type d'incident
               </div>
               <div class="info-value">
-                <span class="type-badge" style="background: {{ incident_types[incident.type].couleur }}20; border-color: {{ incident_types[incident.type].couleur }}40; color: {{ incident_types[incident.type].couleur }}">
-                  <i class="bi {{ incident_types[incident.type].icone }}"></i>
-                  {{ incident_types[incident.type].nom }}
-                </span>
+
+{% set couleur_type = incident_types[incident.type].couleur %}
+
+<span class="type-badge"
+      style="background-color: {{ couleur_type }}20; border-color: {{ couleur_type }}40; color: {{ couleur_type }};">
+  <i class="bi {{ incident_types[incident.type].icone }}"></i>
+  {{ incident_types[incident.type].nom }}
+</span> 
               </div>
             </div>
             <div class="info-item">
