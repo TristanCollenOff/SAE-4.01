@@ -17,9 +17,16 @@
     <a href="{{ url_for('index') }}" class="btn btn-rythmo-back">
       <i class="bi bi-arrow-left"></i> Retour au tableau de bord
     </a>
-    <button class="btn btn-rythmo-primary" id="createPlaylistBtn">
+    <button class="btn btn-rythmo-primary" id="createPlaylistBtn" {% if readonly %}style="display:none"{% endif %}>
       <i class="bi bi-plus-circle"></i> Créer une playlist
     </button>
+    {% if user_can("sync_playlists") %}
+    <form method="post" action="{{ url_for('playlist.sync_playlists') }}" class="d-inline">
+      <button type="submit" class="btn btn-rythmo-primary">
+        <i class="bi bi-arrow-repeat"></i> Synchroniser
+      </button>
+    </form>
+    {% endif %}
   </div>
 
   <!-- Filtres et recherche -->
@@ -43,7 +50,7 @@
         <h2><i class="bi bi-collection"></i> Bibliothèque</h2>
         <span class="library-count">{{ playlists|length }} playlist{{ 's' if playlists|length > 1 else '' }}</span>
       </div>
-      <div class="library-header-actions">
+      <div class="library-header-actions" {% if readonly %}style="display:none"{% endif %}>
         <button class="btn btn-import-music" id="importMusicBtn" type="button">
           <i class="bi bi-upload"></i>
           <span>Importer des musiques</span>
@@ -1492,7 +1499,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     try {
-      const response = await fetch('{{ url_for("playlist.assign_playlist") }}', {
+      const response = await fetch('{{ url_for("playlist.sync_playlists") }}', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({

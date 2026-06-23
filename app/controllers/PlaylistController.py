@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, request, jsonify, session, abort, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, session, abort, redirect, url_for, flash
 from app.controllers.LoginController import reqlogged
 from app.models.LecteurDAO import LecteurDAO
 from app.models.PlaylistDAO import PlaylistDAO
 from app.services.PlaylistService import PlaylistService
+from app.services.access_control import require_permission
+from app.services.permissions import normalize_role, is_playlist_readonly
 from app import app
 import sqlite3
 
@@ -13,22 +15,6 @@ playlist_dao = PlaylistDAO()
 playlist_service = PlaylistService()
 
 
-# -----------------------------
-# SECURITE SUPERVISEUR
-# -----------------------------
-def check_superviseur():
-    if not session.get("superviseur_ok"):
-        return False
-    return True
-
-
-def require_superviseur():
-    if not check_superviseur():
-        return redirect(url_for("supervisor.supervisor_check"))
-
-# -----------------------------
-# ZONES
-# -----------------------------
 def get_zones(lecteurs):
     zones = set()
     for lecteur in lecteurs:
@@ -37,9 +23,6 @@ def get_zones(lecteurs):
     return sorted(list(zones))
 
 
-# -----------------------------
-# SITES
-# -----------------------------
 def get_sites(lecteurs):
     db_path = app.root_path + '/database.db'
     sites = {}
@@ -59,25 +42,17 @@ def get_sites(lecteurs):
                     sites[org["id_organisation"]] = org["nom_organisation"]
 
         conn.close()
-    except:
+    except Exception:
         pass
 
     return sites
 
 
-# -----------------------------
-# LIST PLAYLISTS
-# -----------------------------
 @playlist_bp.route("/", methods=["GET"])
 @reqlogged
+@require_permission("view_playlists", "view_playlists_readonly")
 def playlists():
-
-    # 🔐 SUPERVISEUR CHECK
-    redirect_response = require_superviseur()
-    if redirect_response:
-        return redirect_response
-
-    role = session.get("role", "utilisateur")
+    role = normalize_role(session.get("role", "commercial"))
 
     playlists = playlist_dao.find_all()
     lecteurs = lecteur_dao.find_all()
@@ -96,28 +71,22 @@ def playlists():
         lecteurs=lecteurs,
         zones=zones,
         sites=sites,
-        role=role
+        role=role,
+        readonly=is_playlist_readonly(role),
     )
 
 
-# -----------------------------
-# DETAIL PLAYLIST
-# -----------------------------
 @playlist_bp.route("/<int:id_playlist>", methods=["GET"])
 @reqlogged
+@require_permission("view_playlists", "view_playlists_readonly", "edit_playlist")
 def playlist_detail(id_playlist):
-
-    redirect_response = require_superviseur()
-    if redirect_response:
-        return redirect_response
-
+    role = normalize_role(session.get("role", "commercial"))
     playlist = playlist_service.get_playlist(id_playlist)
 
     if not playlist:
         abort(404)
 
     pistes = get_playlist_pistes(id_playlist)
-
     lecteurs = lecteur_dao.find_all()
     zones = get_zones(lecteurs)
     sites = get_sites(lecteurs)
@@ -133,15 +102,28 @@ def playlist_detail(id_playlist):
         playlist=playlist,
         pistes=pistes,
         lecteurs=lecteurs,
-        zones=sites
+        zones=sites,
+        role=role,
+        readonly=is_playlist_readonly(role),
     )
 
 
-# -----------------------------
-# PISTES
-# -----------------------------
-def get_playlist_pistes(id_playlist):
+@playlist_bp.route("/sync", methods=["POST"])
+@reqlogged
+@require_permission("sync_playlists")
+def sync_playlists():
+    lecteurs = lecteur_dao.find_all()
+    synced = 0
 
+    for lecteur in lecteurs:
+        if lecteur.est_en_ligne():
+            synced += 1
+
+    flash(f"Synchronisation lancée sur {synced} lecteur(s) en ligne.", "success")
+    return redirect(url_for("playlist.playlists"))
+
+
+def get_playlist_pistes(id_playlist):
     db_path = app.root_path + '/database.db'
 
     try:
