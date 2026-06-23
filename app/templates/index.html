@@ -163,7 +163,7 @@
   <div class="dashboard-cards-wrapper">
     <div class="row g-4 justify-content-center">
 
-      {% if current_user.role == "admin" %}
+      {% if user_can("manage_users") %}
       <div class="col-md-4">
         <a href="{{ url_for('admin.admin') }}" class="hub-card text-decoration-none">
           <div class="dashboard-card">
@@ -178,7 +178,7 @@
       </div>
       {% endif %}
 
-      {% if current_user.role in ["admin", "superviseur"] %}
+      {% if user_can("manage_lecteurs") %}
       <div class="col-md-4">
         <a href="{{ url_for('page_lecteurs') }}" class="hub-card text-decoration-none">
           <div class="dashboard-card">
@@ -193,16 +193,59 @@
       </div>
       {% endif %}
 
-      {% if current_user.role == "admin" %}
+      {% if user_can("view_history") %}
       <div class="col-md-4">
         <a href="{{ url_for('logs.logs') }}" class="hub-card text-decoration-none">
           <div class="dashboard-card">
             <div class="icon-bg">
               <i class="bi bi-list-check"></i>
             </div>
-            <h3>Logs</h3>
-            <p>Consulter les actions système</p>
+            <h3>Historique</h3>
+            <p>Consulter l'historique de diffusion</p>
             <span class="dashboard-badge">{{ stats.nb_logs }} événements</span>
+          </div>
+        </a>
+      </div>
+      {% endif %}
+
+      {% if user_can("view_playlists") or user_can("view_playlists_readonly") %}
+      <div class="col-md-4">
+        <a href="{{ url_for('playlist.playlists') }}" class="hub-card text-decoration-none">
+          <div class="dashboard-card">
+            <div class="icon-bg">
+              <i class="bi bi-music-note-list"></i>
+            </div>
+            <h3>Playlists</h3>
+            <p>{% if user_can("edit_playlist") %}Créer et gérer vos playlists{% else %}Consulter les playlists disponibles{% endif %}</p>
+          </div>
+        </a>
+      </div>
+      {% endif %}
+
+      {% if user_can("add_ad") %}
+      <div class="col-md-4">
+        <a href="{{ url_for('commercial.commercial_hub') }}" class="hub-card text-decoration-none">
+          <div class="dashboard-card">
+            <div class="icon-bg">
+              <i class="bi bi-megaphone"></i>
+            </div>
+            <h3>Espace Commercial</h3>
+            <p>Publicités, annonces et diffusion urgente</p>
+          </div>
+        </a>
+      </div>
+      {% endif %}
+
+      {% if user_can("view_lecteur_status") and not user_can("manage_lecteurs") %}
+      <div class="col-md-4">
+        <a href="{{ url_for('lecteurs_ops.lecteurs_ops') }}" class="hub-card text-decoration-none">
+          <div class="dashboard-card">
+            <div class="icon-bg">
+              <i class="bi bi-speaker"></i>
+            </div>
+            <h3>État des lecteurs</h3>
+            <p>Consulter le statut des appareils</p>
+            <span class="dashboard-badge">{{ stats.nb_lecteurs }} lecteurs</span>
           </div>
         </a>
       </div>
@@ -211,6 +254,7 @@
     </div>
   </div>
 
+  {% if user_can("plan_playlist") or user_can("plan_ad") or user_can("choose_slot") %}
   <div class="planification-section mt-5">
     <div class="section-header-compact">
       <div>
@@ -249,7 +293,9 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
+  {% if user_can("view_playlists") or user_can("view_playlists_readonly") %}
   <div class="playlists-section mt-5">
     <div class="section-header-compact">
       <div>
@@ -292,8 +338,9 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
-  {% if current_user.role in ["admin", "superviseur"] %}
+  {% if user_can("manage_sites_zones") %}
   <div class="sites-zones-integrated-section mt-5">
     <div class="section-header-compact">
       <div>
@@ -360,6 +407,7 @@
   {% endif %}
 
 
+  {% if user_can("manage_alertes") %}
   <div class="alertes-section mt-5">
     <div class="section-header-compact">
       <div>
@@ -417,6 +465,7 @@
       </div>
     </div>
   </div>
+  {% endif %}
 </div>
 
 <style>

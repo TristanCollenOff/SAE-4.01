@@ -29,10 +29,16 @@
         <h4>Navigation</h4>
         <ul>
           <li><a href="{{ url_for('index') }}"><i class="bi bi-house-door"></i> Tableau de bord</a></li>
+          {% if user_can("view_playlists") or user_can("view_playlists_readonly") %}
           <li><a href="{{ url_for('playlist.playlists') }}"><i class="bi bi-music-note-list"></i> Playlists</a></li>
+          {% endif %}
+          {% if user_can("control_music") %}
           <li><a href="{{ url_for('musique.musique') }}"><i class="bi bi-play-circle"></i> Musique</a></li>
-          {% if current_user and current_user.role in ["admin", "superviseur"] %}
+          {% endif %}
+          {% if user_can("manage_lecteurs") %}
           <li><a href="{{ url_for('page_lecteurs') }}"><i class="bi bi-gear"></i> Lecteurs</a></li>
+          {% elif user_can("view_lecteur_status") %}
+          <li><a href="{{ url_for('lecteurs_ops.lecteurs_ops') }}"><i class="bi bi-speaker"></i> État des lecteurs</a></li>
           {% endif %}
         </ul>
       </div>
@@ -42,9 +48,11 @@
         <h4>Support</h4>
         <ul>
           <li><a href="{{ url_for('contact.contact') }}"><i class="bi bi-exclamation-triangle"></i> Signaler un incident</a></li>
-          {% if current_user and current_user.role == "admin" %}
+          {% if user_can("manage_users") %}
           <li><a href="{{ url_for('admin.admin') }}"><i class="bi bi-shield-lock"></i> Administration</a></li>
-          <li><a href="{{ url_for('logs.logs') }}"><i class="bi bi-list-check"></i> Logs système</a></li>
+          {% endif %}
+          {% if user_can("view_history") %}
+          <li><a href="{{ url_for('logs.logs') }}"><i class="bi bi-list-check"></i> Historique</a></li>
           {% endif %}
         </ul>
       </div>

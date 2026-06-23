@@ -96,6 +96,7 @@
             </a>
           </li>
           
+          {% if user_can("control_music") %}
           <li class="nav-item-modern">
             <a class="nav-link-modern nav-link-icon-only" href="{{ url_for('musique.musique') }}">
               <i class="bi bi-play-circle-fill"></i>
@@ -103,9 +104,19 @@
               <span class="nav-tooltip">Musique</span>
             </a>
           </li>
-          
-          <!-- Menu "Plus" pour les éléments secondaires -->
-          {% if current_user.role in ["admin", "superviseur"] or current_user.role == "admin" %}
+          {% endif %}
+
+          {% if user_can("view_playlists") or user_can("view_playlists_readonly") %}
+          <li class="nav-item-modern">
+            <a class="nav-link-modern nav-link-icon-only" href="{{ url_for('playlist.playlists') }}">
+              <i class="bi bi-music-note-list"></i>
+              <span class="nav-link-text">Playlists</span>
+              <span class="nav-tooltip">Playlists</span>
+            </a>
+          </li>
+          {% endif %}
+
+          {% if user_can("add_ad") or user_can("view_lecteur_status") or user_can("view_history") or user_can("manage_lecteurs") %}
           <li class="nav-item-modern nav-item-dropdown">
             <button class="nav-link-modern nav-link-icon-only nav-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-three-dots-vertical"></i>
@@ -114,24 +125,45 @@
               <i class="bi bi-chevron-down nav-dropdown-arrow"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end nav-more-menu">
-              {% if current_user.role in ["admin", "superviseur"] %}
+              {% if user_can("add_ad") %}
+              <li>
+                <a class="dropdown-item" href="{{ url_for('commercial.commercial_hub') }}">
+                  <i class="bi bi-megaphone"></i> Espace Commercial
+                </a>
+              </li>
+              {% endif %}
+              {% if user_can("view_lecteur_status") %}
+              <li>
+                <a class="dropdown-item" href="{{ url_for('lecteurs_ops.lecteurs_ops') }}">
+                  <i class="bi bi-speaker"></i> État des lecteurs
+                </a>
+              </li>
+              {% endif %}
+              {% if user_can("manage_lecteurs") %}
               <li>
                 <a class="dropdown-item" href="{{ url_for('page_lecteurs') }}">
                   <i class="bi bi-gear-fill"></i> Lecteurs
                 </a>
               </li>
               {% endif %}
-              {% if current_user.role in ["admin", "superviseur"] %}
+              {% if user_can("manage_alertes") %}
               <li>
                 <a class="dropdown-item" href="{{ url_for('alertes.alertes') }}">
                   <i class="bi bi-bell-fill"></i> Alertes
                 </a>
               </li>
               {% endif %}
-              {% if current_user.role == "admin" %}
+              {% if user_can("view_history") %}
               <li>
                 <a class="dropdown-item" href="{{ url_for('logs.logs') }}">
-                  <i class="bi bi-list-check"></i> Logs
+                  <i class="bi bi-clock-history"></i> Historique
+                </a>
+              </li>
+              {% endif %}
+              {% if user_can("export_history") %}
+              <li>
+                <a class="dropdown-item" href="{{ url_for('export_logs_csv') }}">
+                  <i class="bi bi-download"></i> Exporter les logs
                 </a>
               </li>
               {% endif %}
@@ -212,7 +244,7 @@
               <i class="bi bi-person-circle"></i>
               <div>
                 <strong>{{ current_user.username }}</strong>
-                <small class="text-muted d-block">{{ current_user.role|title }}</small>
+                <small class="text-muted d-block">{{ role_label }}</small>
               </div>
             </div>
           </li>

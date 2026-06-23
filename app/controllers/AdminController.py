@@ -11,8 +11,11 @@ user_service = UserService()
 # -----------------------------
 # CHECK ADMIN
 # -----------------------------
+from app.services.permissions import normalize_role
+
+
 def admin_required():
-    if session.get("role") not in ["admin", "Administrateur"]:
+    if normalize_role(session.get("role")) != "admin":
         abort(403)
 
 

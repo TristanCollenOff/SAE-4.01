@@ -68,10 +68,10 @@
               <span class="role-badge role-{{ u.role|lower }}">
                 {% if u.role == 'admin' %}
                   <i class="bi bi-shield-fill"></i> Admin
-                {% elif u.role == 'superviseur' %}
-                  <i class="bi bi-eye-fill"></i> Superviseur
-                {% else %}
-                  <i class="bi bi-person"></i> Utilisateur
+                {% elif u.role == 'marketing' %}
+                  <i class="bi bi-bullseye"></i> Marketing
+                {% elif u.role == 'commercial' %}
+                  <i class="bi bi-briefcase"></i> Commercial
                 {% endif %}
               </span>
             </td>
@@ -320,13 +320,13 @@
   border: 1px solid rgba(255, 193, 7, 0.4);
 }
 
-.role-superviseur {
+.role-marketing {
   background: rgba(0, 123, 255, 0.25);
   color: #6cb2ff;
   border: 1px solid rgba(0, 123, 255, 0.4);
 }
 
-.role-utilisateur {
+.role-commercial {
   background: rgba(108, 117, 125, 0.25);
   color: #adb5bd;
   border: 1px solid rgba(108, 117, 125, 0.4);

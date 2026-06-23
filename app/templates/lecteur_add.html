@@ -3,7 +3,7 @@
 
 
 {% block content %}
-{% if current_user.role in ["admin", "superviseur"] %}
+{% if user_can("manage_lecteurs") %}
 <!-- Hero Section -->
 <div class="add-hero">
   <div class="container">
