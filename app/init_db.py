@@ -87,7 +87,7 @@ def init_db():
 
             organisations = [
                 (1, "FNAC"),
-                (2, "Carrefour"),
+                (2, "NASA"),
                 (3, "Gare SNCF"),
                 (4, "Université"),
                 (5, "Aéroport"),
@@ -105,7 +105,7 @@ def init_db():
 
             lecteurs = [
                 (1, "Lecteur FNAC", "10.192.104.28", "UP", "Accueil", "FNAC", 0, 1),
-                (2, "Lecteur Carrefour", "10.192.104.29", "UP", "Rayon Frais", "Carrefour", 0, 2),
+                (2, "Lecteur NASA", "10.192.104.29", "UP", "Rayon Frais", "NASA", 0, 2),
                 (3, "Lecteur Gare SNCF", "10.192.104.30", "UP", "Hall principal", "Gare SNCF", 0, 3),
                 (4, "Lecteur Université", "10.192.104.31", "UP", "Bibliothèque", "Université", 0, 4),
                 (5, "Lecteur Aéroport", "10.192.104.32", "UP", "Terminal 1", "Aéroport", 0, 5),
