@@ -40,10 +40,10 @@ AMBIANCE_MUSIQUE = {
         "artiste": "Ambiance romantique",
         "suivante": "Slow Love",
     },
-    "nuit": {
-        "playlist": "Playlist Nuit",
+    "voyage_spacial": {
+        "playlist": "Playlist Voyage Spacial",
         "titre": "Midnight Drive",
-        "artiste": "Ambiance nocturne",
+        "artiste": "Ambiance voyage spacial",
         "suivante": "Lune Synth",
     },
 }

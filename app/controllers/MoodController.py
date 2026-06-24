@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 mood_bp = Blueprint("mood", __name__)
 
-THEMES_VALIDES = ["nature", "triste", "joyeux", "romantique", "nuit" ,"default"]
+THEMES_VALIDES = ["nature", "triste", "joyeux", "romantique", "voyage_spacial" ,"default"]
 
 
 def _safe_redirect_target():

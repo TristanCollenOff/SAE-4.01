@@ -243,20 +243,20 @@ def generate_demo_playlists(db_path):
                 "musiques": [
                     ("Cœur de Velours", 215),
                     ("Slow Love", 208),
-                    ("Rose Nuit", 221),
+                    ("Rose Spatiale", 221),
                     ("Baiser Musical", 212),
                     ("Douce Romance", 226),
                 ],
             },
-            "nuit": {
-                "playlist": "Playlist Nocturne",
-                "dossier": "nuit",
+            "voyage_spacial": {
+                "playlist": "Playlist Voyage Spacial",
+                "dossier": "voyage_spacial",
                 "musiques": [
                     ("Midnight Drive", 217),
                     ("Lune Synth", 203),
                     ("Étoiles Basses", 219),
                     ("Silence Urbain", 210),
-                    ("Bleu Nocturne", 228),
+                    ("Bleu Spatial", 228),
                 ],
             },
         }
