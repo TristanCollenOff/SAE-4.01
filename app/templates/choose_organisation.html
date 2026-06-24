@@ -18,6 +18,17 @@
       Les lecteurs, playlists et planifications seront filtrés selon ce choix.
     </p>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="org-alert org-alert-{{ category }}">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     <div class="org-grid">
       {% for organisation in organisations %}
         <form method="POST">
@@ -105,6 +116,36 @@
   line-height: 1.7;
   max-width: 760px;
   margin-bottom: 2rem;
+}
+
+.org-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  color: white;
+  background: rgba(209, 24, 49, 0.18);
+  border: 1px solid rgba(209, 24, 49, 0.4);
+  animation: orgAlertFade 4s ease forwards;
+}
+
+.org-alert i {
+  color: #ffc107;
+}
+
+@keyframes orgAlertFade {
+  0%, 75% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+  }
 }
 
 .org-grid {
@@ -200,4 +241,9 @@
   }
 }
 </style>
+<script>
+  setTimeout(() => {
+    document.querySelectorAll(".org-alert").forEach((alert) => alert.remove());
+  }, 4200);
+</script>
 {% endblock %}
