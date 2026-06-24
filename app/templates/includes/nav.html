@@ -28,6 +28,7 @@
             {% elif theme == 'triste' %}🌧️
             {% elif theme == 'nature' %}🌿
             {% elif theme == 'romantique' %}💕
+            {% elif theme == 'voyage_spacial' %}🚀
             {% else %}🎵{% endif %}
           </span>
           <span class="theme-switcher-label d-none d-lg-inline">Ambiance</span>
@@ -70,6 +71,13 @@
                href="{{ url_for('mood.set_theme', theme='romantique', next=request.full_path) }}">
               <span class="theme-dot theme-dot-romantique"></span>
               <span>💕 Romantique</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'voyage_spacial' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='voyage_spacial', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-voyage-spacial"></span>
+              <span>🚀 Voyage spacial</span>
             </a>
           </li>
         </ul>
@@ -184,6 +192,7 @@
             {% elif theme == 'triste' %}🌧️
             {% elif theme == 'nature' %}🌿
             {% elif theme == 'romantique' %}💕
+            {% elif theme == 'voyage_spacial' %}🚀
             {% else %}🎵{% endif %}
           </span>
         </button>
@@ -224,6 +233,13 @@
                href="{{ url_for('mood.set_theme', theme='romantique', next=request.full_path) }}">
               <span class="theme-dot theme-dot-romantique"></span>
               <span>💕 Romantique</span>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item theme-option {% if theme == 'voyage_spacial' %}active{% endif %}"
+               href="{{ url_for('mood.set_theme', theme='voyage_spacial', next=request.full_path) }}">
+              <span class="theme-dot theme-dot-voyage-spacial"></span>
+              <span>🚀 Voyage spacial</span>
             </a>
           </li>
         </ul>
@@ -713,6 +729,7 @@
 .theme-dot-triste { background: linear-gradient(135deg, #5c9fd4, #2e5a8a); }
 .theme-dot-nature { background: linear-gradient(135deg, #7cb342, #1b5e20); }
 .theme-dot-romantique { background: linear-gradient(135deg, #ff80ab, #c2185b); }
+.theme-dot-voyage-spacial { background: linear-gradient(135deg, #7c3aed, #0ea5e9); }
 
 .theme-option.active {
   background: rgba(var(--rythmo-accent-rgb), 0.12);
