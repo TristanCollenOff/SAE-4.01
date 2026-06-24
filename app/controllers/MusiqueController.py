@@ -9,6 +9,48 @@ from app import app
 musique_bp = Blueprint("musique", __name__, url_prefix="/musique")
 dao = LecteurDAO()
 
+AMBIANCE_MUSIQUE = {
+    "default": {
+        "playlist": "Playlist Mix Rythmo",
+        "titre": "Signature Rythmo",
+        "artiste": "Mix Rythmo",
+        "suivante": "Pulse Rythmo",
+    },
+    "joyeux": {
+        "playlist": "Playlist Joyeuse",
+        "titre": "Soleil Pop",
+        "artiste": "Ambiance joyeuse",
+        "suivante": "Happy Groove",
+    },
+    "triste": {
+        "playlist": "Playlist Triste",
+        "titre": "Pluie Bleue",
+        "artiste": "Ambiance mélancolique",
+        "suivante": "Piano Gris",
+    },
+    "nature": {
+        "playlist": "Playlist Nature",
+        "titre": "Forêt Calme",
+        "artiste": "Ambiance nature",
+        "suivante": "Rivière Douce",
+    },
+    "romantique": {
+        "playlist": "Playlist Romantique",
+        "titre": "Cœur de Velours",
+        "artiste": "Ambiance romantique",
+        "suivante": "Slow Love",
+    },
+    "nuit": {
+        "playlist": "Playlist Nuit",
+        "titre": "Midnight Drive",
+        "artiste": "Ambiance nocturne",
+        "suivante": "Lune Synth",
+    },
+}
+
+def get_ambiance_musique():
+    theme = session.get("theme", "default")
+    return AMBIANCE_MUSIQUE.get(theme, AMBIANCE_MUSIQUE["default"])
 
 def get_permissions(role):
     """Retourne les permissions de contrôle musical selon le rôle."""
@@ -87,23 +129,30 @@ def musique():
     sites = get_sites(lecteurs)
     lecteur_actif = lecteurs[0] if lecteurs else None
 
+    ambiance = get_ambiance_musique()
+
     piste_actuelle = {
-        "titre": "Ambiance Matin",
-        "artiste": "Playlist d'ambiance",
+
+        "titre": ambiance["titre"],
+
+        "artiste": ambiance["artiste"],
+
         "duree": "3:45",
+
         "position": "1:20",
+
         "lecteur_id": lecteur_actif.id_lecteur if lecteur_actif else None,
-        "lecteur_nom": lecteur_actif.nom_lecteur if lecteur_actif else "Aucun lecteur"
-    }
+
+}
 
     programmation = {
         "en_cours": {
-            "playlist": "Ambiance Matin",
+            "playlist": ambiance["playlist"],
             "heure_debut": "08:00",
             "heure_fin": "12:00"
         },
         "prevue": {
-            "playlist": "Ambiance Après-midi",
+            "playlist": ambiance["suivante"],
             "heure_debut": "12:00",
             "heure_fin": "18:00"
         }

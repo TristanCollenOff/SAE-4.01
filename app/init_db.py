@@ -17,12 +17,10 @@ def init_db():
 
     print(f"--- Initialisation de la base : {db_path} ---")
 
-    # 📄 Vérification schema
     if not os.path.exists(schema_path):
         print("❌ schema.sql introuvable")
         return
 
-    # 🏗️ Création tables
     try:
         with sqlite3.connect(db_path) as conn:
             with open(schema_path, "r", encoding="utf-8") as f:
@@ -35,7 +33,6 @@ def init_db():
         print(f"❌ Erreur SQL : {e}")
         return
 
-    # 👑 Rôles
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
@@ -58,43 +55,65 @@ def init_db():
     except Exception as e:
         print(f"❌ Erreur rôles : {e}")
 
-    # 👤 USERS AVEC BCRYPT
     try:
         with sqlite3.connect(db_path) as conn:
-
             cursor = conn.cursor()
+
+            users = [
+                ("Admin", hash_password("Admin@12345"), "Admin", "System", "admin@test.com", "admin"),
+                ("Commercial", hash_password("Commercial@12345"), "Antoine", "User", "commercial@test.com", "commercial"),
+                ("Marketing", hash_password("Marketing@12345"), "Marie", "User", "marketing@test.com", "marketing"),
+            ]
+
             cursor.executemany(
                 """
                 INSERT OR IGNORE INTO utilisateur
                 (nom_utilisateur, motdepasse, prenom, nom, email, nom_role)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                [
-                    ("Admin", hash_password("Admin@12345"), "Admin", "System", "admin@test.com", "admin"),
-                    ("Commercial", hash_password("Commercial@12345"), "Antoine", "User", "commercial@test.com", "commercial"),
-                    ("Marketing", hash_password("Marketing@12345"), "Marie", "User", "marketing@test.com", "marketing"),
-                ]
+                users
             )
 
             conn.commit()
 
-            print("👤 Users OK (bcrypt)")
+        print("👤 Users OK (bcrypt)")
 
     except Exception as e:
         print("❌ Erreur users :", e)
 
-    # 🏢 Organisation + lecteur
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
 
-            cursor.execute("""
+            organisations = [
+                (1, "FNAC"),
+                (2, "Carrefour"),
+                (3, "Gare SNCF"),
+                (4, "Université"),
+                (5, "Aéroport"),
+                (6, "Salle de sport"),
+            ]
+
+            cursor.executemany(
+                """
                 INSERT OR IGNORE INTO organisation
                 (id_organisation, nom_organisation)
-                VALUES (1, 'Magasin Rythmo')
-            """)
+                VALUES (?, ?)
+                """,
+                organisations
+            )
 
-            cursor.execute("""
+            lecteurs = [
+                (1, "Lecteur FNAC", "10.192.104.28", "UP", "Accueil", "FNAC", 0, 1),
+                (2, "Lecteur Carrefour", "10.192.104.29", "UP", "Rayon Frais", "Carrefour", 0, 2),
+                (3, "Lecteur Gare SNCF", "10.192.104.30", "UP", "Hall principal", "Gare SNCF", 0, 3),
+                (4, "Lecteur Université", "10.192.104.31", "UP", "Bibliothèque", "Université", 0, 4),
+                (5, "Lecteur Aéroport", "10.192.104.32", "UP", "Terminal 1", "Aéroport", 0, 5),
+                (6, "Lecteur Salle de sport", "10.192.104.33", "UP", "Accueil sport", "Salle de sport", 0, 6),
+            ]
+
+            cursor.executemany(
+                """
                 INSERT OR IGNORE INTO lecteur (
                     id_lecteur,
                     nom_lecteur,
@@ -106,27 +125,19 @@ def init_db():
                     alerte,
                     id_organisation
                 )
-                VALUES (
-                    1,
-                    'Lecteur RPi5',
-                    '10.192.104.28',
-                    'UP',
-                    'Rayon Frais',
-                    DATE('now'),
-                    'Magasin',
-                    0,
-                    1
-                )
-            """)
+                VALUES (?, ?, ?, ?, ?, DATE('now'), ?, ?, ?)
+                """,
+                lecteurs
+            )
 
             conn.commit()
 
-        print("✅ Organisation + lecteur OK")
+        print("✅ Organisations + lecteurs OK")
 
     except Exception as e:
         print(f"❌ Erreur org/lecteur : {e}")
 
-    # 🔗 Affiliation
+    
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
@@ -134,12 +145,19 @@ def init_db():
             cursor.execute("SELECT id_utilisateur FROM utilisateur")
             users = cursor.fetchall()
 
+            cursor.execute("SELECT id_organisation FROM organisation")
+            organisations = cursor.fetchall()
+
             for (user_id,) in users:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO affilier
-                    (id_utilisateur, id_organisation)
-                    VALUES (?, ?)
-                """, (user_id, 1))
+                for (id_organisation,) in organisations:
+                    cursor.execute(
+                        """
+                        INSERT OR IGNORE INTO affilier
+                        (id_utilisateur, id_organisation)
+                        VALUES (?, ?)
+                        """,
+                        (user_id, id_organisation)
+                    )
 
             conn.commit()
 
@@ -148,7 +166,7 @@ def init_db():
     except Exception as e:
         print(f"❌ Erreur affilier : {e}")
 
-    # 🎬 Démo
+    
     print("\n--- Génération démo ---")
     generate_demo_playlists(db_path)
 
@@ -160,6 +178,8 @@ def generate_demo_playlists(db_path):
         cursor = conn.cursor()
 
         today = datetime.now().strftime("%Y-%m-%d")
+        week = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        fin = (datetime.now() + timedelta(days=365)).strftime("%Y-%m-%d")
 
         cursor.execute("""
             INSERT OR IGNORE INTO type_fichier
@@ -169,63 +189,133 @@ def generate_demo_playlists(db_path):
         cursor.execute("SELECT COUNT(*) FROM playlist")
         if cursor.fetchone()[0] > 0:
             print("ℹ playlists déjà présentes")
+            conn.close()
             return
 
-        fichiers = [
-            ("Morning Vibes", "/musique/matin/m1.mp3", 210),
-            ("Sunrise Energy", "/musique/matin/m2.mp3", 195),
-            ("Fresh Start", "/musique/matin/m3.mp3", 180),
-        ]
+        ambiances = {
+            "default": {
+                "playlist": "Playlist en cours",
+                "dossier": "en_cours",
+                "musiques": [
+                    ("Onde Première", 205),
+                    ("Tempo Initial", 188),
+                    ("Musique", 214),
+                    ("Pulse d'Accueil", 196),
+                    ("Harmonie Centrale", 202),
+                ],
+            },
+            "joyeux": {
+                "playlist": "Playlist Joyeuse",
+                "dossier": "joyeux",
+                "musiques": [
+                    ("Soleil Pop", 198),
+                    ("Sourire Urbain", 185),
+                    ("Happy Groove", 211),
+                    ("Énergie Positive", 192),
+                    ("Confettis Sonores", 204),
+                ],
+            },
+            "triste": {
+                "playlist": "Playlist Mélancolique",
+                "dossier": "triste",
+                "musiques": [
+                    ("Pluie Bleue", 220),
+                    ("Souvenir Lent", 207),
+                    ("Piano Gris", 231),
+                    ("Mélodie Perdue", 216),
+                    ("Nuages", 199),
+                ],
+            },
+            "nature": {
+                "playlist": "Playlist Nature",
+                "dossier": "nature",
+                "musiques": [
+                    ("Forêt Calme", 218),
+                    ("Rivière Douce", 224),
+                    ("Vent Léger", 206),
+                    ("Feuilles Vertes", 213),
+                    ("Horizon Nature", 229),
+                ],
+            },
+            "romantique": {
+                "playlist": "Playlist Romantique",
+                "dossier": "romantique",
+                "musiques": [
+                    ("Cœur de Velours", 215),
+                    ("Slow Love", 208),
+                    ("Rose Nuit", 221),
+                    ("Baiser Musical", 212),
+                    ("Douce Romance", 226),
+                ],
+            },
+            "nuit": {
+                "playlist": "Playlist Nocturne",
+                "dossier": "nuit",
+                "musiques": [
+                    ("Midnight Drive", 217),
+                    ("Lune Synth", 203),
+                    ("Étoiles Basses", 219),
+                    ("Silence Urbain", 210),
+                    ("Bleu Nocturne", 228),
+                ],
+            },
+        }
 
-        for nom, chemin, duree in fichiers:
-            cursor.execute("""
-                INSERT INTO fichier
-                (nom, chemin, duree_fichier, date_maj, type_fichier)
-                VALUES (?, ?, ?, ?, ?)
-            """, (nom, chemin, duree, today, "audio/mp3"))
+        for ambiance in ambiances.values():
+            id_fichiers = []
 
-        week = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
-        fin = (datetime.now() + timedelta(days=365)).strftime("%Y-%m-%d")
+            for index, (nom_musique, duree) in enumerate(ambiance["musiques"], start=1):
+                chemin = f"/musique/{ambiance['dossier']}/m{index}.mp3"
 
-        cursor.execute("""
-            INSERT INTO playlist (
-                nom_playlist,
-                date_creation,
-                date_fin_playlist,
-                date_derniere_maj,
-                publie,
-                id_organisation
-            )
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            "Playlist Matin",
-            week,
-            fin,
-            today,
-            1,
-            1
-        ))
+                cursor.execute(
+                    """
+                    INSERT INTO fichier
+                    (nom, chemin, duree_fichier, date_maj, type_fichier)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (nom_musique, chemin, duree, today, "audio/mp3")
+                )
 
-        id_playlist = cursor.lastrowid
+                id_fichiers.append(cursor.lastrowid)
 
-        for nom, _, _ in fichiers:
             cursor.execute(
-                "SELECT id_fichier FROM fichier WHERE nom = ?",
-                (nom,)
+                """
+                INSERT INTO playlist (
+                    nom_playlist,
+                    date_creation,
+                    date_fin_playlist,
+                    date_derniere_maj,
+                    publie,
+                    id_organisation
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    ambiance["playlist"],
+                    week,
+                    fin,
+                    today,
+                    1,
+                    1
+                )
             )
-            res = cursor.fetchone()
 
-            if res:
-                cursor.execute("""
+            id_playlist = cursor.lastrowid
+
+            for id_fichier in id_fichiers:
+                cursor.execute(
+                    """
                     INSERT INTO Contenir
                     (id_playlist, id_fichier)
                     VALUES (?, ?)
-                """, (id_playlist, res[0]))
+                    """,
+                    (id_playlist, id_fichier)
+                )
 
         conn.commit()
         conn.close()
 
-        print("✅ Démo OK")
+        print("✅ Démo playlists par ambiance OK")
 
     except Exception as e:
         print(f"❌ erreur démo : {e}")
