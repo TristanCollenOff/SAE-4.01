@@ -19,7 +19,7 @@ ldao = LogsDAO()
 @reqlogged
 @require_permission("view_history")
 def logs():
-    """Affiche l'historique de diffusion (lecture seule pour Marketing et Commercial)."""
+    """Affiche l'historique complet avec correction du bug de répétition d'organisation."""
     db_path = os.path.join(os.path.dirname(__file__), '../database.db')
     logs_data = []
     filter_search = request.args.get("user", "").strip()
@@ -29,21 +29,35 @@ def logs():
         with sqlite3.connect(db_path) as conn:
             conn.row_factory = sqlite3.Row
 
-            query = "SELECT * FROM fichier_log WHERE 1=1"
+            # En sélectionnant explicitement f.id_organisation, on évite que SQLite écrase les données
+            query = """
+                SELECT 
+                    f.id_log,
+                    f.type_action,
+                    f.message,
+                    f.date_fichierlog,
+                    f.id_organisation,
+                    o.nom_organisation
+                FROM fichier_log f
+                LEFT JOIN organisation o ON f.id_organisation = o.id_organisation
+                WHERE 1=1
+            """
             params = []
 
             if filter_search:
-                query += " AND LOWER(message) LIKE ?"
+                query += " AND LOWER(f.message) LIKE ?"
                 search_pattern = f"%{filter_search.lower()}%"
                 params.append(search_pattern)
 
             if filter_type:
-                query += " AND type_action = ?"
+                query += " AND f.type_action = ?"
                 params.append(filter_type)
 
-            query += " ORDER BY date_fichierlog DESC LIMIT 1000"
+            query += " ORDER BY f.date_fichierlog DESC LIMIT 1000"
 
-            logs_data = conn.execute(query, params).fetchall()
+            # On convertit explicitement en liste de dictionnaires pour Jinja
+            raw_rows = conn.execute(query, params).fetchall()
+            logs_data = [dict(row) for row in raw_rows]
 
             types_query = "SELECT DISTINCT type_action FROM fichier_log WHERE type_action IS NOT NULL ORDER BY type_action"
             log_types = [row['type_action'] for row in conn.execute(types_query).fetchall()]
@@ -66,8 +80,6 @@ def logs():
         log_types=log_types,
         readonly=not session.get("role") == "admin",
     )
-
-
 @app.route('/action_alerte/<int:id_lecteur>/<int:etat>')
 def action_alerte_uniquelogs(id_lecteur, etat):
     dao = LecteurDAO()

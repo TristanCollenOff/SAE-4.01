@@ -90,15 +90,21 @@ def supprimer_planif(id_planif):
 
         if not planif:
             flash("Planification introuvable", "error")
-            return redirect(url_for('index'))
+            # Utilise request.referrer pour revenir en arrière en sécurité, sinon l'index en dernier recours
+            return redirect(request.referrer or url_for('index'))
 
         id_lecteur = planif.id_lecteur
         dao_planif.delete(id_planif)
 
         flash("Planification supprimée avec succès", "success")
+        
+        # Sécurité : si id_lecteur n'a pas pu être récupéré (ex: None), on recule d'une page
+        if not id_lecteur:
+            return redirect(request.referrer or url_for('index'))
+            
         return redirect(url_for('planification.planifier_lecteur', id_lecteur=id_lecteur))
 
     except Exception as e:
         print(f"Erreur lors de la suppression: {e}")
         flash("Erreur lors de la suppression de la planification", "error")
-        return redirect(url_for('index'))
+        return redirect(request.referrer or url_for('index'))

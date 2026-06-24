@@ -7,5 +7,6 @@ class PlanificationService:
 
     def planifier(self, planif, username):
         self.dao.add(planif)
-        # Type 'info' pour incrémenter la case bleue du journal
-        add_log("info", username, f"A planifié une playlist pour le jour : {planif.jour_semaine}")
+        # Utilisation de jour_semaine de l'objet de manière sécurisée
+        jour = getattr(planif, 'jour_semaine', 'Inconnu')
+        add_log("info", username, f"A planifié une playlist pour le jour : {jour}")

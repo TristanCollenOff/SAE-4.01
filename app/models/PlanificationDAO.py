@@ -48,15 +48,16 @@ class PlanificationDAO:
         
         planifications = []
         for row in rows:
+            # CORRECTION : Utilisation des arguments nommés pour respecter le constructeur
             planif = Planification(
-                row[1],  # id_lecteur
-                row[2],  # id_playlist
-                row[3],  # heure_debut
-                row[4],  # heure_fin
-                row[5],  # date_
-                row[0],  # id_planification
+                id_lecteur=row[1],
+                id_playlist=row[2],
+                jour_semaine=row[5],  # p.date_ correspond au jour de la semaine (Lundi, Mardi...)
+                heure_debut=row[3],
+                heure_fin=row[4],
+                id_planification=row[0]
             )
-            # Ajouter le nom de la playlist comme attribut dynamique
+            # Ajout du nom de la playlist comme attribut dynamique
             planif.nom_playlist = row[6]
             planifications.append(planif)
         
@@ -64,7 +65,7 @@ class PlanificationDAO:
     
     def find_one(self, id_planif):
         """Récupère une planification par son ID"""
-        query = "SELECT * FROM planification WHERE id_planification = ?"
+        query = "SELECT id_planification, id_playlist, heure_debut, heure_fin, date_ FROM planification WHERE id_planification = ?"
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(query, (id_planif,))
             row = cursor.fetchone()
@@ -72,13 +73,15 @@ class PlanificationDAO:
         if not row:
             return None
         
+        # Pour find_one, on n'a pas directement l'id_lecteur dans la table planification, 
+        # on peut lui passer None ou faire une jointure si nécessaire.
         return Planification(
-            row[1],  # id_lecteur
-            row[2],  # id_playlist
-            row[3],  # heure_debut
-            row[4],  # heure_fin
-            row[5],  # date_
-            row[0],  # id_planification
+            id_lecteur=None,
+            id_playlist=row[1],
+            heure_debut=row[2],
+            heure_fin=row[3],
+            jour_semaine=row[4],
+            id_planification=row[0]
         )
     
     def delete(self, id_planif):

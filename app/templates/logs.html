@@ -530,77 +530,77 @@
     </div>
 
     <div class="logs-table-wrapper">
-      <table class="logs-table" id="logTable">
-        <thead>
-          <tr>
-            <th>
-              <i class="bi bi-calendar3"></i> Date
-            </th>
-            <th>
-              <i class="bi bi-tag"></i> Type d'action
-            </th>
-            <th>
-              <i class="bi bi-building"></i> ID Org
-            </th>
-            <th>
-              <i class="bi bi-chat-left-text"></i> Message
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for log in logs %}
-          {# Ajout d'un attribut data-type pour faciliter le filtrage JS #}
-          <tr class="log-row" data-type="{{ log.type_action }}">
-            <td class="log-date">
-              <i class="bi bi-clock"></i>
-              {{ log.date_fichierlog }}
-            </td>
-            <td>
-              {% if log.type_action in ['WARNING'] %}
-                <span class="log-badge log-badge-warning">
-                  <i class="bi bi-exclamation-triangle-fill"></i>
-                  Warning
-                </span>
-              {% elif log.type_action in ['ERROR', 'ALERTE'] %}
-                <span class="log-badge log-badge-error">
-                  <i class="bi bi-x-circle-fill"></i>
-                  {{ log.type_action|title }}
-                </span>
-              {% elif log.type_action == 'CONNEXION' %}
-                <span class="log-badge log-badge-success" style="background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc;">
-                  <i class="bi bi-box-arrow-in-right"></i>
-                  Connexion
-                </span>
-              {% else %}
-                <span class="log-badge log-badge-info">
-                  <i class="bi bi-info-circle-fill"></i>
-                  Info
-                </span>
-              {% endif %}
-            </td>
-            <td class="log-user">
-              <div class="user-badge">
-                <i class="bi bi-hash"></i>
-                <strong>{{ log.id_organisation }}</strong>
-              </div>
-            </td>
-            <td class="log-message">
-              {{ log.message }}
-            </td>
-          </tr>
-          {% else %}
-          <tr>
-            <td colspan="4" class="logs-empty">
-              <div class="empty-state">
-                <i class="bi bi-inbox"></i>
-                <p>Aucun log enregistré pour le moment</p>
-                <small>Les événements système apparaîtront ici</small>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<table class="logs-table" id="logTable">
+  <thead>
+    <tr>
+      <th>
+        <i class="bi bi-calendar3"></i> Date
+      </th>
+      <th>
+        <i class="bi bi-tag"></i> Type d'action
+      </th>
+      <th>
+        <i class="bi bi-building"></i> Organisation
+      </th>
+      <th>
+        <i class="bi bi-chat-left-text"></i> Message
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for log in logs %}
+    {# Ajout d'un attribut data-type pour faciliter le filtrage JS #}
+    <tr class="log-row" data-type="{{ log.type_action }}">
+      <td class="log-date">
+        <i class="bi bi-clock"></i>
+        {{ log.date_fichierlog }}
+      </td>
+      <td>
+        {% if log.type_action in ['WARNING'] %}
+          <span class="log-badge log-badge-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Warning
+          </span>
+        {% elif log.type_action in ['ERROR', 'ALERTE'] %}
+          <span class="log-badge log-badge-error">
+            <i class="bi bi-x-circle-fill"></i>
+            {{ log.type_action|title }}
+          </span>
+        {% elif log.type_action == 'CONNEXION' %}
+          <span class="log-badge log-badge-success" style="background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc;">
+            <i class="bi bi-box-arrow-in-right"></i>
+            Connexion
+          </span>
+        {% else %}
+          <span class="log-badge log-badge-info">
+            <i class="bi bi-info-circle-fill"></i>
+            Info
+          </span>
+        {% endif %}
+      </td>
+      <td class="log-user">
+        <div class="user-badge">
+          <i class="bi bi-building"></i>
+          <strong>{{ log.nom_organisation if log.nom_organisation else "Système" }}</strong>
+        </div>
+      </td>
+      <td class="log-message">
+        {{ log.message }}
+      </td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="4" class="logs-empty">
+        <div class="empty-state">
+          <i class="bi bi-inbox"></i>
+          <p>Aucun log enregistré pour le moment</p>
+          <small>Les événements système apparaîtront ici</small>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
     </div>
   </div>
 

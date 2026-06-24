@@ -71,12 +71,33 @@ def login():
 
         user = result
 
-        # SESSION
+        # SESSION BASE
         session["user_id"] = user.id
         session["username"] = user.username
         session["role"] = user.role
         session["logged"] = True
 
+        # ==========================================================
+        # RÉCUPÉRATION DE L'ORGANISATION DE L'UTILISATEUR
+        # ==========================================================
+        try:
+            with sqlite3.connect(DB_PATH) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.execute(
+                    "SELECT id_organisation FROM affilier WHERE id_utilisateur = ?", 
+                    (user.id,)
+                )
+                affiliation = cursor.fetchone()
+                
+                if affiliation:
+                    session["id_organisation"] = affiliation["id_organisation"]
+                else:
+                    session["id_organisation"] = 1  # Valeur par défaut (ex: FNAC) si aucune liaison
+        except Exception as e:
+            print(f"Erreur lors de la récupération de l'organisation au login : {e}")
+            session["id_organisation"] = 1
+
+        # Génère le log de connexion avec la bonne organisation chargée en session
         log_login(user)
 
         if user.role == "marketing":
@@ -85,8 +106,6 @@ def login():
         return redirect(url_for("organisation.choose_organisation"))
     
     return render_template("login.html")
-
-
 
 # -----------------------------
 # LOGOUT

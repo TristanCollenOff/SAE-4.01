@@ -9,6 +9,7 @@ from app.services.permissions import normalize_role
 from app.services.log_service import add_log, LOG_TYPES
 
 # --- ACCUEIL ---
+# --- ACCUEIL ---
 @app.route("/", methods=['GET'])
 @reqlogged
 def index():
@@ -23,13 +24,17 @@ def index():
 
     try:
         conn = sqlite3.connect(db_path)
-        stats["nb_lecteurs"] = conn.execute('SELECT COUNT(*) FROM Lecteur').fetchone()[0]
+        # Correction : 'lecteur' au lieu de 'Lecteur'
+        stats["nb_lecteurs"] = conn.execute('SELECT COUNT(*) FROM lecteur').fetchone()[0]
         try:
-            stats["nb_logs"] = conn.execute('SELECT COUNT(*) FROM FichierLog').fetchone()[0]
-        except Exception:
+            # Correction : 'fichier_log' au lieu de 'FichierLog'
+            stats["nb_logs"] = conn.execute('SELECT COUNT(*) FROM fichier_log').fetchone()[0]
+        except Exception as e:
+            print(f"Erreur lors du COUNT de fichier_log : {e}")
             pass
         conn.close()
-    except Exception:
+    except Exception as e:
+        print(f"Erreur de connexion BDD sur l'index : {e}")
         pass
 
     playback = PlaybackService(db_path).get_dashboard_playback()
@@ -42,7 +47,6 @@ def index():
         playback=playback,
         theme=session.get("theme", "default")
     )
-
 
 @app.route("/lecteurs", methods=['GET'])
 @reqlogged
