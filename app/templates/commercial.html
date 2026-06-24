@@ -1,86 +1,309 @@
 {% extends 'layout.html' %}
 
+{% block styles %}
+<style>
+/* ===== HERO REPRIS DU STYLE LOGS / PLANIF ===== */
+.logs-hero {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+.logs-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+.logs-hero h1 i {
+  color: #ffc107;
+  margin-right: 0.5rem;
+}
+.logs-hero p {
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+/* ===== ACTIONS ET FORMULAIRES ===== */
+.logs-actions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-rythmo-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-rythmo-back:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.logs-search-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.logs-search-input:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffc107;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+}
+
+.logs-search-input option {
+  background: #1a060c;
+  color: white;
+}
+
+.form-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+}
+
+/* ===== CARTES VITRÉES STYLE LOGS (GLASSMORPHISM) ===== */
+.logs-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 193, 7, 0.15),
+    rgba(255, 230, 150, 0.12),
+    rgba(255, 255, 255, 0.05)
+  );
+  backdrop-filter: blur(28px);
+  border: 1.5px solid rgba(255, 193, 7, 0.35);
+  box-shadow: 0 18px 55px rgba(255, 193, 7, 0.25);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.logs-card-header {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logs-header-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logs-header-info i {
+  font-size: 2rem;
+  color: #ffc107;
+}
+
+.logs-header-info h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.logs-card-body {
+  padding: 2rem;
+}
+
+/* ===== ACCÈS RAPIDE / HUBCARDS ===== */
+.hub-card-commercial {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  height: 100%;
+  color: white;
+}
+
+.hub-card-commercial:hover {
+  background: rgba(255, 193, 7, 0.08);
+  border-color: rgba(255, 193, 7, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(255, 193, 7, 0.15);
+  color: white;
+}
+
+.hub-card-commercial h4 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hub-card-commercial h4 i {
+  color: #ffc107;
+}
+
+.hub-card-commercial p {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+/* Éléments d'alerte urgente */
+#urgentResult {
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .logs-hero h1 {
+    font-size: 2rem;
+  }
+  .logs-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4 pb-5">
-  <div class="section-header-compact mb-4">
-    <div>
-      <h1><i class="bi bi-megaphone-fill"></i> Espace Commercial</h1>
-      <p>Publicités, annonces et diffusion sur les lecteurs</p>
-    </div>
-    <a href="{{ url_for('index') }}" class="btn-section-header">
-      <i class="bi bi-arrow-left"></i> Tableau de bord
+<div class="logs-hero">
+  <div class="container">
+    <h1><i class="bi bi-megaphone"></i> Espace Commercial</h1>
+    <p>Gérez les publicités, les annonces et déclenchez des diffusions urgentes</p>
+  </div>
+</div>
+
+<div class="container mt-2 pb-5">
+  
+  <div class="logs-actions mb-4">
+    <a href="{{ url_for('index') }}" class="btn btn-rythmo-back">
+      <i class="bi bi-arrow-left"></i> Retour au tableau de bord
     </a>
   </div>
 
   <div class="row g-4">
+    
     <div class="col-lg-6">
-      <div class="admin-card p-4 h-100">
-        <h3><i class="bi bi-plus-circle"></i> Ajouter une publicité / annonce</h3>
-        <form method="post" class="mt-3">
-          <input type="hidden" name="action" value="create">
-          <div class="mb-3">
-            <label class="form-label">Type de contenu</label>
-            <select name="contenu_type" class="form-select">
-              <option value="publicite">Publicité</option>
-              <option value="annonce">Annonce</option>
-            </select>
+      <div class="logs-card h-100">
+        <div class="logs-card-header">
+          <div class="logs-header-info">
+            <i class="bi bi-plus-circle-fill"></i>
+            <div>
+              <h2>Ajouter une publicité / annonce</h2>
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Titre</label>
-            <input type="text" name="titre" class="form-control" required placeholder="Ex. Promo été">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Lecteur cible</label>
-            <select name="id_lecteur" class="form-select" required>
-              {% for lecteur in lecteurs %}
-              <option value="{{ lecteur.id_lecteur }}">{{ lecteur.nom_lecteur }} — {{ lecteur.adresse_lecteur or 'Sans zone' }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <button type="submit" class="btn btn-rythmo-primary">
-            <i class="bi bi-save"></i> Enregistrer
-          </button>
-        </form>
+        </div>
+        <div class="logs-card-body">
+          <form method="post">
+            <input type="hidden" name="action" value="create">
+            
+            <div class="mb-3">
+              <label class="form-label">Type de contenu</label>
+              <select name="contenu_type" class="logs-search-input" style="padding-left:1.25rem;">
+                <option value="publicite">Publicité</option>
+                <option value="annonce">Annonce</option>
+              </select>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Titre du contenu</label>
+              <input type="text" name="titre" class="logs-search-input" style="padding-left:1.25rem;" required placeholder="Ex. Promo d'été Carrefour">
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label">Lecteur cible</label>
+              <select name="id_lecteur" class="logs-search-input" style="padding-left:1.25rem;" required>
+                {% for lecteur in lecteurs %}
+                <option value="{{ lecteur.id_lecteur }}">{{ lecteur.nom_lecteur }} — {{ lecteur.adresse_lecteur or 'Sans zone' }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <button type="submit" class="btn btn-warning w-100 fw-bold py-2" style="border-radius: 12px;">
+              <i class="bi bi-save me-1"></i> Enregistrer dans la bibliothèque
+            </button>
+          </form>
+        </div>
       </div>
     </div>
 
     <div class="col-lg-6">
-      <div class="admin-card p-4 h-100">
-        <h3><i class="bi bi-lightning-charge-fill"></i> Annonce urgente</h3>
-        <p class="text-muted">Diffuse immédiatement une annonce sur le lecteur choisi.</p>
-        <div class="mb-3">
-          <label class="form-label">Lecteur</label>
-          <select id="urgentLecteur" class="form-select">
-            {% for lecteur in lecteurs %}
-            <option value="{{ lecteur.id_lecteur }}">{{ lecteur.nom_lecteur }}</option>
-            {% endfor %}
-          </select>
+      <div class="logs-card h-100">
+        <div class="logs-card-header" style="border-bottom-color: rgba(220, 53, 69, 0.2);">
+          <div class="logs-header-info">
+            <i class="bi bi-lightning-charge-fill" style="color: #dc3545;"></i>
+            <div>
+              <h2>Annonce urgente instantanée</h2>
+            </div>
+          </div>
         </div>
-        <button type="button" class="btn btn-danger" id="urgentBtn">
-          <i class="bi bi-broadcast"></i> Déclencher maintenant
-        </button>
-        <div id="urgentResult" class="mt-3"></div>
+        <div class="logs-card-body d-flex flex-column justify-content-between">
+          <div>
+            <p class="text-muted small mb-4">
+              <i class="bi bi-info-circle"></i> Le déclenchement interrompt la musique en cours sur le lecteur pour diffuser immédiatement votre message d'urgence.
+            </p>
+            
+            <div class="mb-4">
+              <label class="form-label">Sélectionner le lecteur cible</label>
+              <select id="urgentLecteur" class="logs-search-input" style="padding-left:1.25rem;">
+                {% for lecteur in lecteurs %}
+                <option value="{{ lecteur.id_lecteur }}">{{ lecteur.nom_lecteur }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <button type="button" class="btn btn-danger w-100 fw-bold py-2" id="urgentBtn" style="border-radius: 12px; background-color: #dc3545;">
+              <i class="bi bi-broadcast me-1"></i> Déclencher l'interruption maintenant
+            </button>
+            <div id="urgentResult" class="mt-3 p-2 text-center text-white-50 small"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="row g-4 mt-1">
+  <div class="row g-4 mt-3">
     <div class="col-md-4">
-      <a href="{{ url_for('playlist.playlists') }}" class="hub-card text-decoration-none d-block admin-card p-4">
-        <h4><i class="bi bi-music-note-list"></i> Playlists disponibles</h4>
-        <p>Consulter les playlists publiées</p>
+      <a href="{{ url_for('playlist.playlists') }}" class="text-decoration-none d-block">
+        <div class="hub-card-commercial">
+          <h4><i class="bi bi-music-note-list"></i> Playlists disponibles</h4>
+          <p>Consulter le catalogue et les contenus publiés</p>
+        </div>
       </a>
     </div>
     <div class="col-md-4">
-      <a href="{{ url_for('planification.planifier_lecteur', id_lecteur=lecteurs[0].id_lecteur if lecteurs else 1) }}" class="hub-card text-decoration-none d-block admin-card p-4">
-        <h4><i class="bi bi-calendar-week"></i> Planifier une diffusion</h4>
-        <p>Choisir un créneau ou une playlist</p>
+      <a href="{{ url_for('planification.planifier_lecteur', id_lecteur=lecteurs[0].id_lecteur if lecteurs else 1) }}" class="text-decoration-none d-block">
+        <div class="hub-card-commercial">
+          <h4><i class="bi bi-calendar-week"></i> Planifier une diffusion</h4>
+          <p>Programmer des plages horaires et gérer le planning</p>
+        </div>
       </a>
     </div>
     <div class="col-md-4">
-      <a href="{{ url_for('lecteurs_ops.lecteurs_ops') }}" class="hub-card text-decoration-none d-block admin-card p-4">
-        <h4><i class="bi bi-speaker"></i> État des lecteurs</h4>
-        <p>Consulter le statut en temps réel</p>
+      <a href="{{ url_for('lecteurs_ops.lecteurs_ops') }}" class="text-decoration-none d-block">
+        <div class="hub-card-commercial">
+          <h4><i class="bi bi-speaker"></i> État des lecteurs</h4>
+          <p>Vérifier la connectivité et le statut des appareils</p>
+        </div>
       </a>
     </div>
   </div>
@@ -90,13 +313,18 @@
 document.getElementById('urgentBtn')?.addEventListener('click', async function() {
   const id = document.getElementById('urgentLecteur').value;
   const result = document.getElementById('urgentResult');
-  result.textContent = 'Envoi en cours...';
+  
+  result.style.color = '#ffc107';
+  result.textContent = '⏳ Envoi de la commande au lecteur...';
+  
   try {
     const response = await fetch('/api/lancer_pub/' + id);
     const data = await response.json();
-    result.textContent = data.message || data.status;
+    result.style.color = '#28a745';
+    result.textContent = '✓ ' + (data.message || data.status);
   } catch (e) {
-    result.textContent = 'Erreur lors du déclenchement.';
+    result.style.color = '#dc3545';
+    result.textContent = '❌ Erreur de communication lors du déclenchement.';
   }
 });
 </script>
