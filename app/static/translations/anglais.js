@@ -500,4 +500,110 @@
       }
     `;
 
-    
+    const button = document.createElement("button");
+    button.id = "rythmo-language-switcher";
+    button.className = "rythmo-language-switcher";
+    button.type = "button";
+    button.setAttribute("aria-label", currentLanguage === "en" ? "Passer en français" : "Switch to English");
+    button.textContent = currentLanguage === "en" ? "FR" : "EN";
+    button.addEventListener("click", () => {
+      localStorage.setItem(STORAGE_KEY, currentLanguage === "en" ? "fr" : "en");
+      window.location.reload();
+    });
+
+    document.head.appendChild(style);
+    document.body.appendChild(button);
+  }
+
+  function normalize(text) {
+    return String(text || "").replace(/\s+/g, " " ).trim();
+  }
+
+  function translateText(value) {
+    const key = normalize(value);
+    if (translations[key]) return translations[key];
+    for (const [pattern, replacement] of patternTranslations) {
+      if (pattern.test(key)) return key.replace(pattern, replacement);
+    }
+    return null;
+  }
+
+  function replaceTextNode(node) {
+    const translated = translateText(node.nodeValue);
+    if (!translated) return;
+    const leading = (node.nodeValue.match(/^\s*/) || [""])[0];
+    const trailing = (node.nodeValue.match(/\s*$/) || [""])[0];
+    node.nodeValue = leading + translated + trailing;
+  }
+
+  function translateElementAttributes(element) {
+    attrNames.forEach((attr) => {
+      if (!element.hasAttribute(attr)) return;
+      const translated = translateText(element.getAttribute(attr));
+      if (translated) element.setAttribute(attr, translated);
+    });
+  }
+
+  function translateRoot(root) {
+    if (!root) return;
+    if (root.nodeType === Node.ELEMENT_NODE) translateElementAttributes(root);
+
+    const walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode(node) {
+          const parent = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+          if (!parent || ignoredTags.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    const textNodes = [];
+    const elements = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (node.nodeType === Node.TEXT_NODE) textNodes.push(node);
+      if (node.nodeType === Node.ELEMENT_NODE) elements.push(node);
+    }
+
+    elements.forEach(translateElementAttributes);
+    textNodes.forEach(replaceTextNode);
+  }
+
+  function translateDocument() {
+    document.documentElement.lang = currentLanguage;
+    addLanguageSwitcher();
+    if (currentLanguage === "fr") return;
+
+    if (document.title) {
+      const translatedTitle = translateText(document.title);
+      if (translatedTitle) document.title = translatedTitle;
+    }
+    translateRoot(document.body);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", translateDocument);
+  } else {
+    translateDocument();
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    if (currentLanguage === "fr") return;
+    observer.disconnect();
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === Node.TEXT_NODE) replaceTextNode(node);
+        if (node.nodeType === Node.ELEMENT_NODE) translateRoot(node);
+      });
+      if (mutation.type === "characterData") replaceTextNode(mutation.target);
+    });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  });
+
+  if (document.body) {
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
+})();
