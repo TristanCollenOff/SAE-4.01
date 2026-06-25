@@ -63,6 +63,8 @@ def init_db():
                 ("Admin", hash_password("Admin@12345"), "Admin", "System", "admin@test.com", "admin"),
                 ("Commercial", hash_password("Commercial@12345"), "Antoine", "User", "commercial@test.com", "commercial"),
                 ("Marketing", hash_password("Marketing@12345"), "Marie", "User", "marketing@test.com", "marketing"),
+                ("CommercialFNAC", hash_password("CommercialFNAC@12345"), "Commercial", "FNAC", "commercialfnac@mail.com", "commercial"),
+                ("CommercialGare", hash_password("CommercialGare@12345"), "Commercial", "Gare", "commercialgare@mail.com", "commercial")
             ]
 
             cursor.executemany(
@@ -142,13 +144,14 @@ def init_db():
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
 
-            cursor.execute("SELECT id_utilisateur FROM utilisateur")
-            users = cursor.fetchall()
+            # Comptes généraux : accès à toutes les organisations
+            cursor.execute("SELECT id_utilisateur FROM utilisateur WHERE nom_utilisateur IN ('Admin', 'Commercial', 'Marketing')")
+            users_generaux = cursor.fetchall()
 
             cursor.execute("SELECT id_organisation FROM organisation")
             organisations = cursor.fetchall()
 
-            for (user_id,) in users:
+            for (user_id,) in users_generaux:
                 for (id_organisation,) in organisations:
                     cursor.execute(
                         """
@@ -158,6 +161,23 @@ def init_db():
                         """,
                         (user_id, id_organisation)
                     )
+
+            # Comptes de démonstration : accès limité à une seule organisation
+            cursor.execute("""
+                INSERT OR IGNORE INTO affilier (id_utilisateur, id_organisation)
+                VALUES (
+                    (SELECT id_utilisateur FROM utilisateur WHERE nom_utilisateur = ?),
+                    (SELECT id_organisation FROM organisation WHERE nom_organisation = ?)
+                )
+            """, ("CommercialFNAC", "FNAC"))
+
+            cursor.execute("""
+                INSERT OR IGNORE INTO affilier (id_utilisateur, id_organisation)
+                VALUES (
+                    (SELECT id_utilisateur FROM utilisateur WHERE nom_utilisateur = ?),
+                    (SELECT id_organisation FROM organisation WHERE nom_organisation = ?)
+                )
+            """, ("CommercialGare", "Gare SNCF"))
 
             conn.commit()
 
