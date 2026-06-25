@@ -340,6 +340,72 @@
   </div>
   {% endif %}
 
+  {% if user_can("manage_sites_zones") %}
+  <div class="sites-zones-integrated-section mt-5">
+    <div class="section-header-compact">
+      <div>
+        <h2><i class="bi bi-diagram-3-fill"></i> Sites & Zones</h2>
+        <p>Organisez vos espaces de manière hiérarchique</p>
+      </div>
+      <a href="{{ url_for('sites_zones.sites_zones') }}" class="btn-section-header">
+        Explorer <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="hierarchy-integrated-visual">
+      <div class="hierarchy-integrated-flow">
+        <div class="hierarchy-integrated-node hierarchy-node-site">
+          <div class="hierarchy-node-icon">
+            <i class="bi bi-building"></i>
+          </div>
+          <div class="hierarchy-node-content">
+            <h4>Sites</h4>
+            <p>Vos emplacements principaux</p>
+          </div>
+        </div>
+        <div class="hierarchy-integrated-arrow">
+          <i class="bi bi-arrow-right"></i>
+        </div>
+        <div class="hierarchy-integrated-node hierarchy-node-zone">
+          <div class="hierarchy-node-icon">
+            <i class="bi bi-grid-3x3"></i>
+          </div>
+          <div class="hierarchy-node-content">
+            <h4>Zones</h4>
+            <p>Divisions au sein des sites</p>
+          </div>
+        </div>
+        <div class="hierarchy-integrated-arrow">
+          <i class="bi bi-arrow-right"></i>
+        </div>
+        <div class="hierarchy-integrated-node hierarchy-node-lecteur">
+          <div class="hierarchy-node-icon">
+            <i class="bi bi-speaker"></i>
+          </div>
+          <div class="hierarchy-node-content">
+            <h4>Lecteurs</h4>
+            <p>Appareils audio configurés</p>
+          </div>
+        </div>
+      </div>
+      <div class="hierarchy-integrated-features">
+        <div class="hierarchy-feature-badge">
+          <i class="bi bi-eye"></i>
+          <span>Vue hiérarchique complète</span>
+        </div>
+        <div class="hierarchy-feature-badge">
+          <i class="bi bi-arrows-angle-contract"></i>
+          <span>Actions groupées</span>
+        </div>
+        <div class="hierarchy-feature-badge">
+          <i class="bi bi-funnel"></i>
+          <span>Filtres intelligents</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
 
   {% if user_can("manage_alertes") %}
   <div class="alertes-section mt-5">

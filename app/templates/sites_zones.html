@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<!-- HERO -->
+<div class="sites-zones-hero">
+  <div class="container">
+    <h1><i class="bi bi-diagram-3-fill"></i> Sites & Zones</h1>
+    <p>Organisez vos espaces de manière hiérarchique</p>
+  </div>
+</div>
+
+<!-- CONTENU -->
+<div class="container mt-4 pb-5">
+
+  <!-- Actions -->
+  <div class="sites-zones-actions mb-4">
+    <a href="{{ url_for('index') }}" class="btn btn-rythmo-back">
+      <i class="bi bi-arrow-left"></i> Retour
+    </a>
+
+    <div class="actions-group">
+      <button class="btn btn-rythmo-primary" id="createSiteBtn">
+        <i class="bi bi-building-add"></i> Créer un site
+      </button>
+      <button class="btn btn-rythmo-primary" id="createZoneBtn">
+        <i class="bi bi-geo-alt-fill"></i> Créer une zone
+      </button>
+    </div>
+  </div>
+
+  <!-- TON HTML RESTE IDENTIQUE ICI -->
+  ... (tout ton gros template sites/zones)
+</div>
+
+<!-- MODALS -->
+... (tes modals inchangés)
+
+{% endblock %}
